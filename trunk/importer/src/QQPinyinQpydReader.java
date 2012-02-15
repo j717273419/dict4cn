@@ -9,8 +9,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.zip.InflaterOutputStream;
 
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-
 /**
  * QQ Pinyin IME QPYD File Reader
  * 
@@ -34,11 +32,11 @@ public class QQPinyinQpydReader {
         String dataString = new String(dataRawBytes.array(), "UTF-16LE");
 
         // print header
-        System.out.println("名称：" + substringBetween(dataString, "Name: ", "\n"));
-        System.out.println("类型：" + substringBetween(dataString, "Type: ", "\n"));
-        System.out.println("子类型：" + substringBetween(dataString, "FirstType: ", "\n"));
-        System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\n"));
-        System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\n"));
+        System.out.println("名称：" + substringBetween(dataString, "Name: ", "\r\n"));
+        System.out.println("类型：" + substringBetween(dataString, "Type: ", "\r\n"));
+        System.out.println("子类型：" + substringBetween(dataString, "FirstType: ", "\r\n"));
+        System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\r\n"));
+        System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\r\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
         int startZippedDictAddr = dataRawBytes.getInt(0x38);
         System.out.println("压缩词库数据地址：0x" + Integer.toHexString(startZippedDictAddr));
@@ -81,7 +79,7 @@ public class QQPinyinQpydReader {
         int nStart = text.indexOf(start);
         int nEnd = text.indexOf(end, nStart + 1);
         if (nStart != -1 && nEnd != -1) {
-            return text.substring(nStart + start.length(), nEnd - 1);
+            return text.substring(nStart + start.length(), nEnd);
         } else {
             return null;
         }
