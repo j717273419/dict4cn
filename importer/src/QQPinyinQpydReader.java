@@ -40,7 +40,7 @@ public class QQPinyinQpydReader {
         System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\n"));
         System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
-        int startZippedDictAddr = indexOf(dataRawBytes.array(), new byte[] { (byte) 0x78, (byte) 0x9C });
+        int startZippedDictAddr = dataRawBytes.getInt(0x38);
         System.out.println("压缩词库数据地址：0x" + Integer.toHexString(startZippedDictAddr));
         System.out.println();
 
@@ -85,21 +85,5 @@ public class QQPinyinQpydReader {
         } else {
             return null;
         }
-    }
-
-    public static final int indexOf(byte[] data, byte[] pattern) {
-        for (int i = 0; i < data.length; i++) {
-            boolean found = true;
-            for (int j = 0; j < pattern.length; j++) {
-                if (data[i + j] != pattern[j]) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) {
-                return i;
-            }
-        }
-        return -1;
     }
 }
