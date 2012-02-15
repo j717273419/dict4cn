@@ -6,12 +6,38 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.zip.InflaterOutputStream;
 
 /**
  * QQ Pinyin IME QPYD File Reader
+ * 
+ * <pre>
+ * QPYD Format overview:
+ * 
+ * General Information:
+ * - Chinese characters are all encoded with UTF-16LE.
+ * - Pinyin are encoded in ascii (or UTF-8).
+ * - Numbers are using little endian byte order.
+ * 
+ * QPYD hex analysis:
+ * - 0x00 QPYD file identifier
+ * - 0x38 offset of compressed data (word-pinyin-dictionary)
+ * - 0x44 total words in qpyd
+ * - 0x60 start of header information
+ * 
+ * Compressed data analysis:
+ * - zip/standard (beginning with 0x789C) is used in (all analyzed) qpyd files
+ * - data is divided in two parts
+ * -- 1. offset and length information (16 bytes for each pinyin-word pair)
+ *       0x06 offset points to first pinyin
+ *       0x00 length of pinyin
+ *       0x01 length of word
+ * -- 2. actual data
+ *       Dictionary data has the form ((pinyin)(word))* with no separators.
+ *       Data can only be read using offset and length information. 
+ * 
+ * </pre>
  * 
  * @author keke
  */
@@ -29,8 +55,13 @@ public class QQPinyinQpydReader {
         // qpyd as bytes
         ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+
+        // read info of compressed data
+        int startZippedDictAddr = dataRawBytes.getInt(0x38);
+        int zippedDictLength = dataRawBytes.limit() - startZippedDictAddr;
+
         // qpys as UTF-16LE string
-        String dataString = new String(dataRawBytes.array(), "UTF-16LE");
+        String dataString = new String(Arrays.copyOfRange(dataRawBytes.array(), 0x60, startZippedDictAddr), "UTF-16LE");
 
         // print header
         System.out.println("名称：" + substringBetween(dataString, "Name: ", "\r\n"));
@@ -39,22 +70,22 @@ public class QQPinyinQpydReader {
         System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\r\n"));
         System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\r\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
-        int startZippedDictAddr = dataRawBytes.getInt(0x38);
-        System.out.println("压缩词库数据地址：0x" + Integer.toHexString(startZippedDictAddr));
+
+        System.out.println("压缩数据：0x" + Integer.toHexString(startZippedDictAddr) + " (" + zippedDictLength
+                + " bytes)");
         System.out.println();
 
         // read zipped qqyd dictionary into byte array
         dataOut.reset();
-        WritableByteChannel dataChannel = Channels.newChannel(new InflaterOutputStream(dataOut));
-        dataChannel.write(ByteBuffer.wrap(dataRawBytes.array(), startZippedDictAddr, dataRawBytes.limit()
-                - startZippedDictAddr));
+        Channels.newChannel(new InflaterOutputStream(dataOut)).write(
+                ByteBuffer.wrap(dataRawBytes.array(), startZippedDictAddr, zippedDictLength));
 
         // uncompressed qqyd dictionary as bytes
         ByteBuffer dataUnzippedBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataUnzippedBytes.order(ByteOrder.LITTLE_ENDIAN);
-        
-        // save unzipped data to *.unzipped file
-        Channels.newChannel(new FileOutputStream(qqydFile+".unzipped")).write(dataUnzippedBytes);
+
+        // for debugging: save unzipped data to *.unzipped file
+        Channels.newChannel(new FileOutputStream(qqydFile + ".unzipped")).write(dataUnzippedBytes);
 
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
@@ -73,7 +104,7 @@ public class QQPinyinQpydReader {
             String word = new String(Arrays.copyOfRange(dataUnzippedBytes.array(), wordStartAddr, wordStartAddr
                     + wordLength),
                     "UTF-16LE");
-            System.out.println(word + "\t\t" + pinyin);
+            System.out.println(word + "\t" + pinyin);
             // step up
             idx += 0xa;
         }
