@@ -9,6 +9,27 @@ import java.nio.channels.FileChannel;
 /**
  * Baidu Pinyin IME BDICT File Reader
  * 
+ * <pre>
+ * BDICT Format overview:
+ * 
+ * General Information:
+ * - Chinese characters and pinyin are all encoded with UTF-16LE.
+ * - Numbers are using little endian byte order.
+ * 
+ * BDICT hex analysis:
+ * - 0x250         total number of words
+ * - 0x350         dictionary offset
+ * - 0x<Offset>    Dictionary
+ * 
+ * Dictionary format:
+ * - It can interpreted as a list of 
+ *   [amount of characters (short not integer!)
+ *       pinyin construction using fenmu and yunmu,
+ *       word as string 
+ *   ].
+ * 
+ * </pre>
+ * 
  * @author keke
  */
 public class BaiduBdictReader {
