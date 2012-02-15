@@ -19,8 +19,7 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 public class QQPinyinQpydReader {
     public static void main(String[] args) throws IOException {
         // download from http://dict.py.qq.com/list.php
-        //String qqydFile = "D:\\成语.qpyd";
-        String qqydFile = "D:\\汽车品牌.qpyd";
+        String qqydFile = "D:\\成语.qpyd";
 
         // read qpyd into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
@@ -41,8 +40,7 @@ public class QQPinyinQpydReader {
         System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\n"));
         System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
-        byte[] headerSeparator = "\r\n\r\n".getBytes("UTF-16LE");
-        int startZippedDictAddr = indexOf(dataRawBytes.array(), headerSeparator, (byte) 0) + headerSeparator.length;
+        int startZippedDictAddr = indexOf(dataRawBytes.array(), new byte[] { (byte) 0x78, (byte) 0x9C });
         System.out.println("压缩词库数据地址：0x" + Integer.toHexString(startZippedDictAddr));
         System.out.println();
 
@@ -89,7 +87,7 @@ public class QQPinyinQpydReader {
         }
     }
 
-    public static final int indexOf(byte[] data, byte[] pattern, byte extendedByte) {
+    public static final int indexOf(byte[] data, byte[] pattern) {
         for (int i = 0; i < data.length; i++) {
             boolean found = true;
             for (int j = 0; j < pattern.length; j++) {
@@ -99,13 +97,7 @@ public class QQPinyinQpydReader {
                 }
             }
             if (found) {
-                int j = i + pattern.length;
-                for (; j < data.length; j++) {
-                    if (data[j] != extendedByte) {
-                        break;
-                    }
-                }
-                return j - pattern.length;
+                return i;
             }
         }
         return -1;
