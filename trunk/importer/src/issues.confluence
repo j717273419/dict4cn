@@ -1,0 +1,176 @@
+h1. 创建词典
+
+h2. 创建中文词表 
+
+h3. 资源
+# 百度，搜狗，QQ，谷歌，新浪，拼音加加，等词典
+#* http://pinyin.sogou.com/dict
+#* http://dict.py.qq.com/index.php
+#* http://r6.mo.baidu.com/web/iw/index/
+#* http://www.handedict.de/chinesisch_deutsch.php?mode=dl
+#* http://dumps.wikimedia.org/zhwiki/
+#* https://code.google.com/p/imewlconverter/
+# 维基百科
+#* http://dumps.wikimedia.org/zhwiki/
+http://zh.m.wikipedia.org/wiki/%E8%8A%AD%E9%BB%8E%E7%B5%B2%C2%B7%E5%B8%8C%E7%88%BE%E9%A0%93?printable=yes
+http://www.mediawiki.org/wiki/API
+http://zh.wikipedia.org/wiki/Wikipedia:%E5%88%86%E9%A1%9E%E7%B4%A2%E5%BC%95?printable=yes
+http://en.wikipedia.org/wiki/Portal:Contents/Categorical_index
+http://www.canoo.net/services/Search/ueberblick/index.html?lang=de
+
+h4. 拼音换算
+* SougouScelPinyinCounter （输出拼音出现频率）
+** pinyin/output-sougou.txt: <PINYIN>|<COUNT>
+
+h4. HanDeDict
+* 
+
+h4. 从wikipedia备份加载
+* WikiPagesMetaCurrentExtractor （从维基备份里转出翻译及其他信息）
+** wikipedia/output.txt: <CN-WORD>|<TRANSLATIONS>|<WIKI-CATEGORIES>
+** wikipedia/english_only.txt: <CN-WORD>|<TRANSLATIONS>|<WIKI-CATEGORIES>
+** wikipedia/output-categories.txt: <WIKI-CATEGORY>
+* 从英文备份里找出德文翻译 
+
+h4. 从搜狗，百度等拼音词库加载
+* SougouScelPinyinExtractor （从scel文件夹导出单词）
+** imedicts/output-sougou.txt: <VN-WORD>|<PINYIN>('<PINYIN>)*
+* 深蓝词库转换
+** 高级设置：允许批量词库转换
+** 选择所有BCD文件
+** 百度分类词库bdict->QQ手机
+** 导出到imedicts/output-baidu.txt
+** 把空格替换成"│"分隔符
+
+类别：
+* 山河地名
+* 自然地理
+* 哲学历史
+* 社会教育
+* 工程应用
+* 农林渔畜
+* 医疗美容
+* 艺术设计
+* 休闲娱乐
+* 体育休闲
+* 经济理财
+* 家具电器
+* 美容护肤
+* 服饰鞋帽
+* 饮食饮料
+* 业余爱好
+* 习俗节气
+
+h3. 步骤
+# 下载
+# 归类
+# 解析
+# 重组
+# 注音
+
+h2. 添加注释
+
+h3. 资源
+# 谷歌，百度，巴比伦词典，星际词典，维基词典, CIA, mydict
+http://fanyi.baidu.com/
+http://translate.google.com/
+http://www.iciba.com/
+http://www.microsofttranslator.com/Default.aspx
+http://www.skycn.com/zt/fanyi/index.html
+http://fanyi.youdao.com/
+http://dict.cnki.net/
+http://www.netat.net/
+http://fanyi.cn.yahoo.com/
+http://dict.hjenglish.com/jp/
+http://ky.iciba.com/
+
+
+h3. 类别
+# 注释
+# 由来
+# 近义词
+# 反义词
+# 例句
+# 热度
+
+h3. 步骤
+# 查询
+# 解析
+# 归类
+# 重组
+
+if( (Character.UnicodeBlock.of(str[i]) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS) || )
+
+h2. 查找翻译
+
+h3. 资源
+# 谷歌
+# 巴比伦词典
+# 星际词典
+# 维基词典
+# 维基百科
+# LEO
+# dict.cc
+#* http://www1.dict.cc/translation_file_request.php
+
+h3. 语言
+# 德文
+# 英文
+# 意大利语
+# 法语
+# 西班牙语
+# 日文
+# 韩文
+# 俄语
+# 拉丁文
+
+h3. 步骤
+# 查询
+# 解析
+# 归类
+# 重组
+# 反解析 (->中)
+http://www.java2s.com/Open-Source/Android/android-platform-external/emma/com/vladium/util/IntIntMap.java.htm
+http://stackoverflow.com/questions/93423/java-reading-an-ascii-file-with-filechannel-and-bytearrays
+
+h2. 外文注释
+
+h3. 资源
+# 谷歌，LEO，DWDS，巴比伦词典，星际词典，维基词典
+
+h3. 类别
+# 动词变化
+# 复数
+# 性别
+# 近义词
+# 反义词
+# 例句
+# 热度
+
+h3. 步骤
+# 查询
+# 解析
+# 归类
+# 重组
+
+h2. 创建词典
+
+h3. 搜索表种类
+
+# 中文->拼音->（显示结果数目 positive，指向中外词典negative） (intintmap, UTF-8)
+# 外文->外中词典（UTF-8->int）反解析
+
+lng|name|source|type|[cat...]|disptext [pinyin] || lng|disptext|source|type[cat...], ... ||
+filter, flags, lnk
+
+中外词典：中文注释，外文翻译，外文连接，中文注释连接
+
+h2. 现有词典
+
+* http://www.ego4u.de/images/dictionary/lingopad26_de_01.png
+* https://code.google.com/p/aedict/
+* https://code.google.com/p/bravedict/
+* https://code.google.com/p/zhuang-dict/
+* https://code.google.com/p/megadict/
+* https://code.google.com/p/toolkits/wiki/YAStarDict
+* http://www.starobject.com/mobile/startranslate/screen1.html

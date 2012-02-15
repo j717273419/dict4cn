@@ -35,7 +35,7 @@ import java.util.zip.InflaterOutputStream;
  *       0x01 length of word
  * -- 2. actual data
  *       Dictionary data has the form ((pinyin)(word))* with no separators.
- *       Data can only be read using offset and length information. 
+ *       Data can only be read using offset and length information.
  * 
  * </pre>
  * 
@@ -44,7 +44,7 @@ import java.util.zip.InflaterOutputStream;
 public class QQPinyinQpydReader {
     public static void main(String[] args) throws IOException {
         // download from http://dict.py.qq.com/list.php
-        String qqydFile = "D:\\成语.qpyd";
+        String qqydFile = "D:\\test.qpyd";
 
         // read qpyd into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
@@ -71,10 +71,6 @@ public class QQPinyinQpydReader {
         System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\r\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
 
-        System.out.println("压缩数据：0x" + Integer.toHexString(startZippedDictAddr) + " (" + zippedDictLength
-                + " bytes)");
-        System.out.println();
-
         // read zipped qqyd dictionary into byte array
         dataOut.reset();
         Channels.newChannel(new InflaterOutputStream(dataOut)).write(
@@ -86,25 +82,30 @@ public class QQPinyinQpydReader {
 
         // for debugging: save unzipped data to *.unzipped file
         Channels.newChannel(new FileOutputStream(qqydFile + ".unzipped")).write(dataUnzippedBytes);
-
+        System.out.println("压缩数据：0x" + Integer.toHexString(startZippedDictAddr) + " (解压前：" + zippedDictLength
+                + " B, 解压后：" + dataUnzippedBytes.limit() + " B)");
+        
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
         int idx = 0;
+        byte[] byteArray = dataUnzippedBytes.array();
         while (unzippedDictStartAddr == -1 || idx < unzippedDictStartAddr) {
             // read word
             int pinyinStartAddr = dataUnzippedBytes.getInt(idx + 0x6);
-            int pinyinLength = dataUnzippedBytes.get(idx + 0x0);
+            int pinyinLength = dataUnzippedBytes.get(idx + 0x0) & 0xff;
             int wordStartAddr = pinyinStartAddr + pinyinLength;
-            int wordLength = dataUnzippedBytes.get(idx + 0x1);
+            int wordLength = dataUnzippedBytes.get(idx + 0x1) & 0xff;
             if (unzippedDictStartAddr == -1) {
                 unzippedDictStartAddr = pinyinStartAddr;
+                System.out.println("词库地址（解压后）：0x" + Integer.toHexString(unzippedDictStartAddr) + "\n");
             }
-            String pinyin = new String(Arrays.copyOfRange(dataUnzippedBytes.array(), pinyinStartAddr, pinyinStartAddr
-                    + pinyinLength), "UTF-8");
-            String word = new String(Arrays.copyOfRange(dataUnzippedBytes.array(), wordStartAddr, wordStartAddr
-                    + wordLength),
+
+            String pinyin = new String(Arrays.copyOfRange(byteArray, pinyinStartAddr, pinyinStartAddr + pinyinLength),
+                    "UTF-8");
+            String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     "UTF-16LE");
             System.out.println(word + "\t" + pinyin);
+
             // step up
             idx += 0xa;
         }
