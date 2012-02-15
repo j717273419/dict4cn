@@ -19,18 +19,19 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 public class QQPinyinQpydReader {
     public static void main(String[] args) throws IOException {
         // download from http://dict.py.qq.com/list.php
+        //String qqydFile = "D:\\成语.qpyd";
         String qqydFile = "D:\\汽车品牌.qpyd";
 
-        // read qqyd into byte array
+        // read qpyd into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
         FileChannel fChannel = new RandomAccessFile(qqydFile, "r").getChannel();
         fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
         fChannel.close();
 
-        // qqyd as bytes
+        // qpyd as bytes
         ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
-        // qqys as UTF-16LE string
+        // qpys as UTF-16LE string
         String dataString = new String(dataRawBytes.array(), "UTF-16LE");
 
         // print header
@@ -40,8 +41,8 @@ public class QQPinyinQpydReader {
         System.out.println("词库说明：" + substringBetween(dataString, "Intro: ", "\n"));
         System.out.println("词库样例：" + substringBetween(dataString, "Example: ", "\n"));
         System.out.println("词条数：" + dataRawBytes.getInt(0x44));
-        byte[] headerSeparator = "\r\n\r\n\0\0\0".getBytes("UTF-16LE");
-        int startZippedDictAddr = indexOf(dataRawBytes.array(), headerSeparator) + headerSeparator.length;
+        byte[] headerSeparator = "\r\n\r\n".getBytes("UTF-16LE");
+        int startZippedDictAddr = indexOf(dataRawBytes.array(), headerSeparator, (byte) 0) + headerSeparator.length;
         System.out.println("压缩词库数据地址：0x" + Integer.toHexString(startZippedDictAddr));
         System.out.println();
 
@@ -88,7 +89,7 @@ public class QQPinyinQpydReader {
         }
     }
 
-    public static final int indexOf(byte[] data, byte[] pattern) {
+    public static final int indexOf(byte[] data, byte[] pattern, byte extendedByte) {
         for (int i = 0; i < data.length; i++) {
             boolean found = true;
             for (int j = 0; j < pattern.length; j++) {
@@ -98,7 +99,13 @@ public class QQPinyinQpydReader {
                 }
             }
             if (found) {
-                return i;
+                int j = i + pattern.length;
+                for (; j < data.length; j++) {
+                    if (data[j] != extendedByte) {
+                        break;
+                    }
+                }
+                return j - pattern.length;
             }
         }
         return -1;
