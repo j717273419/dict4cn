@@ -1,4 +1,5 @@
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -51,6 +52,10 @@ public class QQPinyinQpydReader {
         // uncompressed qqyd dictionary as bytes
         ByteBuffer dataUnzippedBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataUnzippedBytes.order(ByteOrder.LITTLE_ENDIAN);
+        
+        // save unzipped data to *.unzipped file
+        //WritableByteChannel unzippedChannel = Channels.newChannel(new FileOutputStream(qqydFile+".unzipped"));
+        //unzippedChannel.write(dataUnzippedBytes);
 
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
