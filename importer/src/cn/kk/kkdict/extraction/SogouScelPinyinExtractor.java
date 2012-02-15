@@ -44,10 +44,10 @@ public class SogouScelPinyinExtractor {
                 fBuf.position(fBuf.getInt());
                 int totalPinyin = fBuf.getInt();
                 for (int i = 0; i < totalPinyin; i++) {
-                    int mark = fBuf.getShort();
+                    int idx = fBuf.getShort();
                     int len = fBuf.getShort();
                     fBuf.get(buf, 0, len);
-                    pyDict[mark] = new String(buf, 0, len, "UTF-16LE");
+                    pyDict[idx] = new String(buf, 0, len, "UTF-16LE");
                 }
 
                 // extract dictionary
@@ -55,7 +55,7 @@ public class SogouScelPinyinExtractor {
                     StringBuilder py = new StringBuilder();
                     StringBuilder word = new StringBuilder();
 
-                    int size = fBuf.getShort();
+                    int alternatives = fBuf.getShort();
                     int len = fBuf.getShort() / 2;
                     boolean first = true;
                     while (len-- > 0) {
@@ -68,17 +68,17 @@ public class SogouScelPinyinExtractor {
                         py.append(pyDict[key]);
                     }
                     
-                    while (size-- > 0) {
+                    while (alternatives-- > 0) {
                         len = fBuf.getShort();
                         fBuf.get(buf, 0, len);
                         word.append(new String(buf, 0, len, "UTF-16LE"));
                         fBuf.get(buf, 0, fBuf.getShort());
+                        writer.write(word.toString());
+                        writer.write(Helper.SEP_PARTS);
+                        writer.write(py.toString());
+                        writer.write(Helper.SEP_NEWLINE);
+                        counter++;
                     }
-                    writer.write(word.toString());
-                    writer.write(Helper.SEP_PARTS);
-                    writer.write(py.toString());
-                    writer.write(Helper.SEP_NEWLINE);
-                    counter++;
                 }
                 System.out.println(counter);
                 total += counter;
