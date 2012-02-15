@@ -18,7 +18,8 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
  */
 public class QQPinyinQpydReader {
     public static void main(String[] args) throws IOException {
-        String qqydFile = "D:\\张克\\dev\\kkdict\\dicts\\original.qpyd";
+        // download from http://dict.py.qq.com/list.php
+        String qqydFile = "D:\\汽车品牌.qpyd";
 
         // read qqyd into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
