@@ -54,8 +54,7 @@ public class QQPinyinQpydReader {
         dataUnzippedBytes.order(ByteOrder.LITTLE_ENDIAN);
         
         // save unzipped data to *.unzipped file
-        //WritableByteChannel unzippedChannel = Channels.newChannel(new FileOutputStream(qqydFile+".unzipped"));
-        //unzippedChannel.write(dataUnzippedBytes);
+        Channels.newChannel(new FileOutputStream(qqydFile+".unzipped")).write(dataUnzippedBytes);
 
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
