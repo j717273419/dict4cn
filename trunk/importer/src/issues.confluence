@@ -10,6 +10,8 @@ h3. 资源
 #* http://www.handedict.de/chinesisch_deutsch.php?mode=dl
 #* http://dumps.wikimedia.org/zhwiki/
 #* https://code.google.com/p/imewlconverter/
+#* http://abloz.com/huzheng/stardict-dic/
+#* http://sdict.com/en/view.php?file=chinese-german.dct
 # 维基百科
 #* http://dumps.wikimedia.org/zhwiki/
 http://zh.m.wikipedia.org/wiki/%E8%8A%AD%E9%BB%8E%E7%B5%B2%C2%B7%E5%B8%8C%E7%88%BE%E9%A0%93?printable=yes
@@ -17,13 +19,112 @@ http://www.mediawiki.org/wiki/API
 http://zh.wikipedia.org/wiki/Wikipedia:%E5%88%86%E9%A1%9E%E7%B4%A2%E5%BC%95?printable=yes
 http://en.wikipedia.org/wiki/Portal:Contents/Categorical_index
 http://www.canoo.net/services/Search/ueberblick/index.html?lang=de
+goldendict apk decompile -> ld2
+http://code.google.com/p/toolkits/source/browse/trunk/misc/java/com/googlecode/toolkits/stardict/DictZipFile.java?spec=svn75&r=75
+http://svn.gnome.org/viewvc/fantasdic/trunk/lib/fantasdic/dictzip.rb?view=markup
+http://stackoverflow.com/questions/5655740/using-java-deflater-inflater-with-custom-dictionary-causes-illegalargumentexcept
+https://github.com/goldendict/goldendict
+http://code.google.com/p/toolkits/source/browse/trunk/android/YAStarDict/src/com/googlecode/toolkits/stardict/StarDict.java?r=63
+http://hi.baidu.com/bbqwinner/blog/item/80037f79bd9b20fe0bd18753.html
+
+
+
+
+http://pda.leo.org/?lp=ende&search=test
+http://pda.leo.org/?lp=frde&search=test
+http://pda.leo.org/?lp=esde&search=test
+http://pda.leo.org/?lp=itde&search=test
+http://pda.leo.org/?lp=chde&search=test
+http://pda.leo.org/?lp=rude&search=test
+http://pocket.dict.cc/?s=hallo
+http://www.google.com/dictionary?aq=f&langpair=en|en&q=%GDWORD%&hl=en
+http://www.urbandictionary.com/define.php?term=%GDWORD%
+http://multitran.ru/c/m.exe?CL=1&l1=1&s=%GD1251%
+http://www.abbyyonline.ru/translate.aspx?LingvoAction=translate&Ln=1&words=%GDWORD%
+http://michaelis.uol.com.br/moderno/ingles/index.php?lingua=portugues-ingles&palavra=%GDISO1%
+http://dict.cn (en-cn)
+http://www.hudong.com/
+http://www.jukuu.com/
+http://www.lingoes.net/
+dict.cc (de-en)
+mydict (de-cn)
+wordreference (en-fr)
+rustran (ru-en)
+goo (en-ja)
+zKorean (en-ko)
+dr.eye (en-tw)
+
+"互动百科", "http://dict.hudong.com/dict.do?title=[$key]&from=lingoes&type=22", 0
+"海词在线", "http://www.dict.cn/search/?q=[$key]&from=Lingoes", 936
+"譯典通", "http://www.dreye.com:8080/axis/ddict.jsp?w=[$key]&ver=big5", 950
+"爱词霸", "http://www.iciba.com/search?s=[$key]", 0
+"n词酷", "http://www.nciku.com/search/all/[$key]", 0
+"汉典", "http://www.zdic.net/zd/search/default.asp?q=[$key]", 0
+"CNKI 科技词典", "http://dict.cnki.net/dict_result.aspx?tjType=all&searchword=[$key]", 0
+--
+"迈迪德汉词典", "http://www.mydict.com/index.php?controller=Dict_German&action=Search&keyword=[$key]", 0
+"BitEx 日中辞書", "http://www.bitex-cn.com/cn/search_result.php?keywords=[$key]&match=contains&deal_type=jp2cn", 0
+"Naver 韩中词典", "http://cndic.naver.com/search.nhn?dic_where=cndic&query=[$key]&query_euckr=&query_utf=", 0
+"法语助手在线", "http://www.frdic.com/SearchDic.aspx?word=[$key]", 0
+"欧华西汉词典", "http://www.ohdict.com/translate.php?seekname=[$key]&category=1", 0
+"欧华意汉词典", "http://yidaliyu.ohdict.com/translate.php?seekname=[$key]&category=1", 0
+--
+"Dictionary.com", "http://dictionary.reference.com/browse/[$key]", 0
+"Urban Dictionary", "http://www.urbandictionary.com/define.php?term=[$key]", 0
+"Merriam-Webster 韦氏", "http://www.m-w.com/dictionary/[$key]", 0
+"Oxford 牛津", "http://www.oup.com/oald-bin/web_getald7index1a.pl?search_word=[$key]", 0
+"Cambridge 剑桥", "http://dictionary.cambridge.org/results.asp?searchword=[$key]", 1252
+"Longman 朗文", "http://www.ldoceonline.com/search/?q=[$key]", 0
+--
+"Answers.com", "http://www.answers.com/[$key]", 0
+"Britannica 大英百科", "http://www.britannica.com/search?query=[$key]", 0
+"Wikipedia 维基中文百科", "http://zh.wikipedia.org/wiki/[$key]", 0
+"Leo Deutsch-Englisch", "http://dict.leo.org/?search=[$key]", 1252
+"Leo Deutsch-Französisch", "http://dict.leo.org/frde?lang=de&lp=frde&search=[$key]", 1252
+"Leo Deutsch-Spanisch", "http://dict.leo.org/esde?lang=de&lp=esde&search=[$key]", 1252
+"MyDict Deutsch-Chinesisch", "http://www.mydict.com/index.php?controller=Dict_German&action=Search&keyword=[$key]", 0
+"Wikipedia Deutsch", "http://de.wikipedia.org/wiki/[$key]", 0
+--
+"Dictionary.com", "http://dictionary.reference.com/browse/[$key]", 0
+"Answers.com", "http://www.answers.com/[$key]", 0
+"Urban Dictionary", "http://www.urbandictionary.com/define.php?term=[$key]", 0
+"OneLook", "http://www.onelook.com/?w=[$key]&ls=b", 1252 
+"Merriam-Webster", "http://www.m-w.com/dictionary/[$key]", 0
+"Oxford Online", "http://www.oup.com/oald-bin/web_getald7index1a.pl?search_word=[$key]", 0
+"Cambridge Online", "http://dictionary.cambridge.org/results.asp?searchword=[$key]", 1252
+"Longman Online", "http://www.ldoceonline.com/search/?q=[$key]", 0
+"Babylon", "http://dictionary.babylon.com/[$key]/", 0
+--
+"dict.cc (en-de)", "http://www.dict.cc/?s=[$key]", 1252
+"WordReference (en-fr)", "http://www.wordreference.com/enfr/[$key]", 0
+"Rustran (en-ru)", "http://www.rustran.com/odr.php4?q=1&word=[$key]", 1251
+"goo (en-ja)", "http://dictionary.goo.ne.jp/search.php?MT=[$key]&kind=all", 932
+"zKorean (en-ko)", "http://www.zkorean.com/dictionary/search_results?direction=ek&word=[$key]", 0
+"Dict.CN (en-chs)", "http://www.dict.cn/en/search/?q=[$key]&from=Lingoes", 936
+"Dr.eye (en-cht)", "http://www.dreye.com:8080/axis/ddict.jsp?w=[$key]&ver=big5", 950
+--
+"Encyclopaedia Britannica", "http://www.britannica.com/search?query=[$key]", 0
+"Wikipedia", "http://en.wikipedia.org/wiki/[$key]", 0
+
+
+
+http://www.commandlinefu.com/commands/matching/translate/dHJhbnNsYXRl/sort-by-votes
+
+
+h4. 从搜狗，百度等拼音词库加载
+* SogouScelPinyinExtractor （从scel文件夹导出单词）
+** imedicts/output-sougou.txt: <VN-WORD>|<PINYIN>('<PINYIN>)*
+* BaiduBdictExtractor
+* QQPinyinQpydExtractor
 
 h4. 拼音换算
-* SougouScelPinyinCounter （输出拼音出现频率）
-** pinyin/output-sougou.txt: <PINYIN>|<COUNT>
+* PinyinOccurrenceCounter （输出拼音出现频率）
+** pinyin/output-occurrences.txt: <PINYIN>|<COUNT>
+* PinyinIndexGenerator （输出拼音指针） < 250组组合
+** pinyin/output-.txt: <PINYIN>▫<PINYIN>...|<COUNT>
 
 h4. HanDeDict
-* 
+* HanDeDictExtractor
 
 h4. 从wikipedia备份加载
 * WikiPagesMetaCurrentExtractor （从维基备份里转出翻译及其他信息）
@@ -31,16 +132,6 @@ h4. 从wikipedia备份加载
 ** wikipedia/english_only.txt: <CN-WORD>|<TRANSLATIONS>|<WIKI-CATEGORIES>
 ** wikipedia/output-categories.txt: <WIKI-CATEGORY>
 * 从英文备份里找出德文翻译 
-
-h4. 从搜狗，百度等拼音词库加载
-* SougouScelPinyinExtractor （从scel文件夹导出单词）
-** imedicts/output-sougou.txt: <VN-WORD>|<PINYIN>('<PINYIN>)*
-* 深蓝词库转换
-** 高级设置：允许批量词库转换
-** 选择所有BCD文件
-** 百度分类词库bdict->QQ手机
-** 导出到imedicts/output-baidu.txt
-** 把空格替换成"│"分隔符
 
 类别：
 * 山河地名

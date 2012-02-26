@@ -1,7 +1,9 @@
-package cn.kk.kkdict;
+package cn.kk.kkdict.beans;
 
 import java.util.Iterator;
 import java.util.TreeSet;
+
+import cn.kk.kkdict.utils.Helper;
 
 public class FormattedTreeSet<E> extends TreeSet<E> {
     private static final long serialVersionUID = -8035295407619357235L;

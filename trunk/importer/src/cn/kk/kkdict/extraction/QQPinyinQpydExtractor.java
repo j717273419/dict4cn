@@ -14,11 +14,11 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.zip.InflaterOutputStream;
 
-import cn.kk.kkdict.Helper;
+import cn.kk.kkdict.utils.Helper;
 
 public class QQPinyinQpydExtractor {
     public static final String IN_DIR = "X:\\kkdict\\dicts\\qq";
-    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-qq.txt";
+    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-qq.kpy";
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
@@ -42,18 +42,18 @@ public class QQPinyinQpydExtractor {
 
             writer.close();
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length +" Files");
+            System.out.println("Total Completed: " + files.length + " Files");
             System.out.println("Total Words: " + total);
             System.out.println("=====================================");
         }
     }
 
-    private static int extractQpydToFile(File qqydFile, BufferedWriter writer) throws IOException {
+    private static int extractQpydToFile(File qpydFile, BufferedWriter writer) throws IOException {
         int counter = 0;
 
         // read qpyd into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
-        FileChannel fChannel = new RandomAccessFile(qqydFile, "r").getChannel();
+        FileChannel fChannel = new RandomAccessFile(qpydFile, "r").getChannel();
         fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
         fChannel.close();
 
@@ -76,14 +76,16 @@ public class QQPinyinQpydExtractor {
 
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
-        int idx = 0;
         byte[] byteArray = dataUnzippedBytes.array();
-        while (unzippedDictStartAddr == -1 || idx < unzippedDictStartAddr) {
+        dataUnzippedBytes.position(0);
+        while (unzippedDictStartAddr == -1 || dataUnzippedBytes.position() < unzippedDictStartAddr) {
             // read word
-            int pinyinStartAddr = dataUnzippedBytes.getInt(idx + 0x6);
-            int pinyinLength = dataUnzippedBytes.get(idx + 0x0) & 0xff;
-            int wordStartAddr = pinyinStartAddr + pinyinLength;
-            int wordLength = dataUnzippedBytes.get(idx + 0x1) & 0xff;
+            int pinyinLength = dataUnzippedBytes.get() & 0xff;
+            int wordLength = dataUnzippedBytes.get() & 0xff;
+            dataUnzippedBytes.getInt(); // garbage
+            int pinyinStartAddr = dataUnzippedBytes.getInt();
+            
+            int wordStartAddr = pinyinStartAddr + pinyinLength;            
             if (unzippedDictStartAddr == -1) {
                 unzippedDictStartAddr = pinyinStartAddr;
             }
@@ -92,15 +94,22 @@ public class QQPinyinQpydExtractor {
                     "UTF-8");
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     "UTF-16LE");
-            writer.write(word);
-            writer.write(Helper.SEP_PARTS);
-            writer.write(pinyin);
-            writer.write(Helper.SEP_NEWLINE);
-            // step up
-            idx += 0xa;
-            counter++;
+            if (Helper.checkValidPinyin(pinyin)) {
+                writer.write(cleanWord(word));
+                writer.write(Helper.SEP_PARTS);
+                writer.write(pinyin);
+                writer.write(Helper.SEP_NEWLINE);
+                counter++;
+            } else {
+                System.err.println("Invalid entry in file '" + qpydFile.getAbsolutePath() + "': " + word + " ("
+                        + pinyin + ")");
+            }
         }
         return counter;
+    }
+
+    private static String cleanWord(String word) {
+        return word.replaceAll("\\(.*\\)", Helper.EMPTY_STRING);
     }
 
 }

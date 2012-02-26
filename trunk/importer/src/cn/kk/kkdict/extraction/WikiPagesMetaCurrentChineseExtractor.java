@@ -10,16 +10,16 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import cn.kk.kkdict.FormattedTreeMap;
-import cn.kk.kkdict.FormattedTreeSet;
-import cn.kk.kkdict.Helper;
+import cn.kk.kkdict.beans.FormattedTreeMap;
+import cn.kk.kkdict.beans.FormattedTreeSet;
+import cn.kk.kkdict.utils.Helper;
 
 public class WikiPagesMetaCurrentChineseExtractor {
     public static final String WIKI_PAGES_META_CURRENT_XML_FILE = "X:\\kkdict\\dicts\\wiki\\zhwiki-latest-pages-meta-current.xml";
 
     public static final String OUT_DIR = "X:\\kkdict\\out\\wiki\\wiki_zh";
 
-    public static final String[] RELEVANT_LANGUAGES = { "de", "en", "ru", "ja", "ko", "fr", "it", "es", "la" };
+    public static final String[] RELEVANT_LANGUAGES = { "de", "en", "ru", "ja", "ko", "fr", "it", "es", "la", "tr", "pt", "ar", "nl", "iw", "hi", "sv", "th" };
 
     public static final String[] IRRELEVANT_PREFIX = { "Diskussion:", "Benutzer:", "Hilfe:", "Kategorie:", "Vorlage:",
         "Vorlage Diskussion:", "Datei:", "Benutzer Diskussion:", "Hilfe Diskussion:", "Liste der ",

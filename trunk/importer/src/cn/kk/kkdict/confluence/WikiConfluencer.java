@@ -11,8 +11,8 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import cn.kk.kkdict.Helper;
 import cn.kk.kkdict.extraction.HanDeDictExtractor.Category;
+import cn.kk.kkdict.utils.Helper;
 
 public class WikiConfluencer {
     /*

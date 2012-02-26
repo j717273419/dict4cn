@@ -1,8 +1,10 @@
-package cn.kk.kkdict;
+package cn.kk.kkdict.beans;
 
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+
+import cn.kk.kkdict.utils.Helper;
 
 public class FormattedTreeMap<K, V> extends TreeMap<K, V> {
     private static final long serialVersionUID = -5668968019957553436L;

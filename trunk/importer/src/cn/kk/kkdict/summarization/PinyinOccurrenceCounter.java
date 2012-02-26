@@ -1,4 +1,4 @@
-package cn.kk.kkdict.extraction;
+package cn.kk.kkdict.summarization;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cn.kk.kkdict.FormattedTreeMap;
-import cn.kk.kkdict.Helper;
-import cn.kk.kkdict.Stat;
+import cn.kk.kkdict.beans.FormattedTreeMap;
+import cn.kk.kkdict.beans.Stat;
+import cn.kk.kkdict.utils.Helper;
 
 public class PinyinOccurrenceCounter {
     private static final String IN_DIR = "X:\\kkdict\\out\\imedicts";
-    private static final String OUT_FILE = "X:\\kkdict\\out\\pinyin\\output.txt";
+    private static final String OUT_FILE = "X:\\kkdict\\out\\pinyin\\output-occurrences.txt";
 
     public static void main(String args[]) throws IOException {
         File directory = new File(IN_DIR);

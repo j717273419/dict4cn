@@ -10,11 +10,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
-import cn.kk.kkdict.Helper;
+import cn.kk.kkdict.utils.Helper;
 
 public class SogouScelPinyinExtractor {
-    private static final String IN_DIR = "X:\\kkdict\\dicts\\sougou";
-    private static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-sougou.txt";
+    private static final String IN_DIR = "X:\\kkdict\\dicts\\sogou";
+    private static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-sogou.kpy";
     
     public static void main(String args[]) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), 8192000);

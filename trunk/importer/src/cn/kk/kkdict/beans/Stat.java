@@ -1,4 +1,4 @@
-package cn.kk.kkdict;
+package cn.kk.kkdict.beans;
 
 public class Stat implements Comparable<Stat> {
     public Stat(Integer c, String k) {

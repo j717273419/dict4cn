@@ -1,0 +1,78 @@
+0x00              ?LDF                       file type id
+0x04-0x13         ?                          checksum, license key? 16B  (0x58->ldx, 0x46->ld2, 0x44->ld2 (older version), 0xF3
+0x14-0x17         4 3 2 1                    separator
+0x18-0x19         0x2                        major version
+0x1A-0x1B         0x07 / 0x06 /0x05          minor version
+0x1C-0x2B         16B ID                     identifier of dictionary
+0x2C-0x2F         0x01 / 0x02                data type (1: dictionary, 2: index only)
+0x30-0x33         0x29 / 0xB1 / 0xB0         language?
+0x34-0x43         ?
+0x44-0x47         1                          publication number?
+0x48-0x4B         0
+0x4C-0x4F         0
+0x50-0x53         0
+0x54-0x57         0
+0x58-0x5B         1
+0x5C-0x5F         0x10E=                    idx data length1
+0x60-(0x60+len1)                            idx data? (if idx only, than till end of file)
+
+---------- e.g. from 0x1140 ----------
+0x1140-0x1143     0x5 (2.6) / 0x3 (ohne ?-Block)                  ?
+0x1144-0x1147     0x2244                    length2 of ? (+0x114C)
+0x1148-0x114B     0x0011 (=4352)
+0x114C            0x01
+0x114E            0x00 / 0x02
+0x1150-(0x114C+len2)
+
+--------- e.g. from 0x4260 -----------
+0x4260-0x4263     3
+
+0x4264-0x4267     0x6092                    length of total block (+0x4270)
+0x4268-0x426B     0x1968                    length of deflate block (+0x4270) + 0x30???
+0x426C-0x426F     0x3F8E                    start dictionary in deflated data
+                  0x1395
+				  0xFE03
+				  0x1647                    0x1643 length of first language
+...
+03 00 00 00 
+92 60 00 00 
+68 19 00 00 
+8E 3F 00 00 
+95 13 00 00 
+03 FE 00 00 
+16 47 00 00
+??                list of integers (4B) until 0x00000000
+0x427C-0x5C07     0x198C
+
+
+--------- e.g. from 0x5C08 ------------
+0x5C08-0x5c09     0x78DA                    Zip header
+
+
+5C08
+weitere 0x78DA:   0x74E3, 0x8EBE, 0x9891, 0x9D31, 0xA192
+                  0x3273, 0x4C4E, 0x5621, 0x5AC1, 0x5F22
+				       -19DB    -9D3
+					       -23AE
+
+
+
+
+						   
+						   
+						   
+dic len
+Hong Kong (2.6): 5c08 - 4260 = 19a8 (1968) -> 40
+Chinese-Italian (2.5): 29a8 - 1618 = 1390 (1354) -> 3c
+4.948
+5008
+
+Han Yu (2.5): da0c8 - 13a0 = 0d8d28 (0d6ae0) -> 2248
+03 00 00 00 3B CE B4 00 E0 6A 0D 00 46 98 21 00 82 6D 11 00 88 D3 EE 01 47 63 A7 00
+b4e1e8
+E-C Glossary (2.5):   66dc - 3890 = 2E4C (2DEC) -> 60
+Jukuu (2.7): 
+
+
+
+
