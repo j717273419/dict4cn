@@ -87,14 +87,16 @@ public class QQPinyinQpydReader {
         
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
-        int idx = 0;
         byte[] byteArray = dataUnzippedBytes.array();
-        while (unzippedDictStartAddr == -1 || idx < unzippedDictStartAddr) {
+        dataUnzippedBytes.position(0);
+        while (unzippedDictStartAddr == -1 || dataUnzippedBytes.position() < unzippedDictStartAddr) {
             // read word
-            int pinyinStartAddr = dataUnzippedBytes.getInt(idx + 0x6);
-            int pinyinLength = dataUnzippedBytes.get(idx + 0x0) & 0xff;
+            int pinyinLength = dataUnzippedBytes.get() & 0xff;
+            int wordLength = dataUnzippedBytes.get() & 0xff;
+            dataUnzippedBytes.getInt(); // garbage
+            int pinyinStartAddr = dataUnzippedBytes.getInt();            
             int wordStartAddr = pinyinStartAddr + pinyinLength;
-            int wordLength = dataUnzippedBytes.get(idx + 0x1) & 0xff;
+            
             if (unzippedDictStartAddr == -1) {
                 unzippedDictStartAddr = pinyinStartAddr;
                 System.out.println("词库地址（解压后）：0x" + Integer.toHexString(unzippedDictStartAddr) + "\n");
@@ -105,9 +107,6 @@ public class QQPinyinQpydReader {
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     "UTF-16LE");
             System.out.println(word + "\t" + pinyin);
-
-            // step up
-            idx += 0xa;
         }
     }
 

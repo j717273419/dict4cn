@@ -1,4 +1,4 @@
-package cn.kk.kkdict;
+package cn.kk.kkdict.beans;
 
 import java.util.Collections;
 import java.util.Map;

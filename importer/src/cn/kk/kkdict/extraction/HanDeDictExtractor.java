@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
-import cn.kk.kkdict.FormattedTreeSet;
-import cn.kk.kkdict.Helper;
+import cn.kk.kkdict.beans.FormattedTreeSet;
+import cn.kk.kkdict.utils.Helper;
 
 public class HanDeDictExtractor {
     public static final String HAN_DE_DICT_UTF8_FILE = "X:\\kkdict\\dicts\\handedict\\handedict_nb.u8";
@@ -24,6 +24,7 @@ public class HanDeDictExtractor {
         Helper.precheck(HAN_DE_DICT_UTF8_FILE, OUT_DIR);
         BufferedReader reader = new BufferedReader(new FileReader(HAN_DE_DICT_UTF8_FILE), 8192000);
         BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output.txt"), 8192000);
+        BufferedWriter pinyinWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output-handedict.kpy"), 8192000);
         BufferedWriter skippedIncompleteWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
                 + "skipped_incomplete.txt"), 8192000);
 
@@ -80,6 +81,12 @@ public class HanDeDictExtractor {
                     writer.write(Helper.SEP_PARTS);
                     writer.write(categories.toString());
                     writer.write(Helper.SEP_NEWLINE);
+
+                    pinyinWriter.write(name);
+                    pinyinWriter.write(Helper.SEP_PARTS);
+                    pinyinWriter.write(pinyin);
+                    pinyinWriter.write(Helper.SEP_NEWLINE);
+                    
                     statOk++;
                 } else {
                     skippedIncompleteWriter.write(line);
@@ -92,6 +99,7 @@ public class HanDeDictExtractor {
         }
         reader.close();
         writer.close();
+        pinyinWriter.close();
         skippedIncompleteWriter.close();
 
         BufferedWriter categoriesWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator

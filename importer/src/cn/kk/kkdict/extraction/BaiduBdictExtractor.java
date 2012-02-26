@@ -12,17 +12,11 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 
-import cn.kk.kkdict.Helper;
+import cn.kk.kkdict.utils.Helper;
 
 public class BaiduBdictExtractor {
-
-    private static final String[] FEN_MU = { "c", "d", "b", "f", "g", "h", "ch", "j", "k", "l", "m", "n", "", "p", "q",
-            "r", "s", "t", "sh", "zh", "w", "x", "y", "z" };
-    private static final String[] YUN_MU = { "uang", "iang", "ong", "ang", "eng", "ian", "iao", "ing", "ong", "uai",
-            "uan", "ai", "an", "ao", "ei", "en", "er", "ua", "ie", "in", "iu", "ou", "ia", "ue", "ui", "un", "uo", "a",
-            "e", "i", "a", "u", "v" };
     public static final String IN_DIR = "X:\\kkdict\\dicts\\baidu";
-    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-baidu.txt";
+    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-baidu.kpy";
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
@@ -80,7 +74,7 @@ public class BaiduBdictExtractor {
                 } else {
                     pinyin.append('\'');
                 }
-                pinyin.append(FEN_MU[dataRawBytes.get()] + YUN_MU[dataRawBytes.get()]);
+                pinyin.append(Helper.FEN_MU[dataRawBytes.get()] + Helper.YUN_MU[dataRawBytes.get()]);
             }
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");
