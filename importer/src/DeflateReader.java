@@ -19,19 +19,19 @@ import java.util.zip.InflaterInputStream;
 /**
  * Tries to find every libzip deflate stream in a test file
  * 
- * @author x_kez
+ * @author keke
  * 
  */
 public class DeflateReader {
-    private static final short[] DEFLATE_HEADERS = { 0x789c, 0x78da, 0x7801, 0x785e, 0x78da };
-    private static final short[] DEFLATE_WITH_DICT_HEADERS = { 0x78bb, 0x78f9, 0x783f, 0x787d };
+    private static final int[] DEFLATE_HEADERS = { 0x789c, 0x78da, 0x7801, 0x785e, 0x78da };
+    private static final int[] DEFLATE_WITH_DICT_HEADERS = { 0x78bb, 0x78f9, 0x783f, 0x787d };
     static {
         Arrays.sort(DEFLATE_HEADERS);
         Arrays.sort(DEFLATE_WITH_DICT_HEADERS);
     }
 
     public static void main(String[] args) throws IOException, DataFormatException {
-        String dflFile = "D:\\Hong Kong Pinyin - Chinese character comparison table.ld2";
+        String dflFile = "D:\\test_header.dat";
         String outputFilePrefix = dflFile + ".";
         String outputFileSuffix = ".raw";
         String outputFileFinal = dflFile + outputFileSuffix;
@@ -39,8 +39,8 @@ public class DeflateReader {
         // read deflate file into byte array
         ByteBuffer dataRawBytes = readBytes(dflFile);
 
-        System.out.println("Input file: " + dflFile);
-        System.out.println("Input file size: " + dataRawBytes.limit() + " B (0x"
+        System.out.println("文件: " + dflFile);
+        System.out.println("文件大小: " + dataRawBytes.limit() + " B (0x"
                 + Integer.toHexString(dataRawBytes.limit()) + ")");
 
         List<String> outputFiles = new ArrayList<String>();
@@ -48,7 +48,7 @@ public class DeflateReader {
             try {
                 int position = dataRawBytes.position();
                 String positionHex = "0x" + Integer.toHexString(position);
-                short header = dataRawBytes.getShort();
+                int header = dataRawBytes.getShort() & 0xffff;                
                 String headerHex = "0x" + Integer.toHexString(header);
                 if (Arrays.binarySearch(DEFLATE_WITH_DICT_HEADERS, header) >= 0) {
                     System.out.println(positionHex + ": Deflate with dictionary header '" + headerHex
@@ -96,11 +96,13 @@ public class DeflateReader {
     }
 
     private static ByteBuffer decompress(ByteBuffer data, int offset, int length) throws IOException {
+        Inflater inflater = new Inflater();
         InflaterInputStream in = new InflaterInputStream(new ByteArrayInputStream(data.array(), offset, length),
-                new Inflater(), 1024 * 8);
+                inflater, 1024 * 8);
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream(1024 * 8);
         writeInputStream(in, dataOut);
         in.close();
+        data.position(offset + (int) inflater.getBytesRead());
         return ByteBuffer.wrap(dataOut.toByteArray());
     }
 

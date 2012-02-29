@@ -52,6 +52,8 @@ public class BaiduBdictReader {
         // bdict as bytes
         ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        
+        System.out.println("文件: " + bdictFile);
 
         byte[] buf = new byte[1024];
         int total = dataRawBytes.getInt(0x250);
