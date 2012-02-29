@@ -51,6 +51,8 @@ public class SogouScelReader {
         ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
 
+        System.out.println("文件: " + scelFile);
+        
         byte[] buf = new byte[1024];
         String[] pyDict = new String[512];
 

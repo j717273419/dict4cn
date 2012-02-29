@@ -56,6 +56,8 @@ public class QQPinyinQpydReader {
         ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
 
+        System.out.println("文件: " + qqydFile);
+        
         // read info of compressed data
         int startZippedDictAddr = dataRawBytes.getInt(0x38);
         int zippedDictLength = dataRawBytes.limit() - startZippedDictAddr;
