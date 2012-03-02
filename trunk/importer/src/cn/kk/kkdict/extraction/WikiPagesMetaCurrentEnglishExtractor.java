@@ -36,10 +36,7 @@ public class WikiPagesMetaCurrentEnglishExtractor {
 
     public static final String[] RELEVANT_LANGUAGES = { "zh", "de", "ru", "ja", "ko", "fr", "it", "es", "la", "tr", "pt", "ar", "nl", "iw", "hi", "sv", "th" };
 
-    public static final String[] IRRELEVANT_PREFIX = { "Diskussion:", "Benutzer:", "Hilfe:", "Kategorie:", "Vorlage:",
-            "Vorlage Diskussion:", "Datei:", "Benutzer Diskussion:", "Hilfe Diskussion:", "Liste der ",
-            "Wikipedia Diskussion:", "Template:", "Template talk:", "Category:", "Help talk:", "File:",
-            "Wikipedia talk:", "User:", "Help:", "Talk:", "User talk:", "Wikipedia:", "Portal:" };
+    public static final String[] IRRELEVANT_PREFIX = WikiPagesMetaCurrentChineseExtractor.IRRELEVANT_PREFIX;
 
     public static void main(String args[]) throws IOException {
         Helper.precheck(WIKI_PAGES_META_CURRENT_XML_FILE, OUT_DIR);

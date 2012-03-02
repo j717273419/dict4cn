@@ -30,6 +30,7 @@ public final class Helper {
     public final static List<String> EMPTY_STRING_LIST = Collections.emptyList();
     public final static String EMPTY_STRING = "";
     public final static String SEP_NEWLINE = "\n";
+    public final static String SEP_ATTR = "‹";
     public final static String SEP_PARTS = "║";
     public final static String SEP_WORDS = "│";
     public final static String SEP_LIST = "▫";
@@ -277,9 +278,11 @@ public final class Helper {
     public static ByteBuffer compressFile(String rawFile, int level) throws IOException {
         InputStream in = new FileInputStream(rawFile);
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream(1024 * 8);
-        OutputStream out = new DeflaterOutputStream(dataOut, new Deflater(level), 1024 * 8);
+        Deflater def = new Deflater(level);
+        OutputStream out = new DeflaterOutputStream(dataOut, def, 1024 * 8);
         writeInputStream(in, out);
         in.close();
+        def.end();
         return ByteBuffer.wrap(dataOut.toByteArray());
     }
 
@@ -295,7 +298,7 @@ public final class Helper {
     }
 
     public static ByteBuffer decompressFile(String compressedFile) throws IOException {
-        InflaterInputStream in = new InflaterInputStream(new FileInputStream(compressedFile), new Inflater(), 1024 * 8);
+        InflaterInputStream in = new InflaterInputStream(new FileInputStream(compressedFile));
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream(1024 * 8);
         writeInputStream(in, dataOut);
         in.close();
@@ -317,9 +320,12 @@ public final class Helper {
             } catch (IllegalArgumentException e) {
                 System.err.println("Invalid dictionary!");
                 return null;
+            } finally {
+                inf.end();
             }
         } else {
             System.err.println("No dictionary needed!");
+            inf.end();
             return null;
         }
 

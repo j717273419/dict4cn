@@ -1,6 +1,15 @@
-h1. Extraction
+﻿h1. 收集词汇，导出词典等（Extraction）
 
-h2. Dictionary
-|{}|{}|
+h2. 词典Dictionary
+
+h3. 输入文件
+
+文件名：
+* (dictionary_name)_zh_en.(extension)：翻译语言会从"_zh_en"字段中读出
+
+h3. 输出文件
+
+文件格式：
+* zh═你好▫de=Hallo║通用
 
 h2. Word

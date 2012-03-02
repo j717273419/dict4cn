@@ -21,6 +21,7 @@ public class Test {
         // System.sout.println(TranslationHelper.getGoogleTranslations(TranslationHelper.GoogleLanguage.CN,
         // TranslationHelper.GoogleLanguage.DE, "你是谁"));
         //
+        System.out.println(Integer.toHexString('\u001e'));
         System.out.println((byte)0xb1);
         for (int level = -1; level < 10; level++) {
             ByteBuffer bb = Helper.compressFile("D:\\header.dat", level);

@@ -24,7 +24,10 @@ public class WikiPagesMetaCurrentChineseExtractor {
     public static final String[] IRRELEVANT_PREFIX = { "Diskussion:", "Benutzer:", "Hilfe:", "Kategorie:", "Vorlage:",
         "Vorlage Diskussion:", "Datei:", "Benutzer Diskussion:", "Hilfe Diskussion:", "Liste der ",
         "Wikipedia Diskussion:", "Template:", "Template talk:", "Category:", "Help talk:", "File:",
-        "Wikipedia talk:", "User:", "Help:", "Talk:", "User talk:", "Wikipedia:", "Portal:" };
+        "Wikipedia talk:", "User:", "Help:", "Talk:", "User talk:", "Wikipedia:", "Portal:", "MediaWiki:", "Wiktionary:",
+        "Media:", "Special:", "Wiktionary talk:", "Category:", "Category talk:", "Thread:", "Thread talk:", "Summary:", "Summary talk:",
+        "Appendix:", "Appendix talk:", "Concordance:", "Concordance talk:", "Index:", "Index talk:", "Rhymes:", "Rhymes talk:", "Transwiki:",
+        "Transwiki talk:", "Wikisaurus:", "Wikisaurus talk:", "Citations:", "Citations talk:", "Sign gloss:", "Sign gloss talk:"};
 
     public static void main(String args[]) throws IOException {
         extractWikipediaPagesMetaCurrent();
