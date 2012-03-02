@@ -103,6 +103,7 @@ public class DeflateReader {
         writeInputStream(in, dataOut);
         in.close();
         data.position(offset + (int) inflater.getBytesRead());
+        inflater.end();
         return ByteBuffer.wrap(dataOut.toByteArray());
     }
 

@@ -14,20 +14,26 @@ import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.utils.Helper;
 
-public class WikiPagesMetaCurrentGermanExtractor {
-    public static final String WIKI_PAGES_META_CURRENT_XML_FILE = "X:\\kkdict\\dicts\\wiki\\dewiki-20120203-pages-meta-current.xml";
+/**
+ * Grammatik, Aussprache, Plural, Abkürzung, Beispiel, Übersetzungen, Wortart
+ * @author x_kez
+ *
+ */
+public class WiktionaryPagesMetaCurrentChineseExtractor {
+    public static final String WIKI_PAGES_META_CURRENT_XML_FILE = "X:\\kkdict\\dicts\\wiki\\zhwiktionary-20120220-pages-meta-current.xml";
 
-    public static final String OUT_DIR = "X:\\kkdict\\out\\wiki\\wiki_de";
+    public static final String OUT_DIR = "X:\\kkdict\\out\\wiki\\wiktionary_zh";
 
-    public static final String[] RELEVANT_LANGUAGES = { "zh", "en", "ru", "ja", "ko", "fr", "it", "es", "la", "tr", "pt", "ar", "nl", "iw", "hi", "sv", "th" };
+    public static final String[] RELEVANT_LANGUAGES = { "de", "en", "ru", "ja", "ko", "fr", "it", "es", "la", "tr",
+            "pt", "ar", "nl", "iw", "hi", "sv", "th" };
 
     public static final String[] IRRELEVANT_PREFIX = WikiPagesMetaCurrentChineseExtractor.IRRELEVANT_PREFIX;
 
     public static void main(String args[]) throws IOException {
-        extractWikipediaPagesMetaCurrent();
+        extractWiktionaryPagesMetaCurrent();
     }
 
-    private static void extractWikipediaPagesMetaCurrent() throws FileNotFoundException, IOException {
+    private static void extractWiktionaryPagesMetaCurrent() throws FileNotFoundException, IOException {
         long timeStarted = System.currentTimeMillis();
         Helper.precheck(WIKI_PAGES_META_CURRENT_XML_FILE, OUT_DIR);
         BufferedReader reader = new BufferedReader(new FileReader(WIKI_PAGES_META_CURRENT_XML_FILE), 8192000);
@@ -36,7 +42,7 @@ public class WikiPagesMetaCurrentGermanExtractor {
         BufferedWriter skippedIrrelevantWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
                 + "skipped_irrelevant.txt"), 8192000);
         BufferedWriter skippedNoNeededTranslationsWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
-                + "skipped_no-zh-en-translations.txt"), 8192000);
+                + "skipped_no-de-en-translations.txt"), 8192000);
         BufferedWriter englishOnlyWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
                 + "english-only.txt"), 8192000);
         BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output.txt"), 8192000);
@@ -71,7 +77,7 @@ public class WikiPagesMetaCurrentGermanExtractor {
                 globalCategories.add(tmp);
             } else if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(line, "[[", "]]"))) {
                 for (String lng : RELEVANT_LANGUAGES) {
-                    if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(line, "[[" + lng + ":", "]]"))) {
+                    if ((tmp = Helper.substringBetween(line, "[[" + lng + ":", "]]")) != null) {
                         languages.put(lng, tmp);
                         break;
                     }
@@ -124,7 +130,7 @@ public class WikiPagesMetaCurrentGermanExtractor {
             } else if (languages.isEmpty()) {
                 skippedNoTranslationWriter.write(name);
                 skippedNoTranslationWriter.write(Helper.SEP_NEWLINE);
-            } else if (languages.containsKey("zh")) {
+            } else if (languages.containsKey("de")) {
                 writer.write(name + Helper.SEP_PARTS + languages + Helper.SEP_PARTS + categories + Helper.SEP_NEWLINE);
                 ok = true;
             } else if (languages.containsKey("en")) {
