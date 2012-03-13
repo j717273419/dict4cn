@@ -21,7 +21,7 @@ public class FormattedTreeMap<K, V> extends TreeMap<K, V> {
             K key = e.getKey();
             V value = e.getValue();
             sb.append(key == this ? Helper.EMPTY_STRING : key);
-            sb.append(Helper.SEP_DEF);
+            sb.append(Helper.SEP_DEFINITION);
             sb.append(value == this ? Helper.EMPTY_STRING : value);
             if (!i.hasNext())
                 return sb.toString();

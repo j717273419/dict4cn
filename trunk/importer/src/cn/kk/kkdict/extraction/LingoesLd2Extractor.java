@@ -18,17 +18,24 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import cn.kk.kkdict.beans.FormattedTreeMap;
+import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class LingoesLd2Extractor {
     private static final String[] AVAIL_ENCODINGS = { "UTF-8", "UTF-16LE", "UTF-16BE" };
-    private static final byte[] TRANSFER_BYTES = new byte[8192000];
+    private static final byte[] TRANSFER_BYTES = new byte[Helper.BUFFER_SIZE];
     public static final String IN_DIR = "X:\\kkdict\\dicts\\lingoes";
-    public static final String OUT_DIR = "X:\\kkdict\\out\\lingoes";
+    public static final String OUT_DIR = "O:\\lingoes";
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
@@ -51,8 +58,8 @@ public class LingoesLd2Extractor {
             }
 
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length + " Files");
-            System.out.println("Total Words: " + total);
+            System.out.println("成功读取了" + files.length + "个Lingoes LD2文件");
+            System.out.println("总共单词：" + total);
             System.out.println("=====================================");
         }
     }
@@ -106,16 +113,19 @@ public class LingoesLd2Extractor {
         }
         ByteBuffer inflatedBytes = inflate(dataRawBytes, deflateStreams);
 
-        String outputFile = OUT_DIR + File.separator + ld2File.getName() + ".out";
+        String outputFile = OUT_DIR + File.separator + "output-" + ld2File.getName() + "."
+                + TranslationSource.LINGOES_LD2.key;
+        String[] lngs = Helper.parseLanguages(ld2File);
         counter = extract(inflatedBytes, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength,
-                outputFile);
+                outputFile, lngs[0], lngs[1], Helper.parseCategories(ld2File));
         return counter;
     }
 
-    private static int extract(ByteBuffer inflatedBytes, int offsetDefs, int offsetXml, String outputFile)
-            throws IOException, FileNotFoundException, UnsupportedEncodingException {
+    private static int extract(ByteBuffer inflatedBytes, int offsetDefs, int offsetXml, String outputFile, String lng1,
+            String lng2, Set<String> categories) throws IOException, FileNotFoundException,
+            UnsupportedEncodingException {
 
-        BufferedWriter outputWriter = new BufferedWriter(new FileWriter(outputFile), 8192000);
+        BufferedWriter outputWriter = new BufferedWriter(new FileWriter(outputFile), Helper.BUFFER_SIZE);
         inflatedBytes.order(ByteOrder.LITTLE_ENDIAN);
 
         final int dataLen = 10;
@@ -132,21 +142,44 @@ public class LingoesLd2Extractor {
         int failCounter = 0;
         final String defEncoding = encodings[0];
         final String xmlEncoding = encodings[1];
+        boolean lng1Chinese = Language.ZH.key.equalsIgnoreCase(lng1);
+        boolean lng2Chinese = Language.ZH.key.equalsIgnoreCase(lng2);
+        Map<String, String> languages = new FormattedTreeMap<String, String>();
+        String cats = categories.toString();
         for (int i = 0; i < defTotal; i++) {
             readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, defEncoding, xmlEncoding, idxData,
                     defData, i);
 
-            if (defData[0].trim().isEmpty() || defData[1].trim().isEmpty()) {
+            defData[0] = defData[0].trim();
+            defData[1] = defData[1].trim();
+
+            if (defData[0].isEmpty() || defData[1].isEmpty()) {
                 failCounter++;
             }
             if (failCounter > defTotal * 0.01) {
                 System.err.println("??");
-                System.out.println(defData[0] + " = " + defData[1]);
-                System.exit(1);
+                System.err.println(defData[0] + " = " + defData[1]);
             }
-            outputWriter.write(defData[0]);
-            outputWriter.write(Helper.SEP_DEF);
-            outputWriter.write(defData[1]);
+            if (lng1Chinese) {
+                defData[0] = ChineseHelper.toSimplifiedChinese(defData[0]);
+            }
+            if (lng2Chinese) {
+                defData[1] = ChineseHelper.toSimplifiedChinese(defData[1]);
+            }
+            defData[1] = defData[1].replaceAll("([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*.[ ]*)", Helper.SEP_SAME_MEANING);
+
+            if (cats.isEmpty()) {
+                languages.put(lng1, defData[0]);
+                languages.put(lng2, defData[1]);
+            } else {
+                // TODO
+                languages.put(lng1, defData[0] + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
+                languages.put(lng2, defData[1] + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
+            }
+
+            outputWriter.write(languages.toString());
+            outputWriter.write(Helper.SEP_DEFINITION);
+            outputWriter.write(cats);
             outputWriter.write(Helper.SEP_NEWLINE);
             counter++;
         }
@@ -274,7 +307,7 @@ public class LingoesLd2Extractor {
             final int length) throws IOException {
         Inflater inflator = new Inflater();
         InflaterInputStream in = new InflaterInputStream(new ByteArrayInputStream(data.array(), offset, length),
-                inflator, 8192000);
+                inflator, Helper.BUFFER_SIZE);
         writeInputStream(in, out);
         long bytesRead = inflator.getBytesRead();
         inflator.end();

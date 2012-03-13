@@ -12,16 +12,18 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 
+import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class BaiduBdictExtractor {
     public static final String IN_DIR = "X:\\kkdict\\dicts\\baidu";
-    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-baidu.kpy";
+    public static final String OUT_FILE = "O:\\imedicts\\output-words." + TranslationSource.BAIDU_BDICT.key;
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), 8192000);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
@@ -32,7 +34,7 @@ public class BaiduBdictExtractor {
 
             int total = 0;
             for (File f : files) {
-                System.out.print("Extracting '" + f + " ... ");
+                System.out.print("读取BCD文件'" + f + "' ... ");
                 int counter = extractBdictToFile(f, writer);
                 System.out.println(counter);
                 total += counter;
@@ -40,8 +42,8 @@ public class BaiduBdictExtractor {
 
             writer.close();
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length + " Files");
-            System.out.println("Total Words: " + total);
+            System.out.println("总共读取了" + files.length + "个百度BCD文件");
+            System.out.println("有效词组：" + total);
             System.out.println("=====================================");
         }
     }
@@ -79,7 +81,7 @@ public class BaiduBdictExtractor {
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");
 
-            writer.write(word);
+            writer.write(ChineseHelper.toSimplifiedChinese(word));
             writer.write(Helper.SEP_PARTS);
             writer.write(pinyin.toString());
             writer.write(Helper.SEP_NEWLINE);

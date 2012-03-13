@@ -10,14 +10,16 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
+import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class SogouScelPinyinExtractor {
     private static final String IN_DIR = "X:\\kkdict\\dicts\\sogou";
-    private static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-sogou.kpy";
+    private static final String OUT_FILE = "O:\\imedicts\\output-words."+TranslationSource.SOGOU_SCEL.key;
     
     public static void main(String args[]) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), 8192000);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
         byte[] buf = new byte[1024];
         String[] pyDict = new String[512];
@@ -32,7 +34,7 @@ public class SogouScelPinyinExtractor {
             });
 
             for (File f : files) {
-                System.out.print("Extracting " + f.getAbsolutePath() + " ... ");
+                System.out.print("读取SCEL文件'" + f.getAbsolutePath() + "' ... ");
                 int counter = 0;
                 FileChannel fChannel = new RandomAccessFile(f, "r").getChannel();
                 ByteBuffer fBuf = fChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) fChannel.size());
@@ -63,7 +65,7 @@ public class SogouScelPinyinExtractor {
                         if (first) {
                             first = false;
                         } else {
-                            py.append(Helper.SEP_PY);
+                            py.append(Helper.SEP_PINYIN);
                         }
                         py.append(pyDict[key]);
                     }
@@ -73,7 +75,7 @@ public class SogouScelPinyinExtractor {
                         fBuf.get(buf, 0, len);
                         word.append(new String(buf, 0, len, "UTF-16LE"));
                         fBuf.get(buf, 0, fBuf.getShort());
-                        writer.write(word.toString());
+                        writer.write(ChineseHelper.toSimplifiedChinese(word.toString()));
                         writer.write(Helper.SEP_PARTS);
                         writer.write(py.toString());
                         writer.write(Helper.SEP_NEWLINE);
@@ -86,8 +88,8 @@ public class SogouScelPinyinExtractor {
             writer.close();
 
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length +" Files");
-            System.out.println("Total Words: " + total);
+            System.out.println("总共读取了" + files.length +"个搜狗输入法词库文件");
+            System.out.println("总共词汇：" + total);
             System.out.println("=====================================");
 
         }

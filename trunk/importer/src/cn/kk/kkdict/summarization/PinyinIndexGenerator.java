@@ -15,8 +15,8 @@ import cn.kk.kkdict.beans.ListStat;
 import cn.kk.kkdict.utils.Helper;
 
 public class PinyinIndexGenerator {
-    private static final String OUT_DIR = "X:\\kkdict\\out\\pinyin";
-    private static final String IN_FILE = "X:\\kkdict\\out\\pinyin\\output-occurrences.txt";
+    private static final String OUT_DIR = "O:\\pinyin";
+    private static final String IN_FILE = "O:\\pinyin\\output-occurrences.txt";
 
     public static final String[][][] SIMILARS = {
             { { "en", "eng" }, { "in", "ing" } },
@@ -63,7 +63,7 @@ public class PinyinIndexGenerator {
         }
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output-summarized.txt"),
-                8192000);
+                Helper.BUFFER_SIZE);
         for (ListStat s : combinations) {
             writer.write(s.getCounter());
             writer.write(Helper.SEP_PARTS);

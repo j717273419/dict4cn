@@ -7,30 +7,34 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 
+import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
+import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class HanDeDictExtractor {
     public static final String HAN_DE_DICT_UTF8_FILE = "X:\\kkdict\\dicts\\handedict\\handedict_nb.u8";
 
-    public static final String OUT_DIR = "X:\\kkdict\\out\\handedict";
+    public static final String OUT_DIR = "O:\\handedict";
 
     public static final String[] IRRELEVANT_WORDS_STRINGS = { "(u.E.)" };
 
     public static void main(String args[]) throws IOException {
         long timeStarted = System.currentTimeMillis();
         Helper.precheck(HAN_DE_DICT_UTF8_FILE, OUT_DIR);
-        BufferedReader reader = new BufferedReader(new FileReader(HAN_DE_DICT_UTF8_FILE), 8192000);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output.txt"), 8192000);
-        BufferedWriter pinyinWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output-handedict.kpy"), 8192000);
-        BufferedWriter skippedIncompleteWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
-                + "skipped_incomplete.txt"), 8192000);
+        System.out.print("读取HanDeDict文件'" + HAN_DE_DICT_UTF8_FILE + "' ... ");
+        BufferedReader reader = new BufferedReader(new FileReader(HAN_DE_DICT_UTF8_FILE), Helper.BUFFER_SIZE);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output-dict_zh_de."
+                + TranslationSource.HANDE_DICT.key), Helper.BUFFER_SIZE);
 
         String line;
         String name = null;
-        String pinyin;
         String translation;
         Set<String> globalCategories = new FormattedTreeSet<String>();
         Set<String> categories = null;
@@ -39,19 +43,19 @@ public class HanDeDictExtractor {
 
         int statSkipped = 0;
         int statOk = 0;
-        Category[] csValues = Category.values();
+        HanDeCategory[] csValues = HanDeCategory.values();
         String[] cs = new String[csValues.length];
         for (int i = 0; i < csValues.length; i++) {
-            Category c = csValues[i];
+            HanDeCategory c = csValues[i];
             cs[i] = c.name();
         }
         Arrays.sort(cs);
+        Map<String, String> languages = new FormattedTreeMap<String, String>();
         while ((line = reader.readLine()) != null) {
-            if ((tmp = Helper.substringBetween(line, " ", " ")) != null) {
+            if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(line, " ", " "))) {
                 name = tmp;
-                pinyin = Helper.substringBetween(line, "[", "]");
                 translation = Helper.substringBetween(line, "/", "/");
-                if (Helper.isNotEmptyOrNull(name) && Helper.isNotEmptyOrNull(pinyin) && Helper.isNotEmptyOrNull(translation)
+                if (Helper.isNotEmptyOrNull(name) && Helper.isNotEmptyOrNull(translation)
                         && !translation.contains("???")) {
                     categories = new FormattedTreeSet<String>();
                     descriptions = new FormattedTreeSet<String>();
@@ -59,61 +63,56 @@ public class HanDeDictExtractor {
                         translation = translation.replace(i, Helper.EMPTY_STRING);
                     }
 
+                    translation = Helper.unescapeHtml(translation);
                     translation = extractCategories(translation, globalCategories, categories, cs, descriptions);
                     translation = extractCategories(translation, globalCategories, categories, cs, descriptions);
                     translation = extractCategories(translation, globalCategories, categories, cs, descriptions);
                     translation = extractCategories(translation, globalCategories, categories, cs, descriptions);
                     translation = extractCategories(translation, globalCategories, categories, cs, descriptions);
 
-                    translation = translation.replaceAll("[(,]*[ ]*$", Helper.EMPTY_STRING);
+                    translation = translation.replace("&gt", ">").replaceAll("\\([^\\)]*\\)", Helper.EMPTY_STRING)
+                            .replaceAll("<[^>]*>", Helper.EMPTY_STRING).replaceAll("[(,]*[ ]*$", Helper.EMPTY_STRING);
 
                     for (String d : descriptions) {
                         translation += "(" + d + ")";
                     }
 
-                    name = name.trim();
-                    pinyin = pinyin.trim().replaceAll("[0-9] ", "'").replaceAll("[0-9]", Helper.EMPTY_STRING);
-                    writer.write(name);
+                    String trans = translation.replaceAll("([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*.[ ]*)",
+                            Helper.SEP_SAME_MEANING);
+                    String cats = categories.toString();
+                    if (cats.isEmpty()) {
+                        languages.put(Language.ZH.key, ChineseHelper.toSimplifiedChinese(name.trim()));
+                        languages.put(Language.DE.key, trans);
+                    } else {
+                        // TODO
+                        languages.put(Language.ZH.key, ChineseHelper.toSimplifiedChinese(name.trim()));
+                        languages.put(Language.DE.key, trans + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
+                    }
+                    writer.write(languages.toString());
                     writer.write(Helper.SEP_PARTS);
-                    writer.write(pinyin);
-                    writer.write(Helper.SEP_PARTS);
-                    writer.write(translation);
-                    writer.write(Helper.SEP_PARTS);
-                    writer.write(categories.toString());
+                    writer.write(cats);
                     writer.write(Helper.SEP_NEWLINE);
-
-                    pinyinWriter.write(name);
-                    pinyinWriter.write(Helper.SEP_PARTS);
-                    pinyinWriter.write(pinyin);
-                    pinyinWriter.write(Helper.SEP_NEWLINE);
-                    
                     statOk++;
                 } else {
-                    skippedIncompleteWriter.write(line);
                     statSkipped++;
                 }
-
-            } else {
-                System.out.println("Skipped line: " + tmp);
             }
         }
         reader.close();
         writer.close();
-        pinyinWriter.close();
-        skippedIncompleteWriter.close();
 
         BufferedWriter categoriesWriter = new BufferedWriter(new FileWriter(OUT_DIR + File.separator
-                + "output-categories.txt"), 8192000);
+                + "output-categories.handedict"), Helper.BUFFER_SIZE);
         for (String c : globalCategories) {
             categoriesWriter.write(c);
             categoriesWriter.write(Helper.SEP_NEWLINE);
         }
         categoriesWriter.close();
-        System.out.println("\n==============\nExtract HanDeDict Duration: "
+        System.out.println("\n==============\n成功读取汉德词典文件。总共用去："
                 + Helper.formatDuration(System.currentTimeMillis() - timeStarted));
-        System.out.println("Categories: " + globalCategories.size());
-        System.out.println("OK: " + statOk);
-        System.out.println("SKIPPED: " + statSkipped + "\n==============\n");
+        System.out.println("类别数目：" + globalCategories.size());
+        System.out.println("有效词组数：" + statOk);
+        System.out.println("跳过词组数：" + statSkipped + "\n==============\n");
     }
 
     private static String extractCategories(String translation, Set<String> globalCategories, Set<String> categories,
@@ -153,7 +152,7 @@ public class HanDeDictExtractor {
         return translation;
     }
 
-    public static enum Category {
+    public static enum HanDeCategory {
         Adj,
         Adv,
         Arch,
