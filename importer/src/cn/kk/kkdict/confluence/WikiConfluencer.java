@@ -11,14 +11,14 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import cn.kk.kkdict.extraction.HanDeDictExtractor.Category;
+import cn.kk.kkdict.extraction.HanDeDictExtractor.HanDeCategory;
 import cn.kk.kkdict.utils.Helper;
 
 public class WikiConfluencer {
     /*
-    public static final String[] INPUT_FILES = { "X:\\kkdict\\out\\wiki\\wiki_zh\\output.txt", "X:\\kkdict\\out\\wiki\\wiki_de\\output.txt" };
+    public static final String[] INPUT_FILES = { "O:\\wiki\\wiki_zh\\output.txt", "O:\\wiki\\wiki_de\\output.txt" };
 
-    public static final String OUT_DIR = "X:\\kkdict\\out\\wiki\\confluence";
+    public static final String OUT_DIR = "O:\\wiki\\confluence";
 
     public static final String[] IRRELEVANT_WORDS_STRINGS = { "(u.E.)" };
 

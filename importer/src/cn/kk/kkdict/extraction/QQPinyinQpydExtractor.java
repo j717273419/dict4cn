@@ -14,16 +14,18 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.zip.InflaterOutputStream;
 
+import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class QQPinyinQpydExtractor {
     public static final String IN_DIR = "X:\\kkdict\\dicts\\qq";
-    public static final String OUT_FILE = "X:\\kkdict\\out\\imedicts\\output-qq.kpy";
+    public static final String OUT_FILE = "O:\\imedicts\\output-words."+ TranslationSource.QQ_QPYD.key;
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), 8192000);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
@@ -34,7 +36,7 @@ public class QQPinyinQpydExtractor {
 
             int total = 0;
             for (File f : files) {
-                System.out.print("Extracting '" + f + " ... ");
+                System.out.print("读取QPYD文件'" + f + "' ... ");
                 int counter = extractQpydToFile(f, writer);
                 System.out.println(counter);
                 total += counter;
@@ -42,8 +44,8 @@ public class QQPinyinQpydExtractor {
 
             writer.close();
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length + " Files");
-            System.out.println("Total Words: " + total);
+            System.out.println("总共读取了" + files.length + "个QQ输入法文件");
+            System.out.println("总共词汇：" + total);
             System.out.println("=====================================");
         }
     }
@@ -95,14 +97,11 @@ public class QQPinyinQpydExtractor {
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     "UTF-16LE");
             if (Helper.checkValidPinyin(pinyin)) {
-                writer.write(cleanWord(word));
+                writer.write(ChineseHelper.toSimplifiedChinese(cleanWord(word)));
                 writer.write(Helper.SEP_PARTS);
                 writer.write(pinyin);
                 writer.write(Helper.SEP_NEWLINE);
                 counter++;
-            } else {
-                System.err.println("Invalid entry in file '" + qpydFile.getAbsolutePath() + "': " + word + " ("
-                        + pinyin + ")");
             }
         }
         return counter;

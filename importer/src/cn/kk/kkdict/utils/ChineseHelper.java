@@ -54,8 +54,8 @@ public final class ChineseHelper {
         int idx;
         for (int i = 0; i < input.length(); i++) {
             int codePoint = input.codePointAt(i);
-            if ((idx = Arrays.binarySearch(CODEPOINTS_TS_SIMPLE, codePoint)) >= 0) {
-                sb.append(Character.toChars(CODEPOINTS_TS_TRADITIONAL[idx]));
+            if ((idx = Arrays.binarySearch(CODEPOINTS_TS_TRADITIONAL, codePoint)) >= 0) {
+                sb.append(Character.toChars(CODEPOINTS_TS_SIMPLE[idx]));
             } else {
                 sb.append(Character.toChars(codePoint));
             }

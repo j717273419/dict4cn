@@ -84,7 +84,7 @@ public class PinyinHelper {
             if (first) {
                 first = false;
             } else {
-                sb.append(Helper.SEP_PY);
+                sb.append(Helper.SEP_PINYIN);
             }
             String pinyin = CODEPOINT_2_PINYIN_MAP.get(Integer.valueOf(input.codePointAt(i)));
             if (pinyin != null) {

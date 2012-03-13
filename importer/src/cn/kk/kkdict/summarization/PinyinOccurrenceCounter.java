@@ -18,8 +18,8 @@ import cn.kk.kkdict.beans.Stat;
 import cn.kk.kkdict.utils.Helper;
 
 public class PinyinOccurrenceCounter {
-    private static final String IN_DIR = "X:\\kkdict\\out\\imedicts";
-    private static final String OUT_FILE = "X:\\kkdict\\out\\pinyin\\output-occurrences.txt";
+    private static final String IN_DIR = "O:\\imedicts";
+    private static final String OUT_FILE = "O:\\pinyin\\output-occurrences.txt";
 
     public static void main(String args[]) throws IOException {
         File directory = new File(IN_DIR);
@@ -27,7 +27,7 @@ public class PinyinOccurrenceCounter {
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
-                    return name.startsWith("output-") && name.endsWith(".txt");
+                    return name.startsWith("output-words");
                 }
             });
 
@@ -40,7 +40,7 @@ public class PinyinOccurrenceCounter {
                 total += counter;
             }
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), 8192000);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
             List<Stat> list = new ArrayList<Stat>();
             Set<String> keys = statsMap.keySet();
             for (String k : keys) {
@@ -68,13 +68,13 @@ public class PinyinOccurrenceCounter {
     }
 
     private static int readPinyinFromFile(File f, Map<String, Integer> statsMap) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(f), 8192000);
+        BufferedReader reader = new BufferedReader(new FileReader(f), Helper.BUFFER_SIZE);
         String line;
         int statOk = 0;
         while ((line = reader.readLine()) != null) {
             String[] parts = line.split(Helper.SEP_PARTS);
             if (parts.length == 2) {
-                String[] py = parts[1].split(Helper.SEP_PY);
+                String[] py = parts[1].split(Helper.SEP_PINYIN);
                 if (py.length > 0) {
                     for (int i = 0; i < py.length; i++) {
                         String pinyin = py[i].trim();
