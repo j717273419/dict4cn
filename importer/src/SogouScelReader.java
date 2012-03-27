@@ -39,7 +39,7 @@ import java.nio.channels.FileChannel;
 public class SogouScelReader {
     public static void main(String[] args) throws IOException {
         // download from http://pinyin.sogou.com/dict
-        String scelFile = "D:\\test.scel";
+        String scelFile = "X:\\kkdict\\in\\words\\sogou\\四十万汉语大词库.scel";
 
         // read scel into byte array
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
@@ -102,6 +102,6 @@ public class SogouScelReader {
             System.out.println(word.toString() + "\t" + py.toString());
             counter++;
         }
-        System.out.println("\nExtracted '" + scelFile + "': " + counter);
+        System.out.println("\n读出词汇'" + scelFile + "': " + counter);
     }
 }

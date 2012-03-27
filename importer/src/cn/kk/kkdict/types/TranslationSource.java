@@ -5,17 +5,17 @@ package cn.kk.kkdict.types;
  * 
  */
 public enum TranslationSource {
-    BAIDU_BDICT("baidu_bcd"),
-    HANDE_DICT("handedict_u8"),
+    EDICT_ZH_ES("edict_hispac"),
+    EDICT_ZH_EN("edict_ce"),
+    EDICT_JA_EN("edict_je"),
+    EDICT_ZH_DE("edict_hande"),
     LEO_DICT("leodict_www"),
     GOOGLE_TRANSLATION("googletrans_www"),
     BABYLON_DICT("babylon_bdict"),
     MYDICT("mydict_www"),
     STARDICT("stardict_ifo"),
     LINGOES_LD2("lingoes_ld2"),
-    QQ_QPYD("qq_qpyd"),
-    SOGOU_SCEL("sogou_scel"),
-
+    
     WIKI_AA("wiki_aa"),
     WIKI_AB("wiki_ab"),
     WIKI_AF("wiki_af"),

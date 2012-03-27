@@ -7,6 +7,16 @@ import cn.kk.kkdict.utils.Helper;
 
 public class FormattedTreeSet<E> extends TreeSet<E> {
     private static final long serialVersionUID = -8035295407619357235L;
+    private String sep = Helper.SEP_LIST;
+
+    public FormattedTreeSet() {
+        super();
+    }
+    
+    public FormattedTreeSet(String sep) {
+        super();
+        this.sep = sep;
+    }
 
     @Override
     public String toString() {
@@ -20,8 +30,16 @@ public class FormattedTreeSet<E> extends TreeSet<E> {
             sb.append(e == this ? Helper.EMPTY_STRING : e);
             if (!i.hasNext())
                 return sb.toString();
-            sb.append(Helper.SEP_LIST);
+            sb.append(sep);
         }
+    }
+
+    public String getSep() {
+        return sep;
+    }
+
+    public void setSep(String sep) {
+        this.sep = sep;
     }
 
 }

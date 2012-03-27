@@ -1,9 +1,9 @@
 package cn.kk.kkdict;
 
-import cn.kk.kkdict.extraction.BaiduBdictExtractor;
-import cn.kk.kkdict.extraction.HanDeDictExtractor;
-import cn.kk.kkdict.extraction.QQPinyinQpydExtractor;
-import cn.kk.kkdict.extraction.SogouScelPinyinExtractor;
+import cn.kk.kkdict.extraction.dict.EdictZhDeExtractor;
+import cn.kk.kkdict.extraction.word.BaiduBcdExtractor;
+import cn.kk.kkdict.extraction.word.QQPinyinQpydExtractor;
+import cn.kk.kkdict.extraction.word.SogouScelPinyinExtractor;
 import cn.kk.kkdict.summarization.PinyinIndexGenerator;
 import cn.kk.kkdict.summarization.PinyinOccurrenceCounter;
 import cn.kk.kkdict.utils.Helper;
@@ -18,10 +18,10 @@ public class ProduceAll {
     public static void main(String[] args) throws Exception {
         long timeStarted = System.currentTimeMillis();
 
-        runJob(HanDeDictExtractor.class);
+        runJob(EdictZhDeExtractor.class);
         runJob(QQPinyinQpydExtractor.class);
         runJob(SogouScelPinyinExtractor.class);
-        runJob(BaiduBdictExtractor.class);
+        runJob(BaiduBcdExtractor.class);
         runJob(PinyinOccurrenceCounter.class);
         runJob(PinyinIndexGenerator.class);
 

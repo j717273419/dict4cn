@@ -18,25 +18,31 @@ import cn.kk.kkdict.beans.Stat;
 import cn.kk.kkdict.utils.Helper;
 
 public class PinyinOccurrenceCounter {
-    private static final String IN_DIR = "O:\\imedicts";
-    private static final String OUT_FILE = "O:\\pinyin\\output-occurrences.txt";
+    private static final String IN_DIR = Helper.DIR_OUT_WORDS;
+    private static final String OUT_DIR = Helper.DIR_OUT_WORDS;
+    private static final String OUT_FILE = OUT_DIR + "\\output-occurrences.pinyin";
 
     public static void main(String args[]) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
+            new File(OUT_DIR).mkdirs();
+            System.out.print("搜索词组文件'" + IN_DIR + "' ... ");
+
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
-                    return name.startsWith("output-words");
+                    return name.startsWith("output-words.");
                 }
             });
-
+            
+            System.out.println(files.length);
+            
             Map<String, Integer> statsMap = new FormattedTreeMap<String, Integer>();
             int total = 0;
             for (File f : files) {
-                System.out.print("Reading '" + f + " ... ");
+                System.out.print("正在读取词组文件'" + f + " 。。。");
                 int counter = readPinyinFromFile(f, statsMap);
-                System.out.println(counter);                
+                System.out.println(counter);
                 total += counter;
             }
 
@@ -50,7 +56,7 @@ public class PinyinOccurrenceCounter {
 
             long totalOccurrences = 0L;
             for (Stat s : list) {
-                writer.write(s.key);                
+                writer.write(s.key);
                 writer.write(Helper.SEP_PARTS);
                 writer.write(s.counter.toString());
                 writer.write(Helper.SEP_NEWLINE);
@@ -59,10 +65,10 @@ public class PinyinOccurrenceCounter {
 
             writer.close();
             System.out.println("\n=====================================");
-            System.out.println("Total Completed: " + files.length + " Files");
-            System.out.println("Total Words: " + total);
-            System.out.println("Total Pinyins: " + list.size());
-            System.out.println("Total Occurrences: " + totalOccurrences);
+            System.out.println("总共读取词语文件：" + files.length);
+            System.out.println("词语数目：" + total);
+            System.out.println("拼音总数：" + list.size());
+            System.out.println("拼音出现次数：" + totalOccurrences);
             System.out.println("=====================================");
         }
     }

@@ -1,27 +1,33 @@
-package cn.kk.kkdict.extraction;
+package cn.kk.kkdict.extraction.dict;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.beans.WiktContentState;
 import cn.kk.kkdict.types.Gender;
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
  * Grammatik, Aussprache, Plural, Abkürzung, Beispiel, Übersetzungen, Wortart
- * 
+ * TODO: eine Zeile eine Übersetzung
  * @author x_kez
  * 
  */
@@ -29,11 +35,8 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
 
     // TODO: http://zh.wiktionary.org/w/index.php?title=apa&action=edit&section=6
     public static final String WIKT_PAGES_META_CURRENT_XML = "D:\\张克\\dev\\kkdict\\dicts\\wiktionary\\";
-    private static final String LNG = "zh";
-    public static final String WIKT_PAGES_META_CURRENT_XML_FILE = WIKT_PAGES_META_CURRENT_XML + LNG
-            + "wiktionary-20120220-pages-meta-current.xml";
 
-    public static final String OUT_DIR = "C:\\usr\\wiktionary";
+    public static final String OUT_DIR = "C:\\dicts\\wikt";
 
     public static final String KEY_TRANSLATION = "翻译";
 
@@ -41,9 +44,9 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
 
     public static final String KEY_ANTONYMS = "反义词";
 
-    public static final String[] RELEVANT_LANGUAGES_ISO = Language.LANGUAGES_ZH_ISO;
+    public static final String[] RELEVANT_LANGUAGES_ISO = LanguageConstants.LANGUAGES_ZH_ISO;
 
-    public static final String[] RELEVANT_LANGUAGES_ZH = Language.LANGUAGES_ZH;
+    public static final String[] RELEVANT_LANGUAGES_ZH = LanguageConstants.LANGUAGES_ZH;
 
     private static final Pattern PATTERN_IRRELEVANT = Pattern.compile("(^[0-9]+$)|(^-[a-z]*$)");
 
@@ -91,16 +94,25 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
             { WordType.PARTICIPE.key, "{{-ptcp-}}", "{{=ptcp=}}" }, { WordType.SINGULAR.key, "无复数" } };
 
     public static void main(String args[]) throws IOException {
-        extractWiktionaryPagesMetaCurrent();
+        final String LNG = "fr";
+        extractWiktionaryPagesMetaCurrent(LNG, WIKT_PAGES_META_CURRENT_XML + LNG
+                + "wiktionary-latest-pages-meta-current.xml.bz2");
     }
 
-    private static void extractWiktionaryPagesMetaCurrent() throws FileNotFoundException, IOException {
+    private static void extractWiktionaryPagesMetaCurrent(String fileLng, String file) throws FileNotFoundException,
+            IOException {
         long timeStarted = System.currentTimeMillis();
-        Helper.precheck(WIKT_PAGES_META_CURRENT_XML_FILE, OUT_DIR);
-        BufferedReader reader = new BufferedReader(new FileReader(WIKT_PAGES_META_CURRENT_XML_FILE), Helper.BUFFER_SIZE);
-        BufferedWriter writer = new BufferedWriter(
-                new FileWriter(OUT_DIR + File.separator + "output-dict.wikt_" + LNG), Helper.BUFFER_SIZE);
-        final boolean isChinese = Language.ZH.key.equalsIgnoreCase(LNG);
+        Helper.precheck(file, OUT_DIR);
+        BufferedReader reader;
+        if (file.endsWith(".bz2")) {
+            reader = new BufferedReader(new InputStreamReader(new BZip2CompressorInputStream((new BufferedInputStream(
+                    new FileInputStream(file), Helper.BUFFER_SIZE)))), Helper.BUFFER_SIZE);
+        } else {
+            reader = new BufferedReader(new FileReader(file), Helper.BUFFER_SIZE);
+        }
+        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_DIR + File.separator + "output-dict.wikt_"
+                + fileLng), Helper.BUFFER_SIZE);
+        final boolean isChinese = Language.ZH.key.equalsIgnoreCase(fileLng);
 
         String tmp;
 
@@ -109,7 +121,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
         Set<String> irrelevantPrefixes = new HashSet<String>();
         boolean irrelevantPrefixesNeeded = true;
         Set<String> globalCategories = new FormattedTreeSet<String>();
-        WiktContentState state = new WiktContentState(LNG);
+        WiktContentState state = new WiktContentState(fileLng);
         String categoryKey = "[[Category:";
         while (state.setLine(reader.readLine()) != null) {
             if (isChinese) {
@@ -166,7 +178,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
         reader.close();
         writer.close();
 
-        System.out.println("\n==============\n成功读取wiki_" + LNG + "词典。用时： "
+        System.out.println("\n==============\n成功读取wiki_" + fileLng + "词典。用时： "
                 + Helper.formatDuration(System.currentTimeMillis() - timeStarted));
         System.out.println("有效词组：" + statOk);
         System.out.println("跳过词组：" + statSkipped + "\n==============\n");
@@ -355,8 +367,9 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
             state.setLine(state.getLine().substring(0, tmpIdx).trim());
         }
         int i = 0;
+        String targetLng = null;
         for (String lng : RELEVANT_LANGUAGES_ZH) {
-            state.setTargetLanguage(RELEVANT_LANGUAGES_ISO[i]);
+            targetLng = RELEVANT_LANGUAGES_ISO[i];
             if (lng.equals(testLng)) {
                 key = "*" + testLng + ": ";
                 if ((idx = state.getLine().indexOf(key)) != -1) {
@@ -367,19 +380,23 @@ public class WiktionaryPagesMetaCurrentChineseExtractor {
                     break;
                 }
             }
-            key = "*{{" + state.getTargetLanguage() + "}}: ";
+            i++;
+        }
+        for (Language lng : Language.values()) {
+            targetLng = lng.key;
+            key = "*{{" + targetLng + "}}: ";
             if ((idx = state.getLine().indexOf(key)) != -1) {
                 break;
             }
-            key = "*{{" + state.getTargetLanguage() + "}}：";
+            key = "*{{" + targetLng + "}}：";
             idx = state.getLine().indexOf(key);
             if ((idx = state.getLine().indexOf(key)) != -1) {
                 break;
             }
-            i++;
         }
         if (idx != -1) {
             state.setLine(state.getLine().substring(idx + key.length()));
+            state.setTargetLanguage(targetLng);
             f = true;
         } else {
             state.setTargetLanguage(null);
