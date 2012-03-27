@@ -13,21 +13,21 @@ import java.util.Set;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.beans.Word;
-import cn.kk.kkdict.extraction.WikiPagesMetaCurrentExtractor;
+import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * Depends on {@link WikiPagesMetaCurrentExtractor} and {@link WikiPagesMetaCurrentGermanExtractor}
- * 
+ * TODO
  * @author x_kez
  * 
  */
 public class WikiPagesMetaCurrentMerger {
     private static final String LNG_EN = "en";
 
-    public static final String WIKI_PAGES_META_CURRENT_XML_FILE = "X:\\kkdict\\dicts\\wiki\\enwiki-20120211-pages-meta-current.xml";
+    public static final String WIKI_PAGES_META_CURRENT_XML_FILE = Helper.DIR_IN_DICTS+"\\wiki\\enwiki-20120211-pages-meta-current.xml";
 
     public static final Map<String, String> ENGLISH_ONLY_INPUT_FILES = new FormattedTreeMap<String, String>();
     static {
@@ -37,7 +37,7 @@ public class WikiPagesMetaCurrentMerger {
 
     public static final String OUT_DIR = "O:\\wiki\\wiki_en";
 
-    public static final String[] RELEVANT_LANGUAGES = Language.LANGUAGES_ZH_ISO;
+    public static final String[] RELEVANT_LANGUAGES = LanguageConstants.LANGUAGES_ZH_ISO;
 
     public static void main(String args[]) throws IOException {
         Helper.precheck(WIKI_PAGES_META_CURRENT_XML_FILE, OUT_DIR);

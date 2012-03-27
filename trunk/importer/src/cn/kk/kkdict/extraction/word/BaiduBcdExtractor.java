@@ -1,4 +1,4 @@
-package cn.kk.kkdict.extraction;
+package cn.kk.kkdict.extraction.word;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -11,18 +11,24 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
+import java.util.Set;
 
-import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
-public class BaiduBdictExtractor {
-    public static final String IN_DIR = "X:\\kkdict\\dicts\\baidu";
-    public static final String OUT_FILE = "O:\\imedicts\\output-words." + TranslationSource.BAIDU_BDICT.key;
+public class BaiduBcdExtractor {
+    public static final String IN_DIR = Helper.DIR_IN_WORDS+"\\baidu";
+    public static final String OUT_DIR = Helper.DIR_OUT_WORDS;
+    public static final String OUT_FILE = OUT_DIR + "\\output-words." + WordSource.BAIDU_BDICT.key;
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
+            new File(OUT_DIR).mkdirs();
+            System.out.print("搜索百度BCD文件'" + IN_DIR + "' ... ");
             BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
             File[] files = directory.listFiles(new FilenameFilter() {
@@ -31,11 +37,17 @@ public class BaiduBdictExtractor {
                     return name.endsWith(".bcd");
                 }
             });
+            System.out.println(files.length);
 
             int total = 0;
+            String tmp;
             for (File f : files) {
                 System.out.print("读取BCD文件'" + f + "' ... ");
-                int counter = extractBdictToFile(f, writer);
+                Set<String> categories = Collections.emptySet();
+                if (null != (tmp = Helper.substringBetween(f.getName(), "_", ".bcd"))) {
+                    categories = Category.parseValid(tmp.split("_"));
+                }
+                int counter = extractBdictToFile(f, writer, categories);
                 System.out.println(counter);
                 total += counter;
             }
@@ -48,18 +60,15 @@ public class BaiduBdictExtractor {
         }
     }
 
-    private static int extractBdictToFile(File bcdFile, BufferedWriter writer) throws IOException {
+    private static int extractBdictToFile(File bcdFile, BufferedWriter writer, Set<String> categories) throws IOException {
         int counter = 0;
 
-        // read qpyd into byte array
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
+        // read bcds into byte array
         FileChannel fChannel = new RandomAccessFile(bcdFile, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
-
-        // qpyd as bytes
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+        fChannel.read(dataRawBytes);
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        dataRawBytes.rewind();
 
         byte[] buf = new byte[1024];
         int total = dataRawBytes.getInt(0x250);
@@ -81,14 +90,17 @@ public class BaiduBdictExtractor {
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");
 
-            writer.write(ChineseHelper.toSimplifiedChinese(word));
+            writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(word), categories));
+            writer.write(Helper.SEP_ATTRIBUTE);
+            writer.write(WordSource.TYPE_ID);
+            writer.write(WordSource.BAIDU_BDICT.key);
             writer.write(Helper.SEP_PARTS);
             writer.write(pinyin.toString());
             writer.write(Helper.SEP_NEWLINE);
 
             counter++;
         }
-
+        fChannel.close();
         return counter;
     }
 

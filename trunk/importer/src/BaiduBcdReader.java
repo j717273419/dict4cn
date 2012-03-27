@@ -32,7 +32,7 @@ import java.nio.channels.FileChannel;
  * 
  * @author keke
  */
-public class BaiduBdictReader {
+public class BaiduBcdReader {
     private static final String[] FEN_MU = { "c", "d", "b", "f", "g", "h", "ch", "j", "k", "l", "m", "n", "", "p", "q",
             "r", "s", "t", "sh", "zh", "w", "x", "y", "z" };
     private static final String[] YUN_MU = { "uang", "iang", "ong", "ang", "eng", "ian", "iao", "ing", "ong", "uai",
@@ -41,17 +41,14 @@ public class BaiduBdictReader {
 
     public static void main(String[] args) throws IOException {
         // download from http://r6.mo.baidu.com/web/iw/index/
-        String bdictFile = "D:\\test.bcd";
+        String bdictFile = "d:\\sysdict.dat";
 
-        // read scel into byte array
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
+        // read bdict into byte array
         FileChannel fChannel = new RandomAccessFile(bdictFile, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
-
-        // bdict as bytes
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+        fChannel.read(dataRawBytes);
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        dataRawBytes.rewind();
         
         System.out.println("文件: " + bdictFile);
 
@@ -77,6 +74,7 @@ public class BaiduBdictReader {
             System.out.println(word+"\t"+pinyin);
         }
 
+        fChannel.close();
         System.out.println("\nExtracted '" + bdictFile + "': " + total);
     }
 }

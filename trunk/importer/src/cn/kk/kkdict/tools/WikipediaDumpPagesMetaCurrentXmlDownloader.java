@@ -9,14 +9,16 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cn.kk.kkdict.beans.FormattedArrayList;
-import cn.kk.kkdict.extraction.WikiPagesMetaCurrentExtractor;
+import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.types.TranslationSource;
 import cn.kk.kkdict.utils.Helper;
 
 public class WikipediaDumpPagesMetaCurrentXmlDownloader {
-    public final static String OUTPUT_DIR = WikiPagesMetaCurrentExtractor.WIKI_PAGES_META_CURRENT_XML_DIR;
-    
+    public final static String OUTPUT_DIR = WikiPagesMetaCurrentExtractor.IN_DIR;
+
     public static void main(String[] args) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        new File(OUTPUT_DIR).mkdirs();
         ExecutorService executor = Executors.newFixedThreadPool(Helper.MAX_CONNECTIONS);
 
         List<String> wikis = new FormattedArrayList<String>();
@@ -43,9 +45,11 @@ public class WikipediaDumpPagesMetaCurrentXmlDownloader {
                 @Override
                 public void run() {
                     try {
-                        Helper.download(url, OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1));
-                        System.out.println("下载'" + url + "'成功。");
-                        successCounter.incrementAndGet();
+                        if (null != Helper.download(url,
+                                OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1), false)) {
+                            System.out.println("下载'" + url + "'成功。");
+                            successCounter.incrementAndGet();
+                        }
                     } catch (Throwable e) {
                         System.err.println("下载'" + url + "'失败：" + e.toString());
                         failureCounter.incrementAndGet();
@@ -58,8 +62,9 @@ public class WikipediaDumpPagesMetaCurrentXmlDownloader {
         executor.shutdown();
         lock.acquire(wikis.size());
         System.out.println("==========================");
-        System.out.println("成功下载：" + successCounter.get() + "wiki备份文件");
+        System.out.println("成功下载：" + successCounter.get() + "/" + wikis.size() + "wiki备份文件");
         System.out.println("下载失败：" + failureCounter.get());
+        System.out.println("总共用时：" + ((System.currentTimeMillis() - start) / 1000) + "s");
         System.out.println("==========================");
     }
 }

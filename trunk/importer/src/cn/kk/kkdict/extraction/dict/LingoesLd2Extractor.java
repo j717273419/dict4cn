@@ -1,4 +1,4 @@
-package cn.kk.kkdict.extraction;
+package cn.kk.kkdict.extraction.dict;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -34,22 +34,26 @@ import cn.kk.kkdict.utils.Helper;
 public class LingoesLd2Extractor {
     private static final String[] AVAIL_ENCODINGS = { "UTF-8", "UTF-16LE", "UTF-16BE" };
     private static final byte[] TRANSFER_BYTES = new byte[Helper.BUFFER_SIZE];
-    public static final String IN_DIR = "X:\\kkdict\\dicts\\lingoes";
-    public static final String OUT_DIR = "O:\\lingoes";
+    public static final String IN_DIR = Helper.DIR_IN_DICTS+"\\lingoes";
+    public static final String OUT_DIR = Helper.DIR_OUT_DICTS+"\\lingoes";
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
+            System.out.print("搜索灵格斯LD2文件'" + IN_DIR + "' ... ");
+            new File(OUT_DIR).mkdirs();
+            
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
                     return name.endsWith(".ld2");
                 }
             });
-
+            System.out.println(files.length);
+            
             long total = 0;
             for (File f : files) {
-                System.out.print("Extracting '" + f + " ... ");
+                System.out.print("分析'" + f + " ... ");
                 int counter = extractLd2ToFile(f);
                 if (counter > 0) {
                     System.out.println(counter);
@@ -69,14 +73,11 @@ public class LingoesLd2Extractor {
         int counter = 0;
 
         // read lingoes ld2 into byte array
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
         FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
-
-        // as bytes
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+        fChannel.read(dataRawBytes);
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        dataRawBytes.rewind();
 
         int offsetData = dataRawBytes.getInt(0x5C) + 0x60;
         if (dataRawBytes.limit() > offsetData) {
@@ -93,6 +94,7 @@ public class LingoesLd2Extractor {
             System.err.println("文件不包含字典数据。网上字典？");
         }
 
+        fChannel.close();
         return counter;
     }
 
@@ -146,6 +148,7 @@ public class LingoesLd2Extractor {
         boolean lng2Chinese = Language.ZH.key.equalsIgnoreCase(lng2);
         Map<String, String> languages = new FormattedTreeMap<String, String>();
         String cats = categories.toString();
+        String sourceString = Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + TranslationSource.LINGOES_LD2.key;
         for (int i = 0; i < defTotal; i++) {
             readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, defEncoding, xmlEncoding, idxData,
                     defData, i);
@@ -169,12 +172,12 @@ public class LingoesLd2Extractor {
             defData[1] = defData[1].replaceAll("([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*.[ ]*)", Helper.SEP_SAME_MEANING);
 
             if (cats.isEmpty()) {
-                languages.put(lng1, defData[0]);
-                languages.put(lng2, defData[1]);
+                languages.put(lng1, defData[0] + sourceString);
+                languages.put(lng2, defData[1] + sourceString);
             } else {
                 // TODO
-                languages.put(lng1, defData[0] + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
-                languages.put(lng2, defData[1] + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
+                languages.put(lng1, defData[0] + sourceString + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
+                languages.put(lng2, defData[1] + sourceString + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
             }
 
             outputWriter.write(languages.toString());

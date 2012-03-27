@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import cn.kk.kkdict.utils.Helper;
+
 /**
  * Lingoes LD2/LDF File Reader
  * 
@@ -58,17 +60,14 @@ public class LingoesLd2Reader {
     public static void main(String[] args) throws IOException {
         // download from
         // https://skydrive.live.com/?cid=a10100d37adc7ad3&sc=documents&id=A10100D37ADC7AD3%211172#cid=A10100D37ADC7AD3&sc=documents
-        String ld2File = "X:\\kkdict\\dicts\\lingoes\\Prodic English-Vietnamese Business.ld2";
+        String ld2File = Helper.DIR_IN_DICTS+"\\lingoes\\Prodic English-Vietnamese Business.ld2";
 
         // read lingoes ld2 into byte array
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
         FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
-
-        // as bytes
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+        fChannel.read(dataRawBytes);
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        dataRawBytes.rewind();
 
         System.out.println("文件：" + ld2File);
         System.out.println("类型：" + new String(dataRawBytes.array(), 0, 4, "ASCII"));
@@ -92,6 +91,7 @@ public class LingoesLd2Reader {
         } else {
             System.err.println("文件不包含字典数据。网上字典？");
         }
+        fChannel.close();
     }
 
     private static final long decompress(final String inflatedFile, final ByteBuffer data, final int offset,
@@ -147,12 +147,11 @@ public class LingoesLd2Reader {
         FileWriter xmlWriter = new FileWriter(extractedXmlFile);
         FileWriter outputWriter = new FileWriter(extractedOutputFile);
         // read inflated data
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
         FileChannel fChannel = new RandomAccessFile(inflatedFile, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+        fChannel.read(dataRawBytes);
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+        dataRawBytes.rewind();
 
         final int dataLen = 10;
         final int defTotal = offsetDefs / dataLen - 1;
@@ -195,6 +194,7 @@ public class LingoesLd2Reader {
             indexWriter.write(String.valueOf(idx));
             indexWriter.write("\n");
         }
+        fChannel.close();
         indexWriter.close();
         defsWriter.close();
         xmlWriter.close();
