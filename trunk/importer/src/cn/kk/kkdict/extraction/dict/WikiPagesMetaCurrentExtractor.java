@@ -1,23 +1,24 @@
 package cn.kk.kkdict.extraction.dict;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
-import cn.kk.kkdict.beans.FormattedTreeMap;
-import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.types.TranslationSource;
@@ -64,6 +65,10 @@ public class WikiPagesMetaCurrentExtractor {
 
     private static ByteBuffer bb = ByteBuffer.allocate(Helper.MAX_LINE_BYTES);
 
+    private static ByteBuffer tmpBB = ByteBuffer.allocate(Helper.MAX_LINE_BYTES);
+    
+    private static ByteBuffer tmpBBWriter = ByteBuffer.allocate(Helper.MAX_LINE_BYTES);
+
     public static void main(String args[]) throws IOException {
 
         File directory = new File(IN_DIR);
@@ -97,6 +102,7 @@ public class WikiPagesMetaCurrentExtractor {
         long timeStarted = System.currentTimeMillis();
         Helper.precheck(file.getAbsolutePath(), OUT_DIR);
         String LNG = file.getName().substring(0, file.getName().indexOf("wiki-"));
+        byte[] LNG_BYTES = LNG.getBytes(Helper.CHARSET_UTF8);
         TranslationSource translationSource = TranslationSource.valueOf(("wiki_" + LNG).toUpperCase());
         final boolean isChinese = Language.ZH.key.equalsIgnoreCase(LNG);
         BufferedInputStream in;
@@ -106,27 +112,34 @@ public class WikiPagesMetaCurrentExtractor {
         } else {
             in = new BufferedInputStream(new FileInputStream(file), Helper.BUFFER_SIZE);
         }
-        String dictFile = OUT_DIR + File.separator + "output-dict_" + LNG + ".wiki_" + LNG;
+        String dictFile = OUT_DIR + File.separator + "output-dict.wiki_" + LNG;
         System.out.println("分析并写出：" + dictFile + " 。。。");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(dictFile), Helper.BUFFER_SIZE);
+        BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(dictFile), Helper.BUFFER_SIZE);
 
         int len;
-        String name = null;
-        Set<String> globalCategories = new FormattedTreeSet<String>();
-        Set<String> categories = null;
-        Map<String, String> languages = null;
-        String tmp;
+        byte[] name = null;
+        Set<byte[]> globalCategories = new HashSet<byte[]>();
+        Set<byte[]> categories = null;
+        Map<byte[], byte[]> languages = null;
 
         int statSkipped = 0;
         int statOk = 0;
         long lineCount = 0;
-        Set<String> irrelevantPrefixes = new HashSet<String>();
+        Set<byte[]> irrelevantPrefixes = new HashSet<byte[]>();
+        byte[][] irrelevantPrefixesBytes = null;
         boolean irrelevantPrefixesNeeded = true;
         byte[] categoryKeyBytes = PREFIX_CATEGORY_KEY_EN.getBytes(Helper.CHARSET_UTF8);
 
+        final byte[][] keysZHBytes = new byte[LanguageConstants.KEYS_ZH.length][];
+        int i = 0;
+        for (String key : LanguageConstants.KEYS_ZH) {
+            keysZHBytes[i] = key.getBytes(Helper.CHARSET_UTF8);
+            i++;
+        }
+
         while (-1 != (len = Helper.readLine(in, bb))) {
             if (DEBUG) {
-                String str = new String(bb.array(), 0, len, Helper.CHARSET_UTF8);
+                String str = Helper.toString(bb);
                 // if (str.contains("</namespace>")) {
                 // System.out.println(str);
                 // }
@@ -139,82 +152,113 @@ public class WikiPagesMetaCurrentExtractor {
                     System.out.print(".");
                 }
             }
-            if (isChinese) {
-                len = ChineseHelper.toSimplifiedChinese(bb);
-            }
-
-            if (irrelevantPrefixesNeeded && Helper.contains(bb.array(), 0, len, SUFFIX_NAMESPACES_BYTES)) {
-                irrelevantPrefixesNeeded = false;
-            } else if (irrelevantPrefixesNeeded
-                    && Helper.isNotEmptyOrNull(tmp = Helper.substringBetweenLast(bb.array(), 0, len,
-                            SUFFIX_XML_TAG_BYTES, SUFFIX_NAMESPACE_BYTES))) {
-                irrelevantPrefixes.add(tmp + ":");
-                if (DEBUG) {
-                    System.out.println("找到域码：" + tmp);
-                }
-                if (Helper.contains(bb.array(), 0, len, ATTR_CATEGORY_KEY_BYTES)) {
-                    categoryKeyBytes = ("[[" + tmp + ":").getBytes(Helper.CHARSET_UTF8);
+            if (irrelevantPrefixesNeeded) {
+                if (Helper.contains(bb.array(), 0, len, SUFFIX_NAMESPACES_BYTES)) {
+                    // finish prefixes
+                    irrelevantPrefixesNeeded = false;
+                    irrelevantPrefixesBytes = new byte[irrelevantPrefixes.size()][];
+                    i = 0;
+                    for (byte[] prefix : irrelevantPrefixes) {
+                        irrelevantPrefixesBytes[i] = prefix;
+                        i++;
+                    }
                     if (DEBUG) {
-                        System.out.println("找到category代码：" + tmp);
+                        System.out.println("所有过滤前缀：");
+                        for (byte[] prefix : irrelevantPrefixesBytes) {
+                            System.out.println("- " + Helper.toString(prefix));
+                        }
+                    }
+                } else if (Helper.substringBetweenLast(bb.array(), 0, len, SUFFIX_XML_TAG_BYTES,
+                        SUFFIX_NAMESPACE_BYTES, tmpBB) > 0) {
+                    // add prefix
+                    int limit = tmpBB.limit();
+                    tmpBB.limit(limit + 1);
+                    tmpBB.put(limit, (byte) ':');
+                    irrelevantPrefixes.add(Helper.toBytes(tmpBB));
+                    if (DEBUG) {
+                        System.out.println("找到域码：" + Helper.toString(tmpBB));
+                    }
+                    if (Helper.contains(bb.array(), 0, len, ATTR_CATEGORY_KEY_BYTES)) {
+                        categoryKeyBytes = new byte[tmpBB.limit() + 2];
+                        categoryKeyBytes[0] = (byte) '[';
+                        categoryKeyBytes[1] = (byte) '[';
+                        System.arraycopy(tmpBB.array(), 0, categoryKeyBytes, 2, tmpBB.limit());
+                        if (DEBUG) {
+                            System.out.println("找到category代码：" + Helper.toString(tmpBB));
+                        }
                     }
                 }
-
-            } else if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(bb.array(), 0, len, PREFIX_TITLE_BYTES,
-                    SUFFIX_TITLE_BYTES))) {
-                if (write(writer, LNG, translationSource, name, categories, languages)) {
-                    statOk++;
-                } else {
-                    statSkipped++;
-                }
-                boolean relevant = true;
-                for (String prefix : irrelevantPrefixes) {
-                    if (tmp.startsWith(prefix)) {
-                        relevant = false;
-                        break;
+            } else {
+                if (Helper.substringBetween(bb.array(), 0, len, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES, tmpBB) > 0) {
+                    // name found
+                    if (write(writer, LNG_BYTES, translationSource, name, categories, languages)) {
+                        statOk++;
+                    } else {
+                        statSkipped++;
                     }
-                }
-                if (!relevant) {
-                    name = null;
-                    statSkipped++;
-                } else {
-                    name = tmp;
-                    categories = new FormattedTreeSet<String>();
-                    languages = new FormattedTreeMap<String, String>();
-                }
-            } else if (name != null) {
-                if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(bb.array(), 0, len, categoryKeyBytes,
-                        SUFFIX_WIKI_TAG_BYTES))) {
-                    int wildcardIdx = tmp.indexOf('|');
-                    if (wildcardIdx != -1) {
-                        tmp = tmp.substring(0, wildcardIdx);
+                    boolean relevant = true;
+                    for (byte[] prefix : irrelevantPrefixesBytes) {
+                        if (Helper.startsWith(tmpBB.array(), tmpBB.limit(), prefix, prefix.length)) {
+                            relevant = false;
+                            break;
+                        }
                     }
-                    categories.add(tmp);
-                    globalCategories.add(tmp);
-                } else if (Helper.isNotEmptyOrNull(tmp = Helper.substringBetween(bb.array(), 0, len,
-                        PREFIX_WIKI_TAG_BYTES, SUFFIX_WIKI_TAG_BYTES))) {
-                    int idx = tmp.indexOf(':');
-                    if (idx == 1 || idx == 2) {
-                        byte[] lngBytes = tmp.substring(0, idx).getBytes(Helper.CHARSET_UTF8);
-                        int i = 0;
-                        for (byte[] lng : DISPLAYABLE_LNGS) {
-                            if (Arrays.equals(lng, lngBytes)) {
-                                tmp = tmp.substring(idx + 1);
-                                if (Helper.isNotEmptyOrNull(tmp)) {
-                                    if (Arrays.equals(KEY_ZH_BYTES, lng)) {
-                                        tmp = ChineseHelper.toSimplifiedChinese(tmp);
-                                    }
-                                    languages.put(LanguageConstants.KEYS_ZH[i], tmp);
-                                }
-                                break;
+                    if (relevant) {
+                        if (isChinese) {
+                            len = ChineseHelper.toSimplifiedChinese(tmpBB);
+                        }
+                        if (DEBUG) {
+                            System.out.println("新词：" + Helper.toString(tmpBB));
+                        }
+                        name = Helper.toBytes(tmpBB);
+                        categories = new HashSet<byte[]>();
+                        languages = new HashMap<byte[], byte[]>();
+                    } else {
+                        name = null;
+                        statSkipped++;
+                    }
+                } else if (name != null) {
+                    if (Helper.substringBetween(bb.array(), 0, len, categoryKeyBytes, SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                        // add category
+                        int wildcardIdx = Helper.indexOf(tmpBB, (byte) '|');
+                        if (wildcardIdx != -1) {
+                            tmpBB.limit(wildcardIdx);
+                        }
+                        if (isChinese) {
+                            len = ChineseHelper.toSimplifiedChinese(tmpBB);
+                        }
+                        byte[] category = Helper.toBytes(tmpBB);
+                        categories.add(category);
+                        globalCategories.add(category);
+                    } else if (Helper.substringBetween(bb.array(), 0, len, PREFIX_WIKI_TAG_BYTES,
+                            SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                        // found wiki tag
+                        int idx = Helper.indexOf(tmpBB, (byte) ':');
+                        if (idx > 0 && idx < 9) {
+                            if (isChinese) {
+                                len = ChineseHelper.toSimplifiedChinese(tmpBB);
                             }
-                            i++;
+                            byte[] lngBytes = Helper.toBytes(tmpBB, idx);
+                            i = 0;
+                            for (byte[] lng : DISPLAYABLE_LNGS) {
+                                if (Arrays.equals(lng, lngBytes)) {
+                                    if (Helper.substring(tmpBB, idx + 1) > 0) {
+                                        if (Arrays.equals(KEY_ZH_BYTES, lng)) {
+                                            ChineseHelper.toSimplifiedChinese(tmpBB);
+                                        }
+                                        languages.put(keysZHBytes[i], Helper.toBytes(tmpBB));
+                                    }
+                                    break;
+                                }
+                                i++;
+                            }
                         }
                     }
                 }
             }
             lineCount++;
         }
-        if (write(writer, LNG, translationSource, name, categories, languages)) {
+        if (write(writer, LNG_BYTES, translationSource, name, categories, languages)) {
             statOk++;
         } else {
             statSkipped++;
@@ -224,10 +268,11 @@ public class WikiPagesMetaCurrentExtractor {
 
         String categoriesFile = OUT_DIR + File.separator + "output-categories." + translationSource.key;
         System.out.println("\n写出类别文件：" + categoriesFile + "。。。");
-        BufferedWriter categoriesWriter = new BufferedWriter(new FileWriter(categoriesFile), Helper.BUFFER_SIZE);
-        for (String c : globalCategories) {
+        BufferedOutputStream categoriesWriter = new BufferedOutputStream(new FileOutputStream(categoriesFile),
+                Helper.BUFFER_SIZE);
+        for (byte[] c : globalCategories) {
             categoriesWriter.write(c);
-            categoriesWriter.write(Helper.SEP_NEWLINE);
+            categoriesWriter.write('\n');
         }
         categoriesWriter.close();
         System.out.println("\n==============\n成功读取 wiki_" + LNG + "文件，用时： "
@@ -239,22 +284,40 @@ public class WikiPagesMetaCurrentExtractor {
         return statOk;
     }
 
-    private static boolean write(BufferedWriter writer, final String LNG, TranslationSource translationSource,
-            String name, Set<String> categories, Map<String, String> languages) throws IOException {
+    private static boolean write(BufferedOutputStream writer, final byte[] lngBytes,
+            TranslationSource translationSource, byte[] name, Set<byte[]> categories, Map<byte[], byte[]> languages)
+            throws IOException {
         if (name != null) {
             if (!languages.isEmpty()) {
-                languages.put(LNG, name);
-                Set<String> lngs = languages.keySet();
-                String sourceString = Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key;
-                for (String lng : lngs) {
-                    String trans = languages.get(lng) + sourceString;
+                languages.put(lngBytes, name);
+                Set<byte[]> lngs = languages.keySet();
+                byte[] sourceStringBytes = (Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key)
+                        .getBytes(Helper.CHARSET_UTF8);
+                for (byte[] lng : lngs) {
+                    tmpBBWriter.rewind().limit(tmpBBWriter.capacity());
+                    tmpBBWriter.put(languages.get(lng)).put(sourceStringBytes);
                     // TODO
                     if (!categories.isEmpty()) {
                         // trans += Helper.SEP_ATTRIBUTE + Category.TYPE_ID;
                     }
-                    languages.put(lng, trans);
+                    tmpBBWriter.limit(tmpBBWriter.position());
+                    languages.put(lng, Helper.toBytes(tmpBBWriter));
                 }
-                writer.write(languages + Helper.SEP_NEWLINE);
+
+                Iterator<Entry<byte[], byte[]>> i = languages.entrySet().iterator();
+                for (;;) {
+                    Entry<byte[], byte[]> e = i.next();
+                    byte[] key = e.getKey();
+                    byte[] value = e.getValue();
+                    writer.write(key);
+                    writer.write(Helper.SEP_DEFINITION_BYTES);
+                    writer.write(value);
+                    if (!i.hasNext()) {
+                        break;
+                    }
+                    writer.write(Helper.SEP_LIST_BYTES);
+                }
+                writer.write('\n');
                 return true;
             }
         }

@@ -1,8 +1,5 @@
 package cn.kk.kkdict.types;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public enum Language {
     AA("aa", LanguageFamily.NONE),
     AAA("aaa", LanguageFamily.NONE),
@@ -7907,7 +7904,6 @@ public enum Language {
     ZZJ("zzj", LanguageFamily.NONE), ;
 
     public static final String TYPE_ID = "语";
-
     public final String key;
     public final LanguageFamily family;
 
@@ -7915,4 +7911,5 @@ public enum Language {
         this.key = key;
         this.family = family;
     }
+
 }

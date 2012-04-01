@@ -527,6 +527,7 @@ public class WikipediaLanguageExtractor {
                     switch (row) {
                     case 0:
                         rowInfo.key = value;
+                        // System.out.println(value);
                         break;
                     case 1:
                         rowInfo.put(Language.ZH, value.replace('、', ';'));
