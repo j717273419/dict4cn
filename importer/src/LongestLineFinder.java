@@ -3,7 +3,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class LongestLineFinder {
-    private static final String FILE = "O:\\kkdict\\out\\words\\output-words-merged.words";
+    private static final String FILE = "C:\\usr\\kkdict\\out\\dicts\\wiki\\work\\output-dict_xtr-result.wiki";
     private static final double showQuantile = 0.8;
 
     public static void main(String[] args) throws IOException {
