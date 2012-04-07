@@ -11,17 +11,19 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
+import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class WordFilesSorter {
     public static final String SUFFIX_SKIPPED = "_srt-skipped";
-    private final static boolean CHECK = true;
-    private final static boolean DEBUG = false;
-    private final static boolean TRACE = false;
+    private final static boolean CHECK = false;
+    protected final static boolean DEBUG = false;
+    protected final static boolean TRACE = false;
     protected static final boolean USE_CACHE = false;
     protected final static int CACHE_SIZE = 10;
     public static final String OUTFILE = "output-words_srt-result.words";
+    private final boolean skipIrrelevant;
 
     /**
      * @param args
@@ -39,7 +41,7 @@ public class WordFilesSorter {
         // String outFile = "D:\\test_sorted.txt";
 
         // new WordFilesSorter(outFile, false, inFile0).sort();
-        new WordFilesSorter(outDir, false, inFile0).sort();
+        new WordFilesSorter(outDir, false, true, inFile0).sort();
     }
 
     private static final void swap(int[] sortedPosArray, int a, int b) {
@@ -56,10 +58,7 @@ public class WordFilesSorter {
 
     protected ByteBuffer cachedBytes1;
     protected ByteBuffer cachedBytes2;
-
     protected ByteBuffer cachedBytes3;
-    protected ByteBuffer cachedBytesBig1;
-    protected ByteBuffer cachedBytesBig2;
     protected int cachedIdx = 0;
 
     protected final int[] cachedKeys = new int[CACHE_SIZE];
@@ -80,11 +79,13 @@ public class WordFilesSorter {
 
     protected int totalSorted;
 
-    public WordFilesSorter(String outDir, boolean skipIrrelevant, String... inFiles) {
-        this(outDir, OUTFILE, skipIrrelevant, inFiles);
+    public WordFilesSorter(String outDir, boolean skipIrrelevant, boolean writeIrrelevant, String... inFiles) {
+        this(outDir, OUTFILE, skipIrrelevant, writeIrrelevant, inFiles);
     }
 
-    public WordFilesSorter(String outDir, String outFile, boolean writeIrrelevant, String... inFiles) {
+    public WordFilesSorter(String outDir, String outFile, boolean skipIrrelevant, boolean writeIrrelevant,
+            String... inFiles) {
+        this.skipIrrelevant = skipIrrelevant;
         if (new File(outDir).isDirectory()) {
             this.inFiles = inFiles;
             this.outFile = outDir + File.separator + outFile;
@@ -117,15 +118,15 @@ public class WordFilesSorter {
             if (check) {
                 read(sortedPosArray, i, cachedBytes1);
                 read(sortedPosArray, i - 1, cachedBytes2);
-                if (!DictHelper.isSuccessor(cachedBytes1, cachedBytes2)
-                        && !DictHelper.isEquals(cachedBytes1, cachedBytes2)) {
+                if (!ArrayHelper.isSuccessor(cachedBytes1, cachedBytes2)
+                        && !ArrayHelper.isEquals(cachedBytes1, cachedBytes2)) {
                     len = read(sortedPosArray, i - 1, cachedBytes3);
                     System.err.println("\n" + (i - 1) + ": "
                             + new String(cachedBytes3.array(), 0, len, Helper.CHARSET_UTF8) + ", "
-                            + Helper.toHexString(cachedBytes3.array(), 0, len));
+                            + ArrayHelper.toHexString(cachedBytes3.array(), 0, len));
                     len = read(sortedPosArray, i, cachedBytes3);
                     System.err.println((i) + ": " + new String(cachedBytes3.array(), 0, len, Helper.CHARSET_UTF8)
-                            + ", " + Helper.toHexString(cachedBytes3.array(), 0, len));
+                            + ", " + ArrayHelper.toHexString(cachedBytes3.array(), 0, len));
                 }
             }
             check = true;
@@ -133,9 +134,9 @@ public class WordFilesSorter {
         System.out.println("检查排列顺序成功。用时：" + Helper.formatDuration(System.currentTimeMillis() - start) + "。");
     }
 
-    protected int copyAttribute(ByteBuffer cachedBytes, int cacheIdx, int attrPoint,
-            ByteBuffer bb, int idx) {
-        if (-1 == Helper.indexOf(cachedBytes.array(), attrPoint, cacheIdx - attrPoint, bb.array(), bb.position(), idx)) {
+    protected int copyAttribute(ByteBuffer cachedBytes, int cacheIdx, int attrPoint, ByteBuffer bb, int idx) {
+        if (-1 == ArrayHelper.indexOf(cachedBytes.array(), attrPoint, cacheIdx - attrPoint, bb.array(), bb.position(),
+                idx)) {
             System.arraycopy(bb.array(), bb.position(), cachedBytes.array(), cacheIdx, idx);
             cacheIdx += idx;
         }
@@ -193,10 +194,10 @@ public class WordFilesSorter {
         read(sortedPosArray, a, cachedBytes1);
         read(sortedPosArray, b, cachedBytes2);
         read(sortedPosArray, c, cachedBytes3);
-        return (DictHelper.isSuccessor(cachedBytes2, cachedBytes1) ? (DictHelper
-                .isSuccessor(cachedBytes3, cachedBytes2) ? b : DictHelper.isSuccessor(cachedBytes3, cachedBytes1) ? c
-                : a) : (DictHelper.isSuccessor(cachedBytes2, cachedBytes3) ? b : DictHelper.isSuccessor(cachedBytes1,
-                cachedBytes3) ? c : a));
+        return (ArrayHelper.isSuccessor(cachedBytes2, cachedBytes1) ? (ArrayHelper.isSuccessor(cachedBytes3,
+                cachedBytes2) ? b : ArrayHelper.isSuccessor(cachedBytes3, cachedBytes1) ? c : a) : (ArrayHelper
+                .isSuccessor(cachedBytes2, cachedBytes3) ? b : ArrayHelper.isSuccessor(cachedBytes1, cachedBytes3) ? c
+                : a));
     }
 
     protected int read(int[] sortedPosArray, int idx, ByteBuffer cachedBytes) {
@@ -229,8 +230,10 @@ public class WordFilesSorter {
                 cached.limit(len);
                 cachedIdx++;
             }
-            // System.out.println(str);
             cachedBytes.rewind().limit(len);
+            if (DEBUG && TRACE) {
+                System.out.println("读出：" + ArrayHelper.toString(cachedBytes));
+            }
             return len;
         } else {
             cachedBytes.rewind().limit(0);
@@ -278,18 +281,28 @@ public class WordFilesSorter {
 
     public void sort() throws IOException {
         long start = System.currentTimeMillis();
-        FileChannel[] fChannels = new FileChannel[inFiles.length];
         int i = 0;
         long totalSize = 0;
         for (String inFile : inFiles) {
-            FileChannel fileChannel = new RandomAccessFile(inFile, "r").getChannel();
-            ByteBuffer bb = ByteBuffer.allocate((int) fileChannel.size());
-            System.out.println("导入文件'" + inFile + "'，文件大小：" + Helper.formatSpace(bb.limit()));
-            fileChannel.read(bb);
-            bb.rewind();
-            fChannels[i] = fileChannel;
-            rawBytes[i++] = bb;
-            totalSize += fileChannel.size();
+            if (new File(inFile).isFile()) {
+                FileChannel fileChannel = new RandomAccessFile(inFile, "r").getChannel();
+                long size = fileChannel.size();
+                if (size > Integer.MAX_VALUE) {
+                    System.err.println("文件不能超过2GB：" + inFile);
+                    return;
+                }
+                ByteBuffer bb = ByteBuffer.allocate((int) size);
+                if (DEBUG) {
+                    System.out.println("导入文件'" + inFile + "'，文件大小：" + Helper.formatSpace(bb.limit()));
+                }
+                fileChannel.read(bb);
+                bb.rewind();
+                rawBytes[i++] = bb;
+                totalSize += size;
+                fileChannel.close();
+            } else {
+                System.err.println("文件不存在（不可读）'" + inFile + "'");
+            }
         }
         if (totalSize > Integer.MAX_VALUE) {
             throw new RuntimeException("文件太大。请使用其他排序算法。如mergesort。");
@@ -339,49 +352,49 @@ public class WordFilesSorter {
             System.out.println("预读" + inFiles.length + "个文件。总共" + Helper.formatSpace(totalSize) + "。用时"
                     + (System.currentTimeMillis() - start) + " ms。");
             start = System.currentTimeMillis();
-            System.out.println("排序总共" + posBuffer.limit() + "行，最长" + maxLen + "字节。平均" + (totalSize / posBuffer.limit())
-                    + "字节。。。");
+            System.out.print("排序总共" + posBuffer.limit() + "行，最长" + maxLen + "字节。平均" + (totalSize / posBuffer.limit())
+                    + "字节 。。。");
             cachedBytes1 = ByteBuffer.allocate(maxLen);
             cachedBytes2 = ByteBuffer.allocate(maxLen);
             cachedBytes3 = ByteBuffer.allocate(maxLen);
-            cachedBytesBig1 = ByteBuffer.allocate(Helper.MAX_LINE_BYTES_BIG);
-            cachedBytesBig2 = ByteBuffer.allocate(Helper.MAX_LINE_BYTES_BIG);
             for (i = 0; i < cachedValues.length; i++) {
                 cachedValues[i] = ByteBuffer.allocate(maxLen);
             }
             sort(posBuffer.array(), 0, posBuffer.limit());
-            System.out.println("排序用时：" + (System.currentTimeMillis() - start) + " ms");
+            System.out.print("用时：" + Helper.formatDuration(System.currentTimeMillis() - start) + "，");
 
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
-            BufferedOutputStream skippedOut;
-            if (skippedFile != null) {
-                skippedOut = new BufferedOutputStream(new FileOutputStream(skippedFile), Helper.BUFFER_SIZE);
-            } else {
-                skippedOut = out;
+            BufferedOutputStream skippedOut = null;
+            if (!skipIrrelevant) {
+                if (skippedFile != null) {
+                    skippedOut = new BufferedOutputStream(new FileOutputStream(skippedFile), Helper.BUFFER_SIZE);
+                } else {
+                    skippedOut = out;
+                }
             }
             if (CHECK) {
                 checkSorted(posBuffer.array(), 0, posBuffer.limit());
             }
             start = System.currentTimeMillis();
-            System.out.println("写出'" + outFile + "'文件。。。");
+            if (DEBUG) {
+                System.out.println("写出'" + outFile + "'文件。。。");
+            }
             int writtenLines = write(out, skippedOut, posBuffer.array(), 0, posBuffer.limit());
             out.close();
             if (skippedFile != null) {
                 skippedOut.close();
             }
-            for (FileChannel channel : fChannels) {
-                channel.close();
-            }
             totalSorted = writtenLines;
-            System.out.println("写出" + writtenLines + "行。文件大小：" + Helper.formatSpace(new File(outFile).length())
-                    + "。用时：" + (System.currentTimeMillis() - start) + " ms。");
+            System.out.println("写出" + writtenLines + "行。文件：" + outFile + "（"
+                    + Helper.formatSpace(new File(outFile).length()) + "）。用时：" + (System.currentTimeMillis() - start)
+                    + " ms。");
         } else {
             System.err.println("排序失败。输入文件为空！");
         }
     }
 
     private final void sort(final int x[], final int off, final int len) throws UnsupportedEncodingException {
-        if (DEBUG) {
+        if (DEBUG && TRACE) {
             System.out.println("sort(" + off + ", " + len + ")");
             if (TRACE) {
                 System.out.println("in: " + dump(x));
@@ -393,7 +406,7 @@ public class WordFilesSorter {
                 for (int j = i; j > off; j--) {
                     read(x, j - 1, cachedBytes1);
                     read(x, j, cachedBytes2);
-                    if (DictHelper.isSuccessor(cachedBytes1, cachedBytes2)) {
+                    if (ArrayHelper.isSuccessor(cachedBytes1, cachedBytes2)) {
                         swap(x, j, j - 1);
                     } else {
                         break;
@@ -420,25 +433,24 @@ public class WordFilesSorter {
             m = med3(x, l, m, n); // Mid-size, med of 3
         }
         read(x, m, cachedBytes3);
-        if (DEBUG) {
-            System.out.println("v(" + m + ")="
-                    + new String(cachedBytes3.array(), 0, cachedBytes3.limit(), Helper.CHARSET_UTF8));
+        if (DEBUG && TRACE) {
+            System.out.println("v(" + m + ")=" + ArrayHelper.toString(cachedBytes3));
         }
         // Establish Invariant: v* (<v)* (>v)* v*
         int a = off, b = a, c = off + len - 1, d = c;
         while (true) {
             while (b <= c) {
                 read(x, b, cachedBytes2);
-                if (DictHelper.isPredessorEquals(cachedBytes2, cachedBytes3)) {
-                    if (DictHelper.isEquals(cachedBytes2, cachedBytes3)) {
-                        if (DEBUG) {
+                if (ArrayHelper.isPredessorEquals(cachedBytes2, cachedBytes3)) {
+                    if (ArrayHelper.isEquals(cachedBytes2, cachedBytes3)) {
+                        if (DEBUG && TRACE) {
                             System.out.println("swap(a:" + a + ", b:" + b + ")");
                             if (TRACE) {
                                 System.out.println(dump(x));
                             }
                         }
                         swap(x, a++, b);
-                        if (DEBUG) {
+                        if (DEBUG && TRACE) {
                             if (TRACE) {
                                 System.out.println(dump(x));
                             }
@@ -451,16 +463,16 @@ public class WordFilesSorter {
             }
             while (c >= b) {
                 read(x, c, cachedBytes2);
-                if (DictHelper.isPredessorEquals(cachedBytes3, cachedBytes2)) {
-                    if (DictHelper.isEquals(cachedBytes2, cachedBytes3)) {
-                        if (DEBUG) {
+                if (ArrayHelper.isPredessorEquals(cachedBytes3, cachedBytes2)) {
+                    if (ArrayHelper.isEquals(cachedBytes2, cachedBytes3)) {
+                        if (DEBUG && TRACE) {
                             System.out.println("swap(c:" + c + ", d:" + d + ")");
                             if (TRACE) {
                                 System.out.println(dump(x));
                             }
                         }
                         swap(x, c, d--);
-                        if (DEBUG) {
+                        if (DEBUG && TRACE) {
                             if (TRACE) {
                                 System.out.println(dump(x));
                             }
@@ -500,14 +512,15 @@ public class WordFilesSorter {
             final int limit) throws IOException {
         int len = -1;
         int lines = 0;
-        int skippedEquals = 0;
-        int skippedIrrelevant = 0;
+        int skippedDuplicated = 0;
+        int skippedNoKeyFound = 0;
         int startEqual = -1;
+        byte[] cachedBytes2Array = cachedBytes2.array();
         for (int i = offset; i < limit; i++) {
             len = read(sortedPosArray, i, cachedBytes2);
             if (len == cachedBytes1.limit() && startEqual != -1
-                    && Helper.equals(cachedBytes2.array(), 0, cachedBytes1.array(), 0, len)) {
-                skippedEquals++;
+                    && ArrayHelper.equals(cachedBytes2Array, 0, cachedBytes1.array(), 0, len)) {
+                skippedDuplicated++;
                 // System.out.println("continue: " + new String(cachedBytes2.array(), 0, len, Helper.CHARSET_UTF8));
                 continue;
             } else {
@@ -515,7 +528,7 @@ public class WordFilesSorter {
                 // Helper.CHARSET_UTF8));
                 // System.out.println("new: " + new String(cachedBytes2.array(), 0, len, Helper.CHARSET_UTF8));
                 if (len != -1) {
-                    System.arraycopy(cachedBytes2.array(), 0, cachedBytes1.array(), 0, len);
+                    System.arraycopy(cachedBytes2Array, 0, cachedBytes1.array(), 0, len);
                     cachedBytes1.limit(len);
                 }
                 if (startEqual != -1 && writeRange(out, sortedPosArray, startEqual, i - 1)) {
@@ -524,13 +537,15 @@ public class WordFilesSorter {
                 if (len != -1) {
                     startEqual = i;
                 } else {
-                    ByteBuffer bb = getPosBuffer(sortedPosArray, i);
-                    if (bb != null) {
-                        int l = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
-                        skippedOut.write(bb.array(), bb.position(), l);
-                        skippedOut.write('\n');
+                    if (skippedOut != null) {
+                        ByteBuffer bb = getPosBuffer(sortedPosArray, i);
+                        if (bb != null) {
+                            int l = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
+                            skippedOut.write(bb.array(), bb.position(), l);
+                            skippedOut.write('\n');
+                        }
                     }
-                    skippedIrrelevant++;
+                    skippedNoKeyFound++;
                     startEqual = -1;
                 }
             }
@@ -540,8 +555,7 @@ public class WordFilesSorter {
                 lines++;
             }
         }
-        System.out.println("跳过" + skippedEquals + "重复行。");
-        System.out.println("跳过" + skippedIrrelevant + "垃圾行。");
+        System.out.println("跳过" + skippedDuplicated + "重复行，" + skippedNoKeyFound + "垃圾行。");
         return lines;
     }
 
@@ -550,9 +564,11 @@ public class WordFilesSorter {
         int len;
         if (startIdx != -1 && endIdx >= startIdx) {
             // System.out.println("merge: " + startIdx + ", " + endIdx);
-            len = readMerged(sortedPosArray, startIdx, endIdx, cachedBytesBig1);
-            out.write(cachedBytesBig1.array(), 0, len);
+            ByteBuffer bb = ArrayHelper.getByteBufferLarge();
+            len = readMerged(sortedPosArray, startIdx, endIdx, bb);
+            out.write(bb.array(), 0, len);
             out.write('\n');
+            ArrayHelper.giveBack(bb);
             return true;
         }
         return false;

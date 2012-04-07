@@ -1,5 +1,7 @@
 package cn.kk.kkdict.utils;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import cn.kk.kkdict.types.Language;
@@ -15,6 +17,8 @@ public final class DictHelper {
     public static final byte[] SEP_LIST_BYTES = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_NEWLINE_BYTES = Helper.SEP_NEWLINE.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_PARTS_BYTES = Helper.SEP_PARTS.getBytes(Helper.CHARSET_UTF8);
+    public static final byte[] SEP_ATTR_TRANSLATION_SRC_BYTES = (Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID)
+            .getBytes(Helper.CHARSET_UTF8);
 
     public static final Language[] TOP_LANGUAGES = { Language.EN, Language.DE, Language.FR, Language.NL, Language.NL,
             Language.IT, Language.PL, Language.ES, Language.RU, Language.JA, Language.PT, Language.SV, Language.VI,
@@ -24,20 +28,21 @@ public final class DictHelper {
     /**
      * 
      * @param bb
+     * @param lngDefBytes
      * @param includeDef
      * @return absolute position index
      */
     public static final int positionSortLng(final ByteBuffer bb, final byte[] lngDefBytes, final boolean includeDef) {
-        int endIdx = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
+        final byte[] array = bb.array();
+        final int endIdx = DictHelper.getStopPoint(array, bb.position(), bb.limit(), DictHelper.ORDER_PARTS);
         int lngIdx = bb.position() - 1;
         byte c;
-        final byte[] array = bb.array();
         do {
             c = -1;
-            lngIdx = Helper.indexOf(array, lngIdx + 1, endIdx - lngIdx - 1, lngDefBytes);
+            lngIdx = ArrayHelper.indexOf(array, lngIdx + 1, endIdx - (lngIdx + 1), lngDefBytes);
             if (lngIdx >= 0) {
                 if (lngIdx == 0) {
-                    c = 'a';
+                    c = -1;
                 } else {
                     c = array[lngIdx - 1];
                 }
@@ -139,74 +144,6 @@ public final class DictHelper {
         return getStopPoint(bb.array(), start, bb.limit(), innerstSep) - start;
     }
 
-    public static final boolean isEquals(final ByteBuffer bb1, final ByteBuffer bb2) {
-        final int l1 = bb1.limit();
-        final int l2 = bb2.limit();
-        return isEquals(bb1, 0, l1, bb2, 0, l2);
-    }
-
-    public static final boolean isEquals(final ByteBuffer bb1, int offset1, int l1, final ByteBuffer bb2, int offset2,
-            final int l2) {
-        // return v1.equalsIgnoreCase(v2);
-        if (l1 == l2) {
-            while (l1-- != 0) {
-                if (bb1.get(offset1 + l1) != bb2.get(offset2 + l1)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public static final boolean isPredessorEquals(final ByteBuffer bb1, final ByteBuffer bb2) {
-        final int l1 = bb1.limit();
-        final int l2 = bb2.limit();
-        return isPredessorEquals(bb1, 0, l1, bb2, 0, l2);
-    }
-
-    public static final boolean isPredessorEquals(final ByteBuffer bb1, final int offset1, final int l1,
-            final ByteBuffer bb2, final int offset2, final int l2) {
-        // return v1.compareToIgnoreCase(v2) <= 0;
-        if (l1 <= 0) {
-            return false;
-        } else if (l2 <= 0) {
-            return true;
-        }
-        return compareTo(bb1.array(), offset1, l1, bb2.array(), offset2, l2) <= 0;
-    }
-
-    public static final boolean isSuccessor(final ByteBuffer bb1, final ByteBuffer bb2) {
-        final int l1 = bb1.limit();
-        final int l2 = bb2.limit();
-        return isSuccessor(bb1, 0, l1, bb2, 0, l2);
-    }
-
-    public static final boolean isSuccessor(final ByteBuffer bb1, final int offset1, final int l1,
-            final ByteBuffer bb2, final int offset2, final int l2) {
-        // return v1.compareToIgnoreCase(v2) > 0;
-        if (l1 <= 0) {
-            return true;
-        } else if (l2 <= 0) {
-            return false;
-        }
-        return compareTo(bb1.array(), offset1, l1, bb2.array(), offset2, l2) > 0;
-    }
-
-    public static final int compareTo(byte[] bs1, int offset1, int len1, byte[] bs2, int offset2, int len2) {
-        int n = Math.min(len1, len2);
-        while (offset1 < n) {
-            byte c1 = bs1[offset1];
-            byte c2 = bs2[offset2];
-            if (c1 != c2) {
-                return c1 - c2;
-            }
-            offset1++;
-            offset2++;
-        }
-        return len1 - len2;
-    }
-
     public static void main(String[] args) {
         ByteBuffer mergeBB = ByteBuffer.allocate(100);
         ByteBuffer inFileBB = ByteBuffer.allocate(100);
@@ -228,7 +165,7 @@ public final class DictHelper {
         inFileBB.rewind();
         mergeDefinitionsAndAttributes(mergeBB, inFileBB);
 
-        System.out.println(Helper.toString(mergeBB.array(), 0, mergeBB.position()));
+        System.out.println(ArrayHelper.toString(mergeBB.array(), 0, mergeBB.position()));
     }
 
     public static final int mergeDefinitionsAndAttributes(final ByteBuffer mergeBB, final ByteBuffer inFileBB) {
@@ -246,7 +183,7 @@ public final class DictHelper {
             // index of definition key in mergeBB
             final byte[] mergeBBArray = mergeBB.array();
             final byte[] inFileBBArray = inFileBB.array();
-            idx = Helper.indexOf(mergeBBArray, 0, mergedPosition, inFileBBArray, inFileBB.position(), attrLen);
+            idx = ArrayHelper.indexOf(mergeBBArray, 0, mergedPosition, inFileBBArray, inFileBB.position(), attrLen);
             if (-1 == idx) {
                 // definition (key) not found in mergeBB -> append definition
                 System.arraycopy(DictHelper.SEP_LIST_BYTES, 0, mergeBBArray, mergedPosition,
@@ -258,7 +195,7 @@ public final class DictHelper {
                     && DictHelper.isSeparator(mergeBB, idx + attrLen)) {
                 // definition found -> merge attributes
                 if (DEBUG) {
-                    System.out.println("\nkey: " + Helper.toString(inFileBBArray, inFileBB.position(), attrLen));
+                    System.out.println("\nkey: " + ArrayHelper.toString(inFileBBArray, inFileBB.position(), attrLen));
                 }
                 inFileBB.position(inFileBB.position() + attrLen);
                 listLen -= attrLen;
@@ -268,13 +205,15 @@ public final class DictHelper {
                 while (inFileBB.hasRemaining()) {
                     attrLen = DictHelper.getStopPoint(inFileBB, DictHelper.ORDER_ATTRIBUTE);
                     if (DictHelper.isRelevantAttribute(inFileBB, attrLen)) {
-                        idx = Helper.indexOf(mergeBBArray, mergeStart, mergeStop - mergeStart, inFileBBArray,
+                        idx = ArrayHelper.indexOf(mergeBBArray, mergeStart, mergeStop - mergeStart, inFileBBArray,
                                 inFileBB.position(), attrLen);
                         if (DEBUG) {
                             System.out.println("mergebb="
-                                    + Helper.toString(mergeBBArray, mergeStart, mergeStop - mergeStart));
-                            System.out.println("attr="
-                                    + Helper.toString(inFileBB.array(), inFileBB.position(), attrLen) + ", " + idx);
+                                    + ArrayHelper.toString(mergeBBArray, mergeStart, mergeStop - mergeStart));
+                            System.out
+                                    .println("attr="
+                                            + ArrayHelper.toString(inFileBB.array(), inFileBB.position(), attrLen)
+                                            + ", " + idx);
                         }
                         if (-1 == idx) {
                             System.arraycopy(mergeBBArray, mergeStop, mergeBBArray, mergeStop + attrLen, mergedPosition
@@ -283,7 +222,7 @@ public final class DictHelper {
                             mergedPosition += attrLen;
                             if (DEBUG) {
                                 System.out.println("merge: "
-                                        + Helper.toString(inFileBB.array(), inFileBB.position(), attrLen));
+                                        + ArrayHelper.toString(inFileBB.array(), inFileBB.position(), attrLen));
                             }
                         }
                     }
@@ -317,7 +256,7 @@ public final class DictHelper {
         if (limit > SEP_ATTRS_BYTES.length) {
             final int pos = bb.position() + SEP_ATTRS_BYTES.length;
             final int lim = limit - SEP_ATTRS_BYTES.length;
-            if (-1 == Helper.indexOf(bb.array(), pos, lim, TranslationSource.TYPE_ID_BYTES, 0,
+            if (-1 == ArrayHelper.indexOf(bb.array(), pos, lim, TranslationSource.TYPE_ID_BYTES, 0,
                     TranslationSource.TYPE_ID_BYTES.length)) {
                 return true;
             }
@@ -327,6 +266,151 @@ public final class DictHelper {
 
     public static final boolean isSeparator(final ByteBuffer bb, final int idx) {
         return idx == getStopPoint(bb.array(), idx, idx + 3, ORDER_ATTRIBUTE, true);
+    }
+
+    public static final int filterAttributes(ByteBuffer mergeBB) {
+        int idx;
+        mergeBB.rewind();
+        while (-1 != (idx = ArrayHelper.indexOf(mergeBB.array(), mergeBB.position(),
+                mergeBB.limit() - mergeBB.position(), DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
+            int stopIdx = DictHelper.getStopPoint(mergeBB.array(), idx
+                    + DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES.length, mergeBB.limit(), DictHelper.ORDER_ATTRIBUTE);
+            if (mergeBB.limit() > stopIdx) {
+                System.arraycopy(mergeBB.array(), stopIdx, mergeBB.array(), idx, mergeBB.limit() - stopIdx);
+            }
+            mergeBB.limit(mergeBB.limit() - (stopIdx - idx));
+            mergeBB.position(idx);
+        }
+        return mergeBB.rewind().limit();
+    }
+
+    /**
+     * Count occurrences in file. Maximum one time each line. This method assumes that the data is separated by list
+     * separator or eol.
+     * 
+     * @param fileBB
+     *            status will be cleared in method
+     * @param data
+     * @param offset
+     * @param limit
+     *            absolute
+     * @return
+     * @throws IOException
+     */
+    public static int countOccurrencesFast(final ByteBuffer fileBB, final byte[] data, final int offset, final int limit) {
+        int count = 0;
+        final int size = limit - offset;
+        fileBB.clear();
+        fileBB.position(Helper.SEP_WORDS_BYTES.length);
+        byte b;
+        int idx = offset;
+        int r;
+        byte b1 = -1, b2 = -1, b3 = -1;
+        boolean found;
+        while ((r = fileBB.remaining()) >= size) {
+            b = fileBB.get();
+            r--;
+            if (b == data[idx]) {
+                if (++idx == limit) {
+                    found = false;
+                    // found, check separator
+                    if (r >= 3) {
+                        b1 = fileBB.get();
+                        b2 = fileBB.get();
+                        b3 = fileBB.get();
+                        r -= 3;
+                        if (b1 == '\n'
+                                || b1 == '\r'
+                                || (b1 == Helper.SEP_WORDS_BYTES[0] && b2 == Helper.SEP_WORDS_BYTES[1] && b3 == Helper.SEP_WORDS_BYTES[2])) {
+                            // found
+                            found = true;
+                        }
+                    } else if (r > 0) {
+                        b1 = fileBB.get();
+                        r -= 1;
+                        if (b1 == '\n' || b1 == '\r') {
+                            // found
+                            found = true;
+                        }
+                    } else {
+                        // found
+                        found = true;
+                    }
+                    if (found) {
+                        count++;
+                        idx = offset;
+                        // next line
+                        while (r-- > 0) {
+                            b = fileBB.get();
+                            if (b == '\n' || b == '\r') {
+                                break;
+                            }
+                        }
+                        if (r > 3) {
+                            fileBB.get();
+                            fileBB.get();
+                            fileBB.get();
+                        } else {
+                            break;
+                        }
+                    } else {
+                        // not fully matched
+                        idx = offset;
+                    }
+                }
+            } else {
+                idx = offset;
+            }
+        }
+        return count;
+    }
+
+    public static final Language getWikiLanguage(String f) {
+        String lngStr = Helper.substringAfter(f, ".wiki_");
+        if (lngStr == null) {
+            lngStr = Helper.substringBetweenNarrow(f, File.separator, "wiki-");
+        }
+        if (lngStr == null) {
+            lngStr = Helper.substringBetweenNarrow(f, File.separator, "wiktionary-");
+        }
+        if (lngStr != null) {
+            return Language.valueOf(Helper.toConstantName(lngStr));
+        }
+        return null;
+    }
+
+    public static final byte[] findNextWord(ByteBuffer lineBB) {
+        int start = lineBB.position();
+        int end = start;
+        int r = lineBB.remaining();
+        byte b;
+        int idx = 0;
+        while (true) {
+            if (r == 0) {
+                end = lineBB.position();
+                break;
+            } else {
+                b = lineBB.get();
+                r--;
+                if (b == Helper.SEP_WORDS_BYTES[idx]) {
+                    if (++idx < Helper.SEP_WORDS_BYTES.length) {
+                        continue;
+                    } else {
+                        end = lineBB.position() - Helper.SEP_WORDS_BYTES.length;
+                        break;
+                    }
+                } else {
+                    idx = 0;
+                }
+            }
+        }
+        if (end == start) {
+            return null;
+        } else {
+            byte[] result = new byte[end - start];
+            System.arraycopy(lineBB.array(), start, result, 0, end - start);
+            return result;
+        }
     }
 
 }

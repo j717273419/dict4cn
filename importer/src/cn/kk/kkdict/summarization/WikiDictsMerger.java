@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.tools.DictFilesExtractor;
-import cn.kk.kkdict.tools.DictFilesMerger;
+import cn.kk.kkdict.tools.DictFilesJoiner;
 import cn.kk.kkdict.tools.DictFilesSorter;
+import cn.kk.kkdict.tools.DividedDictFilesExtractSorter;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.DictHelper;
@@ -29,7 +30,7 @@ public class WikiDictsMerger {
     public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
     public static final String WORK_DIR = OUT_DIR + "\\work";
     public static final String OUT_FILE = OUT_DIR + "\\output-dict-merged.wiki";
-    private static final String SKIPPED_MERGED_NAME = "output-dict" + DictFilesMerger.SUFFIX_SKIPPED + ".";
+    private static final String SKIPPED_MERGED_NAME = "output-dict" + DictFilesJoiner.SUFFIX_SKIPPED + ".";
 
     /**
      * @param args
@@ -41,13 +42,17 @@ public class WikiDictsMerger {
         File workDirFile = new File(WORK_DIR);
         if (workDirFile.isDirectory() || !workDirFile.isFile()) {
             if (workDirFile.isDirectory()) {
-                System.out.println("临时文件夹已存在：'" + WORK_DIR + "'。删除临时文件夹...");
-                Helper.deleteDirectory(workDirFile);
+                System.out.println("临时文件夹已存在：'" + WORK_DIR + "'。删除临时文件夹 ... （文件数："
+                        + Helper.deleteDirectory(workDirFile) + "）");
+                while (workDirFile.exists());
             }
-            new File(OUT_DIR).mkdirs();
+            
+            TimeUnit.SECONDS.sleep(1);
             new File(WORK_DIR).mkdirs();
+            new File(OUT_DIR).mkdirs();
             System.out.print("搜索wiki词典文件'" + IN_DIR + "' ... ");
 
+            TimeUnit.SECONDS.sleep(1);
             File[] files = directory.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -57,14 +62,16 @@ public class WikiDictsMerger {
             System.out.println(files.length);
 
             String[] filePaths = Helper.getFileNames(files);
+
             int step = 0;
+            TimeUnit.SECONDS.sleep(1);
             System.out.println("\n【" + (++step) + "。导出所有含有中文词组的数据 】");
-            DictFilesExtractor extractor = new DictFilesExtractor(Language.ZH, WORK_DIR, DictFilesExtractor.OUTFILE,
-                    true, filePaths);
-            extractor.extract();
-            System.out.println("【" + step + "：输出文件：'" + extractor.outFile + "'】");
-            String extractorOutFile = extractor.outFile;
-            extractor = null;
+            DividedDictFilesExtractSorter sorter = new DividedDictFilesExtractSorter(Language.ZH, WORK_DIR,
+                    DictFilesExtractor.OUTFILE, true, filePaths);
+            sorter.sort();
+            System.out.println("【" + step + "：输出文件：'" + sorter.outFile + "'】");
+            String extractorOutFile = sorter.outFile;
+            sorter = null;
 
             // rename to original
             files = workDirFile.listFiles(new FilenameFilter() {
@@ -128,48 +135,43 @@ public class WikiDictsMerger {
                 return name.startsWith(OUTPUT_DICT_NAME);
             }
         });
+        int step2 = 0;
         String[] filePaths = Helper.getFileNames(files);
         for (String task : tasks) {
-            int step2 = 0;
-            Language lng = Language.valueOf(task.toUpperCase());
-            System.out.println("\n。。。【" + step + "。合并语言'" + task + "'】");
-
+            Language lng = Language.valueOf(Helper.toConstantName(task));
+            System.out.println("。。。【" + step + "。合并语言'" + task + "'】");
             System.out.println("。。。【" + step + "。" + (++step2) + "。导出所有含有'" + task + "'词组的数据 】");
             String lngOutFile = Helper.appendFileName(DictFilesExtractor.OUTFILE, "_lng");
-            DictFilesExtractor extractor = new DictFilesExtractor(lng, WORK_DIR, lngOutFile, false, filePaths);
-            extractor.extract();
-            lngOutFile = extractor.outFile;
-            System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + lngOutFile + "'】");
+            DividedDictFilesExtractSorter extractSorter = new DividedDictFilesExtractSorter(lng, WORK_DIR, lngOutFile,
+                    false, filePaths);
+            extractSorter.sort();
+            lngOutFile = extractSorter.outFile;
+            System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + lngOutFile + "'（"
+                    + Helper.formatSpace(new File(lngOutFile).length()) + "）】");
             if (new File(lngOutFile).length() > DictHelper.SEP_LIST_BYTES.length) {
                 System.out.println("。。。【" + step + "。" + (++step2) + "。排序文件：'" + mainFile + "'，语言：'" + task + "'】");
-                DictFilesSorter sorter = new DictFilesSorter(lng, WORK_DIR, false, mainFile);
+                // sort main file in lng
+                DictFilesSorter sorter = new DictFilesSorter(lng, WORK_DIR, false, false, mainFile);
                 sorter.sort();
                 String mainSortedFile = sorter.outFile;
                 new File(mainFile).delete();
                 new File(mainSortedFile).renameTo(new File(mainFile));
                 TimeUnit.SECONDS.sleep(1);
-                System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + mainFile + "'，排序后词语数目："
-                        + sorter.getTotalSorted() + "】");
+                System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + mainFile + "'（"
+                        + Helper.formatSpace(new File(mainFile).length()) + "），排序后词语数目：" + sorter.getTotalSorted()
+                        + "】");
 
-                sorter = new DictFilesSorter(lng, WORK_DIR, false, lngOutFile);
-                sorter.sort();
-                String lngSortedFile = sorter.outFile;
+                System.out.print("。。。【" + step + "。" + step2 + "。合并'" + task + "'文件：'" + lngOutFile + "'，'" + mainFile
+                        + "'，语言：'" + task + "'】");
+                DictFilesJoiner joiner = new DictFilesJoiner(lng, WORK_DIR, DictFilesJoiner.OUT_FILE, mainFile,
+                        lngOutFile);
+                joiner.join();
                 new File(lngOutFile).delete();
-                new File(lngSortedFile).renameTo(new File(lngOutFile));
-                TimeUnit.SECONDS.sleep(1);
-                System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + lngOutFile + "'，排序后词语数目："
-                        + sorter.getTotalSorted() + "】");
-
-                System.out.println("。。。【" + step + "。" + step2 + "。合并'" + task + "'文件：'" + lngOutFile + "'，'"
-                        + mainFile + "'，语言：'" + task + "'】");
-                DictFilesMerger merger = new DictFilesMerger(lng, WORK_DIR, mainFile, lngOutFile);
-                merger.merge();
-                new File(lngOutFile).delete();
-                new File(Helper.appendFileName(lngOutFile, DictFilesMerger.SUFFIX_SKIPPED)).delete();
+                new File(Helper.appendFileName(lngOutFile, DictFilesJoiner.SUFFIX_SKIPPED)).delete();
                 new File(mainFile).delete();
-                new File(merger.outFile).renameTo(new File(mainFile));
+                new File(joiner.outFile).renameTo(new File(mainFile));
                 TimeUnit.SECONDS.sleep(1);
-                System.out.println("。。。【" + step + "." + step2 + "：输出文件：'" + mainFile + "'。】");
+                System.out.println(Helper.formatSpace(new File(mainFile).length()));
             } else {
                 new File(lngOutFile).delete();
             }

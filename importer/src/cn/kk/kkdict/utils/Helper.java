@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
@@ -40,19 +39,26 @@ public final class Helper {
     public static final Charset CHARSET_EUCJP = Charset.forName("EUC-JP");
     public static final Charset CHARSET_UTF16LE = Charset.forName("UTF-16LE");
     public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
-    public static final String DIR_IN_DICTS = "X:\\kkdict\\in\\dicts";
-    public static final String DIR_IN_WORDS = "X:\\kkdict\\in\\words";
+    // public static final String DIR_IN_DICTS = "K:\\kkdict\\in\\dicts";
+    // public static final String DIR_IN_WORDS = "K:\\kkdict\\in\\words";
+    // public static final String DIR_IN_DICTS = "O:\\kkdict\\in\\dicts";
+    // public static final String DIR_IN_WORDS = "O:\\kkdict\\in\\words";
+    //
     // public static final String DIR_OUT_DICTS = "O:\\kkdict\\out\\dicts";
     // public static final String DIR_OUT_GENERATED = "O:\\kkdict\\out\\generated";
     // public static final String DIR_OUT_WORDS = "O:\\kkdict\\out\\words";
+    public static final String DIR_IN_DICTS = "C:\\usr\\kkdict\\in\\dicts";
+    public static final String DIR_IN_WORDS = "C:\\usr\\kkdict\\in\\words";
     public static final String DIR_OUT_DICTS = "C:\\usr\\kkdict\\out\\dicts";
     public static final String DIR_OUT_GENERATED = "C:\\usr\\kkdict\\out\\generated";
     public static final String DIR_OUT_WORDS = "C:\\usr\\kkdict\\out\\words";
+    // public static final String DIR_OUT_DICTS = "K:\\kkdict\\out\\dicts";
+    // public static final String DIR_OUT_GENERATED = "K:\\kkdict\\out\\generated";
+    // public static final String DIR_OUT_WORDS = "K:\\kkdict\\out\\words";
 
     public final static String EMPTY_STRING = "";
     public final static List<String> EMPTY_STRING_LIST = Collections.emptyList();
-    public static final String[] FEN_MU = { "c", "d", "b", "f", "g", "h", "ch", "j", "k", "l", "m", "n", "", "p", "q",
-            "r", "s", "t", "sh", "zh", "w", "x", "y", "z" };
+
     private static final String[][] HTML_ENTITIES = { { "fnof", "402" }, { "Alpha", "913" }, { "Beta", "914" },
             { "Gamma", "915" }, { "Delta", "916" }, { "Epsilon", "917" }, { "Zeta", "918" }, { "Eta", "919" },
             { "Theta", "920" }, { "Iota", "921" }, { "Kappa", "922" }, { "Lambda", "923" }, { "Mu", "924" },
@@ -89,14 +95,6 @@ public final class Helper {
     private static final int[] HTML_VALS;
     public final static int MAX_CONNECTIONS = 2;
 
-    public static final int MAX_LINE_BYTES = 1024;
-
-    public static final int MAX_LINE_BYTES_NORMAL = 1024 * 4;
-
-    public static final int MAX_LINE_BYTES_MEDIUM = 1024 * 16;
-
-    public static final int MAX_LINE_BYTES_BIG = 1024 * 32;
-
     public final static String SEP_ATTRIBUTE = "‹";
 
     public final static String SEP_DEFINITION = "═";
@@ -115,11 +113,10 @@ public final class Helper {
 
     public final static String SEP_WORDS = "│";
 
-    public static final String[] YUN_MU = { "uang", "iang", "iong", "ang", "eng", "ian", "iao", "ing", "ong", "uai",
-            "uan", "ai", "an", "ao", "ei", "en", "er", "ua", "ie", "in", "iu", "ou", "ia", "ue", "ui", "un", "uo", "a",
-            "e", "i", "o", "u", "v" };
     public static final byte[] SEP_DEFINITION_BYTES = Helper.SEP_DEFINITION.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_LIST_BYTES = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
+    public static final byte[] SEP_WORDS_BYTES = Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8);
+    public static final int[] SEP_WORDS_INTS = ArrayHelper.toIntArray(Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8));
 
     static {
         Arrays.sort(HTML_ENTITIES, new Comparator<String[]>() {
@@ -175,14 +172,33 @@ public final class Helper {
         }
     }
 
-    public static final boolean checkValidPinyin(String pinyin) {
-        final String[] parts = pinyin.split(Helper.SEP_PINYIN);
-        for (String part : parts) {
-            if (null == Helper.getShenMuYunMu(part)) {
-                return false;
-            }
+    public static String download(String url) throws IOException {
+        return download(url, File.createTempFile("kkdl", null).getAbsolutePath(), true);
+    }
+
+    public static String download(String url, String file, boolean overwrite) throws IOException {
+        System.out.println("下载'" + url + "'到'" + file + "'。。。");
+        if (!overwrite && new File(file).exists()) {
+            System.err.println("文件'" + file + "'已存在。跳过下载程序。");
+            return null;
+        } else {
+            long start = System.currentTimeMillis();
+            URL urlObj = new URL(url);
+            URLConnection conn = urlObj.openConnection();
+            conn.addRequestProperty("User-Agent",
+                    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
+            conn.addRequestProperty("Cache-Control", "no-cache");
+            conn.addRequestProperty("Pragma", "no-cache");
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
+            InputStream in = new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
+            writeInputStream(in, out);
+            in.close();
+            out.close();
+            long duration = System.currentTimeMillis() - start;
+            System.out.println("下载文件'" + url + "'用时" + Helper.formatDuration(duration) + "（"
+                    + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
+            return file;
         }
-        return true;
     }
 
     public static ByteBuffer compressFile(String rawFile, int level) throws IOException {
@@ -205,51 +221,6 @@ public final class Helper {
         writeInputStream(in, out);
         in.close();
         return ByteBuffer.wrap(dataOut.toByteArray());
-    }
-
-    public final static boolean contains(final byte[] text, final int offset, final int limit, final byte[] s) {
-        final int len = s.length;
-        if (limit >= len) {
-            final int size = limit - len + 1 + offset;
-            for (int i = offset; i < size; i++) {
-                if (equals(text, i, s, 0, len)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static void debug(byte[] data) {
-        if (data.length == 1) {
-            System.out.println("byte: " + data[0]);
-        }
-        if (data.length == 2) {
-            System.out.println("short (le): " + (((data[1] & 0xFF) << 8) | (data[0] & 0xFF)));
-            System.out.println("short (be): " + (((data[1] & 0xFF) << 8) | (data[0] & 0xFF)));
-        }
-        if (data.length == 4) {
-            System.out.println("int (le): "
-                    + (((data[3] & 0xFF) << 24) | ((data[2] & 0xFF) << 16) | ((data[1] & 0xFF) << 8) | data[0] & 0xFF));
-            System.out.println("int (be): "
-                    + (((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | data[3] & 0xFF));
-        }
-        if (data.length < 1024) {
-            System.out.println("BYTES: " + toHexString(data));
-        }
-        try {
-            System.out.println("ISO-8859-1: " + new String(data, "ISO-8859-1"));
-            System.out.println("UTF-8: " + new String(data, "UTF-8"));
-            System.out.println("UTF-16LE: " + new String(data, "UTF-16LE"));
-            System.out.println("UTF-16BE: " + new String(data, "UTF-16BE"));
-            System.out.println("UTF-32LE: " + new String(data, "UTF-32LE"));
-            System.out.println("UTF-32BE: " + new String(data, "UTF-32BE"));
-            System.out.println("Big5: " + new String(data, "Big5"));
-            System.out.println("GB18030: " + new String(data, "GB18030"));
-            System.out.println("GB2312: " + new String(data, "GB2312"));
-            System.out.println("GBK: " + new String(data, "GBK"));
-        } catch (UnsupportedEncodingException e) {
-        }
     }
 
     public static ByteBuffer decompressFile(String compressedFile) throws IOException {
@@ -282,49 +253,6 @@ public final class Helper {
             inf.end();
             return null;
         }
-
-    }
-
-    public static String download(String url) throws IOException {
-        return download(url, File.createTempFile("kkdl", null).getAbsolutePath(), true);
-    }
-
-    public static String download(String url, String file, boolean overwrite) throws IOException {
-        System.out.println("下载'" + url + "'到'" + file + "'。。。");
-        if (!overwrite && new File(file).exists()) {
-            System.err.println("文件'" + file + "'已存在。跳过下载程序。");
-            return null;
-        } else {
-            long start = System.currentTimeMillis();
-            URL urlObj = new URL(url);
-            URLConnection conn = urlObj.openConnection();
-            conn.addRequestProperty("User-Agent",
-                    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
-            conn.addRequestProperty("Cache-Control", "no-cache");
-            conn.addRequestProperty("Pragma", "no-cache");
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-            InputStream in = new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
-            writeInputStream(in, out);
-            in.close();
-            out.close();
-            long duration = System.currentTimeMillis() - start;
-            System.out.println("下载文件'" + url + "'用时" + Helper.formatDuration(duration) + "（"
-                    + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
-            return file;
-        }
-    }
-
-    public final static boolean equals(final byte[] array1, final int start1, final byte[] array2, final int start2,
-            final int len) {
-        if (start1 + len > array1.length || start2 + len > array2.length) {
-            return false;
-        }
-        for (int i = 0; i < len; i++) {
-            if (array1[start1 + i] != array2[start2 + i]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -383,83 +311,17 @@ public final class Helper {
     }
 
     public static final String formatSpace(final long limit) {
-        if (limit < 1024) {
+        if (limit < 1024L) {
             return limit + " B";
-        }
-        if (limit < 1024 * 1024) {
+        } else if (limit < 1024L * 1024) {
             return Math.round(limit / 10.24) / 100.0 + " KB";
-        }
-        if (limit < 1024 * 1024 * 1024) {
+        } else if (limit < 1024L * 1024 * 1024) {
             return Math.round(limit / 1024 / 10.24) / 100.0 + " MB";
+        } else if (limit < 1024L * 1024 * 1024 * 1024) {
+            return Math.round(limit / 1024.0 / 1024.0 / 10.24) / 100.0 + " GB";
+        } else {
+            return Math.round(limit / 1024.0 / 1024.0 / 1024.0 / 10.24) / 100.0 + " TB";
         }
-        if (limit < 1024 * 1024 * 1024 * 1024) {
-            return Math.round(limit / 1024.0 / 1024.0 / 10.24) / 100.0 + " MB";
-        }
-        return null;
-    }
-
-    public static final String[] getShenMuYunMu(String pinyin) {
-        for (String s : FEN_MU) {
-            if (pinyin.startsWith(s)) {
-                for (String y : YUN_MU) {
-                    if (pinyin.endsWith(y)) {
-                        if (pinyin.equals(s + y)) {
-                            return new String[] { s, y };
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 
-     * @param text
-     * @param offset
-     * @param limit
-     *            relative limit
-     * @param s
-     * @return absolute index
-     */
-    public final static int indexOf(final byte[] text, final int offset, final int limit, final byte[] s) {
-        return indexOf(text, offset, limit, s, 0, s.length);
-    }
-
-    /**
-     * 
-     * @param text
-     * @param offset
-     * @param limit
-     *            relative limit
-     * @param s
-     * @param offset2
-     * @param limit2
-     *            relative limit
-     * @return absolute index
-     */
-    public final static int indexOf(final byte[] text, final int offset, final int limit, final byte[] s,
-            final int offset2, final int limit2) {
-        if (limit >= limit2) {
-            final int size = limit - limit2 + 1 + offset;
-            for (int i = offset; i < size; i++) {
-                if (equals(text, i, s, offset2, limit2)) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private final static int indexOf(final char[][] pairs, final char c) {
-        int i = 0;
-        for (final char[] pair : pairs) {
-            if (c == pair[0]) {
-                return i;
-            }
-            i++;
-        }
-        return -1;
     }
 
     public static boolean isEmptyOrNull(String text) {
@@ -472,49 +334,6 @@ public final class Helper {
 
     private static boolean isNumber(char c) {
         return c >= '0' && c <= '9';
-    }
-
-    public final static int lastIndexOf(final byte[] text, final int offset, final int limit, final byte[] s) {
-        final int len = s.length;
-        if (limit >= len) {
-            final int size = limit - len + 1;
-            for (int i = size - 1; i >= offset; i--) {
-                if (equals(text, i, s, 0, len)) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    public static void main(String[] args) {
-        byte[] text = "      <namespace key=\"-2\" case=\"first-letter\">Medėjė</namespace><namespace key=\"-2\" case=\"first-letter\">Medėjė2</namespace>"
-                .getBytes(CHARSET_UTF8);
-        System.out.println(contains(text, 0, text.length, "</namespace>".getBytes(CHARSET_UTF8)));
-        System.out.println(substringBetween(text, 0, text.length, "\">".getBytes(CHARSET_UTF8),
-                "</namespace>".getBytes(CHARSET_UTF8)));
-        ByteBuffer bbBuffer = ByteBuffer.allocate(MAX_LINE_BYTES);
-        substringBetween(text, 0, text.length, "\">".getBytes(CHARSET_UTF8), "</namespace>".getBytes(CHARSET_UTF8),
-                bbBuffer);
-        System.out.println(toString(bbBuffer));
-
-        substringBetweenLast(text, 0, text.length, "\">".getBytes(CHARSET_UTF8), "</namespace>".getBytes(CHARSET_UTF8),
-                bbBuffer);
-        System.out.println(toString(bbBuffer));
-
-        System.out.println(substringBetweenLast(text, 0, text.length, "\">".getBytes(CHARSET_UTF8),
-                "</namespace>".getBytes(CHARSET_UTF8)));
-        System.out.println(indexOf(text, 1, text.length - 1, "namespace".getBytes(CHARSET_UTF8), 0, 4));
-        bbBuffer.put((byte) 1);
-        bbBuffer.put((byte) 2);
-        bbBuffer.put((byte) 3);
-        bbBuffer.put((byte) 4);
-        bbBuffer.put((byte) 5);
-        bbBuffer.put((byte) 6);
-        bbBuffer.put((byte) 7);
-        bbBuffer.put((byte) 8);
-        substring(bbBuffer, 1);
-        System.out.println(Helper.toHexString(bbBuffer));
     }
 
     public final static String padding(long value, int len, char c) {
@@ -569,57 +388,6 @@ public final class Helper {
         fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
         fChannel.close();
         return ByteBuffer.wrap(dataOut.toByteArray());
-    }
-
-    /**
-     * 
-     * @param in
-     * @param bb
-     * @return line without '\n'-character
-     * @throws IOException
-     */
-    public static final int readLine(BufferedInputStream in, ByteBuffer bb) throws IOException {
-        int b;
-        bb.rewind().limit(bb.capacity());
-        int len = 0;
-        while (-1 != (b = in.read())) {
-            len++;
-            if (b == '\r') {
-                b = in.read();
-                if (-1 == b) {
-                    break;
-                } else if (b != '\n') {
-                    if (bb.hasRemaining()) {
-                        // skip beyond max line size
-                        bb.put((byte) '\r');
-                    }
-                }
-            }
-            if (b != '\n') {
-                if (bb.hasRemaining()) {
-                    // skip beyond max line size
-                    bb.put((byte) b);
-                }
-            } else {
-                b = bb.position();
-                bb.limit(b);
-                bb.rewind();
-                // if (--len > bb.limit()) {
-                // System.err.println("跳过超长部分：总" + len + "字符，跳过" + (len - bb.limit()) + "字符");
-                // }
-                return b;
-            }
-        }
-        if ((b = bb.position()) != 0) {
-            bb.limit(b);
-            bb.rewind();
-            if (len > bb.limit()) {
-                System.err.println("跳过超长部分：总" + len + "字符，跳过" + (len - bb.limit()) + "字符");
-            }
-            return b;
-        }
-        return -1;
-
     }
 
     public final static Map<String, String> readMapStringString(String text) {
@@ -691,9 +459,9 @@ public final class Helper {
             char c = line.charAt(i);
             if (i == count - 1 && c == ' ') {
                 break;
-            } else if (c == ' ' && (i + 1 < count && -1 != (pairIdx = indexOf(pairs, line.charAt(i + 1))))) {
+            } else if (c == ' ' && (i + 1 < count && -1 != (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i + 1))))) {
                 i++;
-            } else if (-1 != (pairIdx = indexOf(pairs, line.charAt(i + 1)))) {
+            } else if (-1 != (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i + 1)))) {
             } else if (-1 != pairIdx && c == pairs[pairIdx][1]) {
                 pairIdx = -1;
                 if (i + 1 < count && line.charAt(i + 1) == ' ') {
@@ -723,138 +491,6 @@ public final class Helper {
         return sb.toString();
     }
 
-    public final static String substringBetween(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end) {
-        return substringBetween(text, offset, limit, start, end, true);
-    }
-
-    public final static String substringBetween(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end, final boolean trim) {
-        int nStart = indexOf(text, offset, limit, start);
-        final int nEnd = indexOf(text, nStart + start.length + 1, limit, end);
-        if (nStart != -1 && nEnd > nStart) {
-            nStart += start.length;
-            String str = new String(text, nStart, nEnd - nStart, Helper.CHARSET_UTF8);
-            if (trim) {
-                return str.trim();
-            } else {
-                return str;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * 
-     * @param text
-     * @param offset
-     * @param limit
-     * @param start
-     * @param end
-     * @param bb
-     * @return new bb limit
-     */
-    public final static int substringBetween(final byte[] text, final int offset, final int limit, final byte[] start,
-            final byte[] end, ByteBuffer bb) {
-        return substringBetween(text, offset, limit, start, end, true, bb);
-    }
-
-    /**
-     * 
-     * @param text
-     * @param offset
-     * @param limit
-     * @param start
-     * @param end
-     * @param trim
-     * @param bb
-     * @return new bb limit
-     */
-    public final static int substringBetween(final byte[] text, final int offset, final int limit, final byte[] start,
-            final byte[] end, final boolean trim, ByteBuffer bb) {
-        int nStart = indexOf(text, offset, limit, start);
-        int nEnd = indexOf(text, nStart + start.length + 1, limit, end);
-        if (nStart != -1 && nEnd > nStart) {
-            nStart += start.length;
-            if (trim) {
-                byte c;
-                int i;
-                for (i = nStart; i < nEnd; i++) {
-                    c = text[i];
-                    if (c != ' ' && c != '\t' && c != '\r') {
-                        break;
-                    }
-                }
-                nStart = i;
-                for (i = nEnd; i >= nStart; i--) {
-                    c = text[i];
-                    if (c != ' ' && c != '\t' && c != '\r') {
-                        break;
-                    }
-                }
-                nEnd = i;
-            }
-            if (nEnd > nStart) {
-                int len = nEnd - nStart;
-                System.arraycopy(text, nStart, bb.array(), 0, len);
-                bb.limit(len);
-            } else {
-                bb.limit(0);
-            }
-        } else {
-            bb.limit(0);
-        }
-        return bb.limit();
-    }
-
-    public final static int substringBetweenLast(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end, ByteBuffer bb) {
-        return substringBetweenLast(text, offset, limit, start, end, true, bb);
-    }
-
-    public final static int substringBetweenLast(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end, final boolean trim, ByteBuffer bb) {
-        int nEnd = lastIndexOf(text, offset, limit, end);
-        int nStart = -1;
-        if (nEnd > start.length) {
-            nStart = lastIndexOf(text, offset, nEnd - 1, start);
-            if (nStart < nEnd && nStart != -1 && nEnd != -1) {
-                nStart += start.length;
-                if (trim) {
-                    byte c;
-                    int i;
-                    for (i = nStart; i < nEnd; i++) {
-                        c = text[i];
-                        if (c != ' ' && c != '\t' && c != '\r') {
-                            break;
-                        }
-                    }
-                    nStart = i;
-                    for (i = nEnd; i >= nStart; i--) {
-                        c = text[i];
-                        if (c != ' ' && c != '\t' && c != '\r') {
-                            break;
-                        }
-                    }
-                    nEnd = i;
-                }
-                if (nEnd > nStart) {
-                    int len = nEnd - nStart;
-                    System.arraycopy(text, nStart, bb.array(), 0, len);
-                    bb.limit(len);
-                } else {
-                    bb.limit(0);
-                }
-            } else {
-                bb.limit(0);
-            }
-        } else {
-            bb.limit(0);
-        }
-        return bb.limit();
-    }
-
     public static final String substringBetween(final String text, final String start, final String end) {
         return substringBetween(text, start, end, true);
     }
@@ -879,33 +515,6 @@ public final class Helper {
         final int nEnd = text.lastIndexOf(end);
         if (nStart != -1 && nEnd != -1 && nEnd > nStart + start.length()) {
             return text.substring(nStart + start.length(), nEnd);
-        } else {
-            return null;
-        }
-    }
-
-    public final static String substringBetweenLast(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end) {
-        return substringBetweenLast(text, offset, limit, start, end, true);
-    }
-
-    public final static String substringBetweenLast(final byte[] text, final int offset, final int limit,
-            final byte[] start, final byte[] end, final boolean trim) {
-        int nEnd = lastIndexOf(text, offset, limit, end);
-        int nStart = -1;
-        if (nEnd > start.length) {
-            nStart = lastIndexOf(text, offset, nEnd - 1, start);
-        } else {
-            return null;
-        }
-        if (nStart < nEnd && nStart != -1 && nEnd != -1) {
-            nStart += start.length;
-            String str = new String(text, nStart, nEnd - nStart);
-            if (trim) {
-                return str.trim();
-            } else {
-                return str;
-            }
         } else {
             return null;
         }
@@ -964,27 +573,6 @@ public final class Helper {
             } else {
                 sb.append(c);
             }
-        }
-        return sb.toString();
-    }
-
-    public static String toHexString(final byte[] data) {
-        return toHexString(data, 0, data.length);
-    }
-
-    private static String toHexString(ByteBuffer bb) {
-        return toHexString(bb.array(), 0, bb.limit());
-    }
-
-    public static String toHexString(final byte[] data, final int offset, final int len) {
-        StringBuffer sb = new StringBuffer(len * 2);
-        for (int idx = offset; idx < offset + len; idx++) {
-            byte b = data[idx];
-            int i = b & 0xff;
-            if (i < 0xf) {
-                sb.append('0');
-            }
-            sb.append(Integer.toHexString(i)).append(' ');
         }
         return sb.toString();
     }
@@ -1085,93 +673,22 @@ public final class Helper {
         }
     }
 
-    public static final boolean deleteDirectory(File path) {
+    public static final int deleteDirectory(File path) {
+        int deleted = 0;
         if (path.exists()) {
             File[] files = path.listFiles();
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isDirectory()) {
-                    deleteDirectory(files[i]);
+                    deleted += deleteDirectory(files[i]);
                 } else {
-                    files[i].delete();
+                    if (files[i].delete()) {
+                        deleted++;
+                    }
                 }
             }
         }
-        return (path.delete());
-    }
-
-    public static final String toString(final ByteBuffer bb) {
-        return toString(bb.array(), 0, bb.limit());
-    }
-
-    public static final String toString(final byte[] array, int offset, int len) {
-        return new String(array, offset, len, Helper.CHARSET_UTF8);
-    }
-
-    public static final String toString(final byte[] bb) {
-        return new String(bb, 0, bb.length, Helper.CHARSET_UTF8);
-    }
-
-    public static final boolean startsWith(byte[] array, byte[] prefix) {
-        final int l1 = array.length;
-        final int l2 = prefix.length;
-        return startsWith(array, l1, prefix, l2);
-    }
-
-    public static final boolean startsWith(final byte[] array, final int l1, final byte[] prefix, int l2) {
-        if (l1 >= l2) {
-            while (l2-- != 0) {
-                if (array[l2] != prefix[l2]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public final static byte[] toBytes(final ByteBuffer bb) {
-        return toBytes(bb, bb.limit());
-    }
-
-    public final static byte[] toBytes(final ByteBuffer bb, int len) {
-        byte[] result = new byte[len];
-        System.arraycopy(bb.array(), 0, result, 0, len);
-        return result;
-    }
-
-    public static int indexOf(ByteBuffer bb, byte b) {
-        final int l = bb.limit();
-        for (int i = 0; i < l; i++) {
-            if (bb.get(i) == b) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * 
-     * @param tmpBB
-     * @param startIdx
-     * @return new bb limit
-     */
-    public static final int substring(final ByteBuffer tmpBB, final int startIdx) {
-        final int limit = tmpBB.limit();
-        if (startIdx >= limit) {
-            tmpBB.limit(0);
-            return 0;
-        } else {
-            byte[] array = tmpBB.array();
-            int i = 0;
-            int s = startIdx;
-            while (s < limit) {
-                array[i] = array[s];
-                s++;
-                i++;
-            }
-            tmpBB.limit(limit - startIdx);
-            return tmpBB.limit();
-        }
+        path.delete();
+        return deleted;
     }
 
     public static final String[] getFileNames(final File[] files) {
@@ -1182,5 +699,29 @@ public final class Helper {
             filePaths[i++] = f.getAbsolutePath();
         }
         return filePaths;
-   }
+    }
+
+    public final static long getFilesSize(String[] files) {
+        long size = 0;
+        for (String f : files) {
+            size += new File(f).length();
+        }
+        return size;
+    }
+
+    public static String substringAfterLast(String f, String str) {
+        int idx = f.lastIndexOf(str);
+        if (-1 != idx) {
+            return f.substring(idx + str.length());
+        }
+        return null;
+    }
+
+    public static String substringAfter(String f, String str) {
+        int idx = f.indexOf(str);
+        if (-1 != idx) {
+            return f.substring(idx + str.length());
+        }
+        return null;
+    }
 }

@@ -4,15 +4,20 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * 
+ * extract lines containing certain definition to another file
+ * 
+ */
 public class DictFilesExtractor {
     private final String[] inFiles;
     private final String outDir;
@@ -22,7 +27,6 @@ public class DictFilesExtractor {
     private static final boolean DEBUG = false;
     public final String outFile;
     private final byte[] extractLngDefBytes;
-    private static ByteBuffer bb = ByteBuffer.allocate(Helper.MAX_LINE_BYTES_MEDIUM);
     private boolean writeSkipped;
 
     public static void main(String[] args) throws IOException {
@@ -57,8 +61,6 @@ public class DictFilesExtractor {
             this.outFile = outDir + File.separator + outFile;
             this.extractLngDefBytes = (extractLng.key + Helper.SEP_DEFINITION).getBytes(Helper.CHARSET_UTF8);
             this.writeSkipped = writeSkipped;
-            bb.rewind();
-            bb.limit(bb.capacity());
         } else {
             this.inFiles = null;
             this.outDir = null;
@@ -71,13 +73,18 @@ public class DictFilesExtractor {
 
     public void extract() throws IOException {
 
-        System.out.println("截取含有'" + extractLng.key + "'的词典行  。。。");
-        System.out.println("创建输出文件'" + outFile + "'。。。");
+        System.out.println("截取含有'" + extractLng.key + "'的词典   。。。" + inFiles.length);
+        if (DEBUG) {
+            System.out.println("创建输出文件'" + outFile + "'。。。");
+        }
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
         for (String inFile : inFiles) {
             File f = new File(inFile);
             if (f.isFile()) {
-                System.out.println("处理截取文件'" + f.getAbsolutePath() + "'（" + Helper.formatSpace(f.length()) + "）。。。");
+                if (DEBUG) {
+                    System.out
+                            .println("处理截取文件'" + f.getAbsolutePath() + "'（" + Helper.formatSpace(f.length()) + "）。。。");
+                }
                 String skippedOutFile = null;
                 if (writeSkipped) {
                     skippedOutFile = Helper.appendFileName(outDir + File.separator + f.getName(), SUFFIX_SKIPPED);
@@ -102,8 +109,8 @@ public class DictFilesExtractor {
             skippedOut = new BufferedOutputStream(new FileOutputStream(skippedOutFile), Helper.BUFFER_SIZE);
         }
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);
-        int len;
-        while (-1 != (len = Helper.readLine(in, bb))) {
+        ByteBuffer bb = ArrayHelper.getByteBufferMedium();
+        while (-1 != ArrayHelper.readLine(in, bb)) {
             if (-1 != DictHelper.positionSortLng(bb, extractLngDefBytes, true)) {
                 out.write(bb.array(), 0, bb.limit());
                 out.write('\n');
@@ -115,5 +122,6 @@ public class DictFilesExtractor {
         if (skippedOut != null) {
             skippedOut.close();
         }
+        ArrayHelper.giveBack(bb);
     }
 }

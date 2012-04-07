@@ -6,6 +6,7 @@ import cn.kk.kkdict.extraction.word.QQPinyinQpydExtractor;
 import cn.kk.kkdict.extraction.word.SogouScelPinyinExtractor;
 import cn.kk.kkdict.summarization.PinyinIndexGenerator;
 import cn.kk.kkdict.summarization.PinyinOccurrenceCounter;
+import cn.kk.kkdict.summarization.WordsMerger;
 import cn.kk.kkdict.utils.Helper;
 
 public class ProduceAll {
@@ -17,15 +18,15 @@ public class ProduceAll {
      */
     public static void main(String[] args) throws Exception {
         long timeStarted = System.currentTimeMillis();
-
-        runJob(EdictZhDeExtractor.class);
+        
         runJob(QQPinyinQpydExtractor.class);
         runJob(SogouScelPinyinExtractor.class);
         runJob(BaiduBcdExtractor.class);
         runJob(PinyinOccurrenceCounter.class);
         runJob(PinyinIndexGenerator.class);
+        runJob(WordsMerger.class);
 
-        //
+        // runJob(EdictZhDeExtractor.class);
         // WikiPagesMetaCurrentChineseExtractor.main(DEFAULT_ARGS);
         // WikiPagesMetaCurrentGermanExtractor.main(DEFAULT_ARGS);
         // WikiPagesMetaCurrentEnglishExtractor.main(DEFAULT_ARGS);

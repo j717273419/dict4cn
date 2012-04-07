@@ -14,7 +14,7 @@ import cn.kk.kkdict.types.TranslationSource;
 import cn.kk.kkdict.utils.Helper;
 
 public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
-    public final static String OUTPUT_DIR = WiktionaryPagesMetaCurrentChineseExtractor.WIKT_PAGES_META_CURRENT_XML;
+    public final static String OUTPUT_DIR = WiktionaryPagesMetaCurrentChineseExtractor.IN_DIR;
 
     public static void main(String[] args) throws InterruptedException {
         long start = System.currentTimeMillis();

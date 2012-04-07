@@ -18,6 +18,7 @@ import cn.kk.kkdict.types.Category;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
+import cn.kk.kkdict.utils.PinyinHelper;
 
 public class BaiduBcdExtractor {
     public static final String IN_DIR = Helper.DIR_IN_WORDS+"\\baidu";
@@ -67,6 +68,7 @@ public class BaiduBcdExtractor {
         FileChannel fChannel = new RandomAccessFile(bcdFile, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
+        fChannel.close();
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
         dataRawBytes.rewind();
 
@@ -85,7 +87,7 @@ public class BaiduBcdExtractor {
                 } else {
                     pinyin.append('\'');
                 }
-                pinyin.append(Helper.FEN_MU[dataRawBytes.get()] + Helper.YUN_MU[dataRawBytes.get()]);
+                pinyin.append(PinyinHelper.FEN_MU[dataRawBytes.get()] + PinyinHelper.YUN_MU[dataRawBytes.get()]);
             }
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");
@@ -100,7 +102,6 @@ public class BaiduBcdExtractor {
 
             counter++;
         }
-        fChannel.close();
         return counter;
     }
 

@@ -20,6 +20,7 @@ import cn.kk.kkdict.types.Category;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
+import cn.kk.kkdict.utils.PinyinHelper;
 
 public class QQPinyinQpydExtractor {
     public static final String IN_DIR = Helper.DIR_IN_WORDS+"\\qq";
@@ -69,6 +70,7 @@ public class QQPinyinQpydExtractor {
         FileChannel fChannel = new RandomAccessFile(qpydFile, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
+        fChannel.close();
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
         dataRawBytes.rewind();
 
@@ -105,7 +107,7 @@ public class QQPinyinQpydExtractor {
                     Helper.CHARSET_UTF8);
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     Helper.CHARSET_UTF16LE);
-            if (Helper.checkValidPinyin(pinyin)) {
+            if (PinyinHelper.checkValidPinyin(pinyin)) {
                 writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(cleanWord(word)), categories));
                 writer.write(Helper.SEP_ATTRIBUTE);
                 writer.write(WordSource.TYPE_ID);
@@ -116,7 +118,6 @@ public class QQPinyinQpydExtractor {
                 counter++;
             }
         }
-        fChannel.close();
         return counter;
     }
 
