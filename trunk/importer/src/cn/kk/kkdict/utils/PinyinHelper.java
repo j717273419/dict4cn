@@ -11,6 +11,37 @@ import cn.kk.kkdict.beans.FormattedTreeMap;
 
 public class PinyinHelper {
     private static final Map<Integer, String> CODEPOINT_2_PINYIN_MAP = new FormattedTreeMap<Integer, String>();
+    public static final String[] FEN_MU = { "c", "d", "b", "f", "g", "h", "ch", "j", "k", "l", "m", "n", "", "p", "q",
+            "r", "s", "t", "sh", "zh", "w", "x", "y", "z" };
+
+    public static final String[] YUN_MU = { "uang", "iang", "iong", "ang", "eng", "ian", "iao", "ing", "ong", "uai",
+            "uan", "ai", "an", "ao", "ei", "en", "er", "ua", "ie", "in", "iu", "ou", "ia", "ue", "ui", "un", "uo", "a",
+            "e", "i", "o", "u", "v" };
+
+    public static final boolean checkValidPinyin(String pinyin) {
+        final String[] parts = pinyin.split(Helper.SEP_PINYIN);
+        for (String part : parts) {
+            if (null == getShenMuYunMu(part)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static final String[] getShenMuYunMu(String pinyin) {
+        for (String s : FEN_MU) {
+            if (pinyin.startsWith(s)) {
+                for (String y : YUN_MU) {
+                    if (pinyin.endsWith(y)) {
+                        if (pinyin.equals(s + y)) {
+                            return new String[] { s, y };
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Converts input text to hanyu pinyin or whatever google returns

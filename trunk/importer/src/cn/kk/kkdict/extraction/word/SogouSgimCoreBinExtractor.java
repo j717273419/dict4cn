@@ -33,6 +33,7 @@ public class SogouSgimCoreBinExtractor {
         FileChannel fChannel = new RandomAccessFile(IN_FILE, "r").getChannel();
         ByteBuffer bb = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(bb);
+        fChannel.close();
         bb.order(ByteOrder.LITTLE_ENDIAN);
         bb.rewind();
 
@@ -76,7 +77,6 @@ public class SogouSgimCoreBinExtractor {
             System.out.println("单词词典长度：0x" + Integer.toHexString(diff)+"，"+diff+" bytes。");
         }
 
-        fChannel.close();
         writer.close();
     }
 }

@@ -1,5 +1,6 @@
 package cn.kk.kkdict.beans;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 
@@ -7,7 +8,7 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WiktContentState {
 
-    private String line;
+    private ByteBuffer line;
     private String name;
     private String sourceLanguage;
     private String targetLanguage;
@@ -50,15 +51,6 @@ public class WiktContentState {
         sourceGender = Helper.EMPTY_STRING;
         targetWordType = Helper.EMPTY_STRING;
         targetGender = Helper.EMPTY_STRING;
-    }
-
-    public String getLine() {
-        return line;
-    }
-
-    public String setLine(String line) {
-        this.line = line;
-        return line;
     }
 
     public String getName() {
@@ -203,5 +195,13 @@ public class WiktContentState {
 
     public void setTranslation(String targetLng, String trans) {
         languages.put(targetLng, trans);
+    }
+
+    public ByteBuffer getLine() {
+        return line;
+    }
+
+    public void setLine(ByteBuffer line) {
+        this.line = line;
     }
 }

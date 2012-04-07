@@ -51,6 +51,7 @@ public class SogouScelPinyinExtractor {
                 FileChannel fChannel = new RandomAccessFile(f, "r").getChannel();
                 ByteBuffer fBuf = ByteBuffer.allocate((int) fChannel.size());
                 fChannel.read(fBuf);
+                fChannel.close();
                 fBuf.order(ByteOrder.LITTLE_ENDIAN);
                 fBuf.rewind();
                 
@@ -102,7 +103,6 @@ public class SogouScelPinyinExtractor {
                 }
                 System.out.println(counter);
                 total += counter;
-                fChannel.close();
             }
             writer.close();
 

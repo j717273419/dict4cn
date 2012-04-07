@@ -66,9 +66,9 @@ public final class ChineseHelper {
 
     public static void main(String[] args) {
         Charset cs = Helper.CHARSET_UTF8;
-        ByteBuffer bb = ByteBuffer.allocate(Helper.MAX_LINE_BYTES);
+        ByteBuffer bb = ArrayHelper.getByteBufferNormal();
         byte[] array = cs.encode("丟並乾亂亙亞丢并干乱亘亚").array();
-        System.out.println(Helper.toHexString(array));
+        System.out.println(ArrayHelper.toHexString(array));
         System.arraycopy(array, 0, bb.array(), 0, array.length);
         bb.limit(array.length);
         toSimplifiedChinese(bb);
@@ -91,7 +91,7 @@ public final class ChineseHelper {
         // }
         // System.out.println("min: " + min);
         // System.out.println("max: " + max);
-
+        ArrayHelper.giveBack(bb);
     }
 
     public static final int toSimplifiedChinese(ByteBuffer bb) {

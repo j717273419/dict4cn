@@ -1,3 +1,24 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -66,6 +87,7 @@ public class LingoesLd2Reader {
         FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
+        fChannel.close();
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
         dataRawBytes.rewind();
 
@@ -91,7 +113,6 @@ public class LingoesLd2Reader {
         } else {
             System.err.println("文件不包含字典数据。网上字典？");
         }
-        fChannel.close();
     }
 
     private static final long decompress(final String inflatedFile, final ByteBuffer data, final int offset,
@@ -150,6 +171,7 @@ public class LingoesLd2Reader {
         FileChannel fChannel = new RandomAccessFile(inflatedFile, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
+        fChannel.close();
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
         dataRawBytes.rewind();
 
@@ -194,7 +216,6 @@ public class LingoesLd2Reader {
             indexWriter.write(String.valueOf(idx));
             indexWriter.write("\n");
         }
-        fChannel.close();
         indexWriter.close();
         defsWriter.close();
         xmlWriter.close();

@@ -14,7 +14,6 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +75,7 @@ public class LingoesLd2Extractor {
         FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
         ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
         fChannel.read(dataRawBytes);
+        fChannel.close();
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
         dataRawBytes.rewind();
 
@@ -94,7 +94,6 @@ public class LingoesLd2Extractor {
             System.err.println("文件不包含字典数据。网上字典？");
         }
 
-        fChannel.close();
         return counter;
     }
 

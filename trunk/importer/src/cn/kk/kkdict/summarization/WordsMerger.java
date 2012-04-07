@@ -31,13 +31,8 @@ public class WordsMerger {
 
             System.out.println(files.length);
 
-            String[] filePaths = new String[files.length];
-            int i = 0;
-            for (File f : files) {
-                System.out.println((i + 1) + ". " + f.getAbsolutePath());
-                filePaths[i++] = f.getAbsolutePath();
-            }
-            WordFilesSorter sorter = new WordFilesSorter(OUT_FILE, false, filePaths);
+            String[] filePaths = Helper.getFileNames(files);
+            WordFilesSorter sorter = new WordFilesSorter(OUT_DIR, new File(OUT_FILE).getName(), false, false, filePaths);
             sorter.sort();
 
             System.out.println("\n=====================================");

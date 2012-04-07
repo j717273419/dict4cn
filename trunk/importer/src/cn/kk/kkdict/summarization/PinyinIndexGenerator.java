@@ -13,6 +13,7 @@ import java.util.List;
 import cn.kk.kkdict.beans.FormattedArrayList;
 import cn.kk.kkdict.beans.ListStat;
 import cn.kk.kkdict.utils.Helper;
+import cn.kk.kkdict.utils.PinyinHelper;
 
 public class PinyinIndexGenerator {
     private static final String OUT_DIR = Helper.DIR_OUT_WORDS;
@@ -143,7 +144,7 @@ public class PinyinIndexGenerator {
             List<String> words = stat.getValues();
             for (int j = 0; j < words.size(); j++) {
                 String v = words.get(j);
-                String[] parts = Helper.getShenMuYunMu(v);
+                String[] parts = PinyinHelper.getShenMuYunMu(v);
                 for (String similar : similars) {
                     boolean found = false;
                     if (similar.equals(parts[0])) {
