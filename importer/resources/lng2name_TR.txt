@@ -1,0 +1,3 @@
+#lng2name_TR
+#Tue Apr 10 01:09:46 CEST 2012
+Türkçe\ (Türkiye)=tr

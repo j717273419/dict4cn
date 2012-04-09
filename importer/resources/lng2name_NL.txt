@@ -1,0 +1,6 @@
+#lng2name_NL
+#Tue Apr 10 01:09:46 CEST 2012
+Nederlands\ (Nederland)=nl
+Nederlands=nl
+Nederlands\ (België)=nl
+French\ (België)=fr

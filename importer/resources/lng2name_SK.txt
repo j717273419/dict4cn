@@ -1,0 +1,3 @@
+#lng2name_SK
+#Tue Apr 10 01:09:46 CEST 2012
+Slovenčina\ (Slovenská\ republika)=sk

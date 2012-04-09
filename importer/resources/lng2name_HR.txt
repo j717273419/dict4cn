@@ -1,0 +1,4 @@
+#lng2name_HR
+#Tue Apr 10 01:09:46 CEST 2012
+hrvatski\ (Hrvatska)=hr
+hrvatski=hr

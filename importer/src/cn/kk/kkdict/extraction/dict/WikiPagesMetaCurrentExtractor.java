@@ -54,32 +54,44 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
             if (WikiParseStep.HEADER == step) {
                 parseHeader();
             } else {
-                if (ArrayHelper.substringBetween(lineBBArray, 0, len, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES, tmpBB) > 0) {
+                if (ArrayHelper.substringBetween(lineArray, 0, len, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES, tmpBB) > 0) {
                     // new title found
                     // write old definition
                     writeDefinition();
                     handleContentTitle();
                 } else if (isValid()) {
-                    // within content
-                    if (ArrayHelper.substringBetween(lineBBArray, 0, len, categoryKeyBytes, SUFFIX_WIKI_TAG_BYTES,
-                            tmpBB) > 0
-                            || ArrayHelper.substringBetween(lineBBArray, 0, len, categoryKeyBytes2,
-                                    SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
-                        // new category found for current name
-                        addCategory();
-                    } else if (ArrayHelper.substringBetween(lineBBArray, 0, len, PREFIX_WIKI_TAG_BYTES,
-                            SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
-                        // found wiki tag
-                        int idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
-                        if (idx > 0 && idx < 13) {
-                            // has : in tag, perhaps translation
-                            addTranslation(idx);
-                        } else if (idx == -1 && !isCategoryName) {
-                            // something else
-                            if (-1 != (idx = ArrayHelper.indexOf(lineBBArray, 0, len, tmpBBArray, 0, tmpBB.limit()))
-                                    && idx < 6) {
-                                // tag at beginning of line, perhaps related word
-                                addRelated();
+                    if (step == WikiParseStep.TITLE) {
+                        int idx;
+                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, len, TAG_TEXT_BEGIN_BYTES))) {
+                            int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
+                            len = len - offset;
+                            System.arraycopy(lineArray, offset, lineArray, 0, len);
+                            lineBB.limit(len);
+                            step = WikiParseStep.CONTENT;
+                        }
+                    }
+                    if (step == WikiParseStep.CONTENT) {
+                        // within content
+                        if (ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes, SUFFIX_WIKI_TAG_BYTES,
+                                tmpBB) > 0
+                                || ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes2,
+                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                            // new category found for current name
+                            addCategory();
+                        } else if (ArrayHelper.substringBetween(lineArray, 0, len, PREFIX_WIKI_TAG_BYTES,
+                                SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                            // found wiki tag
+                            int idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
+                            if (idx > 0 && idx < 13) {
+                                // has : in tag, perhaps translation
+                                addTranslation(idx);
+                            } else if (idx == -1 && !categoryName) {
+                                // something else
+                                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, len, tmpArray, 0, tmpBB.limit()))
+                                        && idx < 6) {
+                                    // tag at beginning of line, perhaps related word
+                                    addRelated();
+                                }
                             }
                         }
                     }

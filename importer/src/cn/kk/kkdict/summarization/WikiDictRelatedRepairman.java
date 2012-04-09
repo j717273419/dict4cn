@@ -53,7 +53,7 @@ public class WikiDictRelatedRepairman {
 
             long start = System.currentTimeMillis();
             String[] filePaths = Helper.getFileNames(files);
-            ByteBuffer lineBB = ArrayHelper.getByteBufferLarge();
+            ByteBuffer lineBB = ArrayHelper.getByteBufferVeryLarge();
             byte[] lineArray = lineBB.array();
             HashMap<IndexedByteArray, HashSet<Integer>> defDict = new HashMap<IndexedByteArray, HashSet<Integer>>();
             // map to itself

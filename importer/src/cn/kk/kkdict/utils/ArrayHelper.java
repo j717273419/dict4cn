@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class ArrayHelper {
@@ -16,10 +17,20 @@ public class ArrayHelper {
 
     public static final int MAX_LINE_BYTES_LARGE = 1024 * 64;
 
+    public static final int MAX_LINE_BYTES_VERY_LARGE = 1024 * 280;
+
     private static final List<ByteBuffer> byteBuffersPoolNormal = new ArrayList<ByteBuffer>();
     private static final List<ByteBuffer> byteBuffersPoolMedium = new ArrayList<ByteBuffer>();
     private static final List<ByteBuffer> byteBuffersPoolLarge = new ArrayList<ByteBuffer>();
+    private static final List<ByteBuffer> byteBuffersPoolVeryLarge = new ArrayList<ByteBuffer>();
     private static final int MAX_BUFFER_SIZE = 10;
+
+    public static final Comparator<byte[]> COMPARATOR_BYTE_ARRAY = new Comparator<byte[]>() {
+        @Override
+        public int compare(byte[] o1, byte[] o2) {
+            return ArrayHelper.compareTo(o1, 0, o1.length, o2, 0, o2.length);
+        }
+    };
 
     public final static void giveBack(ByteBuffer bb) {
         if (bb != null) {
@@ -34,6 +45,10 @@ public class ArrayHelper {
                 }
             } else if (capacity == MAX_LINE_BYTES_LARGE) {
                 if (byteBuffersPoolLarge.size() < MAX_BUFFER_SIZE) {
+                    byteBuffersPoolLarge.add(bb);
+                }
+            } else if (capacity == MAX_LINE_BYTES_VERY_LARGE) {
+                if (byteBuffersPoolLarge.size() < 2) {
                     byteBuffersPoolLarge.add(bb);
                 }
             } else {
@@ -64,6 +79,14 @@ public class ArrayHelper {
             return ByteBuffer.allocate(MAX_LINE_BYTES_LARGE);
         } else {
             return byteBuffersPoolLarge.remove(0);
+        }
+    }
+
+    public final static ByteBuffer getByteBufferVeryLarge() {
+        if (byteBuffersPoolVeryLarge.isEmpty()) {
+            return ByteBuffer.allocate(MAX_LINE_BYTES_VERY_LARGE);
+        } else {
+            return byteBuffersPoolVeryLarge.remove(0);
         }
     }
 
@@ -501,7 +524,8 @@ public class ArrayHelper {
      * 
      * @param bb
      * @param offset
-     * @param len relative
+     * @param len
+     *            relative
      * @return
      */
     public final static byte[] toBytes(final ByteBuffer bb, int offset, int len) {
@@ -679,6 +703,33 @@ public class ArrayHelper {
             result[i] = bytes[i] & 0xff;
         }
         return result;
+    }
+
+    public final static int findTrimmedOffset(ByteBuffer value) {
+        final int l = value.limit();
+        byte b;
+        for (int i = 0; i < l; i++) {
+            b = value.get(i);
+            if (b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\0') {
+                continue;
+            } else {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    public final static int findTrimmedLimit(ByteBuffer value) {
+        byte b;
+        for (int i = value.limit() - 1; i >= 0; i--) {
+            b = value.get(i);
+            if (b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\0') {
+                continue;
+            } else {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 
 }

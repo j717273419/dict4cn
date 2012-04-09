@@ -2,9 +2,10 @@ package cn.kk.kkdict.beans;
 
 import java.util.Arrays;
 
+import cn.kk.kkdict.utils.ArrayHelper;
+
 public class ByteArray implements Comparable<ByteArray> {
     private byte[] data;
-
 
     public ByteArray() {
     }
@@ -36,8 +37,8 @@ public class ByteArray implements Comparable<ByteArray> {
     }
 
     @Override
-    public int compareTo(ByteArray o) {
-        return Arrays.hashCode(data) - Arrays.hashCode(o.data);
+    public int compareTo(ByteArray o2) {
+        return ArrayHelper.compareTo(data, 0, data.length, o2.data, 0, o2.data.length);
     }
 
     public byte[] getData() {

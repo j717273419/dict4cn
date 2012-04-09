@@ -1,0 +1,4 @@
+#lng2name_LT
+#Tue Apr 10 01:09:46 CEST 2012
+Lietuvių=lt
+Lietuvių\ (Lietuva)=lt

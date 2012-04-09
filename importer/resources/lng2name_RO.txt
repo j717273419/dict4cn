@@ -1,0 +1,4 @@
+#lng2name_RO
+#Tue Apr 10 01:09:46 CEST 2012
+română\ (România)=ro
+română=ro

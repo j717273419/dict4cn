@@ -1,0 +1,4 @@
+#lng2name_CS
+#Tue Apr 10 01:09:46 CEST 2012
+čeština\ (Česká\ republika)=cs
+čeština=cs
