@@ -3,20 +3,23 @@ package cn.kk.kkdict.tools;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import cn.kk.kkdict.beans.FormattedArrayList;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.Helper;
 
 /**
@@ -29,7 +32,7 @@ import cn.kk.kkdict.utils.Helper;
  * @author x_kez
  * 
  */
-public class WikipediaLanguageExtractor {
+public class LanguageExtractor {
     public static final String GENERATED_DIR = Helper.DIR_OUT_GENERATED;
     // public static final Language[] RELEVANT_LANGUAGES = { Language.EN, Language.RU, Language.PL, Language.JA,
     // Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT, Language.ES, Language.PT, Language.NL,
@@ -38,7 +41,14 @@ public class WikipediaLanguageExtractor {
     // Language.LT, Language.SK, Language.SL, Language.MS, Language.HE, Language.BG, Language.KK, Language.EU,
     // Language.VO, Language.WAR, Language.HR, Language.HI, Language.LA };
 
-    public static final Language[] RELEVANT_LANGUAGES = { Language.ZH };
+    // public static final Language[] RELEVANT_LANGUAGES = { Language.ZH };
+
+    public static final Language[] RELEVANT_LANGUAGES = { Language.EN, Language.RU, Language.PL, Language.JA,
+            Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT, Language.ES, Language.PT, Language.NL,
+            Language.SV, Language.UK, Language.VI, Language.CA, Language.NO, Language.FI, Language.CS, Language.HU,
+            Language.ID, Language.TR, Language.RO, Language.FA, Language.AR, Language.DA, Language.EO, Language.SR,
+            Language.LT, Language.SK, Language.SL, Language.MS, Language.HE, Language.BG, Language.KK, Language.EU,
+            Language.VO, Language.WAR, Language.HR, Language.HI, Language.LA };
 
     final static class RowInfo implements Comparable<RowInfo> {
         public RowInfo() {
@@ -110,15 +120,16 @@ public class WikipediaLanguageExtractor {
 
         // merges infos into allInfos
         mergeWikiWiktLanguages(allInfos, wiktInfos);
+        List<RowInfo> reducedInfos = new FormattedArrayList<RowInfo>(allInfos);
 
         String iso639MainPageUrl = "http://en.wiktionary.org/wiki/Transwiki:ISO_639";
         enrichWithIso639Languages(allInfos, iso639MainPageUrl);
 
         enrichWithJavaLocales(allInfos);
 
-        generateInitialLanguageFamilyJava(allInfos, GENERATED_DIR + "\\LanguageFamily.java");
+        generateInitialLanguageFamilyJava(reducedInfos, GENERATED_DIR + "\\LanguageFamily.java");
 
-        generateInitialLanguageJava(allInfos, GENERATED_DIR + "\\Language.java");
+        generateInitialLanguageJava(reducedInfos, GENERATED_DIR + "\\Language.java");
 
         generateInitialLanguageConstantsJava(allInfos, wikiInfos, wiktInfos, GENERATED_DIR + "\\LanguageConstants.java");
 
@@ -152,7 +163,7 @@ public class WikipediaLanguageExtractor {
         Collections.sort(wikiInfos);
     }
 
-    private static void enrichWithIso639LanguagesPage(List<RowInfo> wikiInfos, String file) throws IOException {
+    private static void enrichWithIso639LanguagesPage(List<RowInfo> infos, String file) throws IOException {
         System.out.println("分析“Transwiki ISO 639”HTML文件'" + file + "' 。。。");
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -169,10 +180,10 @@ public class WikipediaLanguageExtractor {
                 }
             } else {
                 if (line.contains(stopTag)) {
-                    enrichByRowInfo(wikiInfos, rowInfo);
+                    enrichByRowInfo(infos, rowInfo);
                     break;
                 } else if (line.contains("</tr>")) {
-                    enrichByRowInfo(wikiInfos, rowInfo);
+                    enrichByRowInfo(infos, rowInfo);
                     rowInfo = new RowInfo();
                     row = 0;
                     rowInfo.invalidate();
@@ -335,7 +346,7 @@ public class WikipediaLanguageExtractor {
         Collections.sort(rowInfos);
         System.out
                 .println("创建Language.java文件'" + file + "'（语言：" + rowInfos.size() + "，语系：" + families.size() + "） 。。。");
-        StringBuilder sb = new StringBuilder(1024 * 32);
+        StringBuilder sb = new StringBuilder(1024 * 320);
         sb.append("package cn.kk.kkdict.types;").append(Helper.SEP_NEWLINE);
         sb.append("public enum Language {").append(Helper.SEP_NEWLINE);
         // lng enums
@@ -372,81 +383,87 @@ public class WikipediaLanguageExtractor {
         Collections.sort(rowInfos);
         System.out.println("创建LanguageConstants.java文件'" + file + "'（语言：" + rowInfos.size() + "，语系：" + families.size()
                 + "） 。。。");
-        StringBuilder sb = new StringBuilder(1024 * 32);
-        sb.append("package cn.kk.kkdict.types;\n\nimport java.util.*;").append(Helper.SEP_NEWLINE);
+        StringBuilder sb = new StringBuilder(1024 * 320);
+
+        sb.append(
+                "package cn.kk.kkdict.types;\n\nimport java.util.*;\nimport java.io.IOException;\nimport cn.kk.kkdict.beans.ByteArrayPairs;\nimport cn.kk.kkdict.utils.Helper;")
+                .append(Helper.SEP_NEWLINE);
         sb.append("public final class LanguageConstants {").append(Helper.SEP_NEWLINE);
+
+        sb.append("private static final LanguageConstants INSTANCE = new LanguageConstants();").append(
+                Helper.SEP_NEWLINE);
+        sb.append("public static final ByteArrayPairs getLanguageNamesBytes(final Language lng) {\n").append(
+                Helper.SEP_NEWLINE);
+        sb.append("if (lng == null) {").append(Helper.SEP_NEWLINE);
+        sb.append("return createByteArrayPairs(INSTANCE.getLngProperties(\"lng2name_ORIGINAL.txt\"));").append(
+                Helper.SEP_NEWLINE);
+        sb.append("}").append(Helper.SEP_NEWLINE);
+        sb.append("switch (lng) {").append(Helper.SEP_NEWLINE);
+        for (Language lng : RELEVANT_LANGUAGES) {
+            String name = lng.name();
+            sb.append("case ").append(name).append(":").append(Helper.SEP_NEWLINE);
+            sb.append("return createByteArrayPairs(INSTANCE.getLngProperties(\"lng2name_").append(name)
+                    .append(".txt\"));").append(Helper.SEP_NEWLINE);
+        }
+        sb.append("}").append(Helper.SEP_NEWLINE);
+        sb.append("return null;").append(Helper.SEP_NEWLINE);
+        sb.append("}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
+
+        sb.append("public final static ByteArrayPairs createByteArrayPairs(Properties lngs) {").append(
+                Helper.SEP_NEWLINE);
+        sb.append("ByteArrayPairs result = new ByteArrayPairs(lngs.size());").append(Helper.SEP_NEWLINE);
+        sb.append("Set<String> names = lngs.stringPropertyNames();").append(Helper.SEP_NEWLINE);
+        sb.append("int i = 0;").append(Helper.SEP_NEWLINE);
+        sb.append("for (String n : names) {").append(Helper.SEP_NEWLINE);
+        sb.append("result.put(i, lngs.getProperty(n).getBytes(Helper.CHARSET_UTF8), n.getBytes(Helper.CHARSET_UTF8));")
+                .append(Helper.SEP_NEWLINE);
+        sb.append("i++;").append(Helper.SEP_NEWLINE);
+        sb.append("}").append(Helper.SEP_NEWLINE);
+        sb.append("return result.sort();").append(Helper.SEP_NEWLINE);
+        sb.append("}").append(Helper.SEP_NEWLINE);
 
         String tmp;
         for (Language lng : RELEVANT_LANGUAGES) {
             String name = lng.name();
-            sb.append("private static final String[][] getLng").append(name).append("() {\nreturn new String[][] {")
-                    .append(Helper.SEP_NEWLINE);
+            Properties props = new Properties();
             for (RowInfo i : rowInfos) {
                 if (Helper.isNotEmptyOrNull(tmp = i.get(lng))) {
                     String[] names = tmp.split("[、;/]");
                     for (String n : names) {
                         n = n.trim();
                         if (Helper.isNotEmptyOrNull(n)) {
-                            sb.append("{ Language.").append(getEnumKey(i)).append(".key, \"").append(n).append("\" },")
-                                    .append(Helper.SEP_NEWLINE);
+                            props.put(n, i.key);
                         }
                     }
                 }
             }
-            sb.append("};\n}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
-            sb.append("public static final String[] LANGUAGES_").append(name).append("_ISO;")
-                    .append(Helper.SEP_NEWLINE);
-            sb.append("public static final String[] LANGUAGES_").append(name).append(";").append(Helper.SEP_NEWLINE);
-            sb.append("static {").append(Helper.SEP_NEWLINE);
-            sb.append("String[][] lngs = getLng").append(name).append("();").append(Helper.SEP_NEWLINE);
-            sb.append("LANGUAGES_").append(name).append("_ISO = new String[lngs.length];").append(Helper.SEP_NEWLINE);
-            sb.append("LANGUAGES_").append(name).append(" = new String[lngs.length];").append(Helper.SEP_NEWLINE);
-            sb.append("int i = 0;").append(Helper.SEP_NEWLINE);
-            sb.append("for (String[] lng : lngs) {").append(Helper.SEP_NEWLINE);
-            sb.append("LANGUAGES_").append(name).append("_ISO[i] = lng[0];").append(Helper.SEP_NEWLINE);
-            sb.append("LANGUAGES_").append(name).append("[i] = lng[1];").append(Helper.SEP_NEWLINE);
-            sb.append("i++;").append(Helper.SEP_NEWLINE);
-            sb.append("}").append(Helper.SEP_NEWLINE);
-            sb.append("}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
+            props.store(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(file).getParent()
+                    + File.separator + "lng2name_" + name + ".txt"), Helper.CHARSET_UTF8)), "lng2name_" + name);
         }
 
         // original
-        sb.append("private static final String[][] getLngORIGINAL () {\nreturn new String[][] {").append(
-                Helper.SEP_NEWLINE);
+        Properties props = new Properties();
         for (RowInfo i : rowInfos) {
             String[] names = i.original.split("[;/、]");
             for (String n : names) {
                 n = n.trim();
                 if (Helper.isNotEmptyOrNull(n)) {
-                    sb.append("{ Language.").append(getEnumKey(i)).append(".key, \"").append(n).append("\" },")
-                            .append(Helper.SEP_NEWLINE);
+                    props.put(n, i.key);
                 }
             }
         }
-        sb.append("};\n}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
-        sb.append("public static final String[] LANGUAGES_ORIGINAL_ISO;").append(Helper.SEP_NEWLINE);
-        sb.append("public static final String[] LANGUAGES_ORIGINAL;").append(Helper.SEP_NEWLINE);
-        sb.append("static {").append(Helper.SEP_NEWLINE);
-        sb.append("String[][] lngs = getLngORIGINAL();").append(Helper.SEP_NEWLINE);
-        sb.append("LANGUAGES_ORIGINAL_ISO = new String[lngs.length];").append(Helper.SEP_NEWLINE);
-        sb.append("LANGUAGES_ORIGINAL = new String[lngs.length];").append(Helper.SEP_NEWLINE);
-        sb.append("int i = 0;").append(Helper.SEP_NEWLINE);
-        sb.append("for (String[] lng : lngs) {").append(Helper.SEP_NEWLINE);
-        sb.append("LANGUAGES_ORIGINAL_ISO[i] = lng[0];").append(Helper.SEP_NEWLINE);
-        sb.append("LANGUAGES_ORIGINAL[i] = lng[1];").append(Helper.SEP_NEWLINE);
-        sb.append("i++;").append(Helper.SEP_NEWLINE);
-        sb.append("}").append(Helper.SEP_NEWLINE);
-        sb.append("}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
-
-        sb.append("public static final String[] KEYS_ZH;").append(Helper.SEP_NEWLINE);
-        sb.append("static {").append(Helper.SEP_NEWLINE);
-        sb.append("Set<String> keys = new HashSet<String>(LANGUAGES_ZH_ISO.length);").append(Helper.SEP_NEWLINE);
-        sb.append("for (String k : LANGUAGES_ZH_ISO) {").append(Helper.SEP_NEWLINE);
-        sb.append("keys.add(k);").append(Helper.SEP_NEWLINE);
-        sb.append("}").append(Helper.SEP_NEWLINE);
-        sb.append("KEYS_ZH = keys.toArray(new String[keys.size()]);\njava.util.Arrays.sort(KEYS_ZH);").append(
+        props.store(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(file).getParent()
+                + File.separator + "lng2name_ORIGINAL.txt"), Helper.CHARSET_UTF8)), "lng2name_ORIGINAL");
+        sb.append("public static final Properties getLngProperties(String f) {").append(Helper.SEP_NEWLINE);
+        sb.append("Properties props = null;").append(Helper.SEP_NEWLINE);
+        sb.append("try {").append(Helper.SEP_NEWLINE);
+        sb.append("props = new Properties();").append(Helper.SEP_NEWLINE);
+        sb.append("props.load(LanguageConstants.class.getResourceAsStream(\"/\" + f));").append(Helper.SEP_NEWLINE);
+        sb.append("} catch (IOException e) {").append(Helper.SEP_NEWLINE);
+        sb.append("System.err.println(\"Failed to load language properties for '\" + f + \"': \" + e);").append(
                 Helper.SEP_NEWLINE);
         sb.append("}").append(Helper.SEP_NEWLINE);
+        sb.append("return props;\n}").append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
 
         sb.append("private static final String[] getWikiLngs() {").append(Helper.SEP_NEWLINE);
         sb.append("return new String[] {").append(Helper.SEP_NEWLINE);
@@ -484,6 +501,9 @@ public class WikipediaLanguageExtractor {
         if (Helper.isNotEmptyOrNull(tmp)) {
             return tmp;
         } else {
+            if (Helper.toConstantName(i.key).startsWith("ZH_")) {
+                return "CHINESE";
+            }
             return "NONE";
         }
     }

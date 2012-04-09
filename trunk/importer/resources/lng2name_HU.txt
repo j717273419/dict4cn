@@ -1,0 +1,4 @@
+#lng2name_HU
+#Tue Apr 10 01:09:46 CEST 2012
+magyar\ (Magyarország)=hu
+magyar=hu

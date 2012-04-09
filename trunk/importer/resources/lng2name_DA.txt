@@ -1,0 +1,4 @@
+#lng2name_DA
+#Tue Apr 10 01:09:46 CEST 2012
+Dansk\ (Danmark)=da
+Dansk=da

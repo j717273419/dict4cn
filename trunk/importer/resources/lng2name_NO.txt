@@ -1,0 +1,4 @@
+#lng2name_NO
+#Tue Apr 10 01:09:46 CEST 2012
+norsk\ (Norge)=no
+norsk\ (Norge,nynorsk)=no
