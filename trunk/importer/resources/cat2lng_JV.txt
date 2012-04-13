@@ -1,0 +1,6 @@
+Basa\ Arab=ar
+Basa\ Walanda=nl
+Basa\ Jawa=jv
+Tembung_kriya_Jawa=jv
+Pisuhan_Jawa=jv
+Tembung_aran_Jawa=jv

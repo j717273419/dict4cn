@@ -1,4 +1,34 @@
 #lng2name_MS
+Arab=ar
+Inggeris=en
+Zulu=zu
+Thai=th
+Latin=la
+Indonesia=id
+Melayu=ms
+Qırım\ Tatar=crh
+Cina=zh
+Portugis=pt
+Vietnam=vi
+Bugis=bug
+Korea=ko
+Mandarin=zh
+Jepun=ja
+Bahasa\ Arab=ar
+Bahasa\ Inggeris=en
+Bahasa\ Zulu=zu
+Bahasa\ Thai=th
+Bahasa\ Latin=la
+Bahasa\ Indonesia=id
+Bahasa\ Melayu=ms
+Bahasa\ Qırım\ Tatar=crh
+Bahasa\ Cina=zh
+Bahasa\ Portugis=pt
+Bahasa\ Vietnam=vi
+Bahasa\ Bugis=bug
+Bahasa\ Korea=ko
+Bahasa\ Mandarin=zh
+Bahasa\ Jepun=ja
 #Tue Apr 10 01:09:46 CEST 2012
 Arabic\ (Emiriah\ Arab\ Bersatu)=ar
 Spanish\ (Republik\ Dominican)=es

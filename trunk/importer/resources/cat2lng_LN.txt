@@ -1,0 +1,13 @@
+Liarabi=ar
+Lingɛlɛ́sa=en
+Lialémani=de
+Lilatina=la
+Liosita=oc
+Lispanyoli=es
+Lingála=ln
+Kiswahíli=sw
+Liébeleo=iw
+Lifalamá=nl
+Lipulutugɛ́si=pt
+Ligresi=el
+Lifalansé=fr

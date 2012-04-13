@@ -1,0 +1,5 @@
+Reo\ Ingarihi=en
+Reo\ Tiamana=de
+Reo\ Māori=mi
+Reo\ Tatimana=nl
+Reo\ Wīwī=fr

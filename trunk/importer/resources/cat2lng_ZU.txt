@@ -1,0 +1,7 @@
+IsiNgisi=en
+IsiZulu=zu
+IsiJalimani=de
+IsiSwahili=sw
+IsiHolandi=nl
+ama_esiSwahili=sw
+Amagama_esiHolandi=nl

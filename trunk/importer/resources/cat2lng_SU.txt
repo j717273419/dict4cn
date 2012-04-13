@@ -1,0 +1,4 @@
+Basa\ Inggris=en
+Basa\ Indonésia=id
+Basa\ Sunda=su
+_Basa_Sunda=su

@@ -16,7 +16,8 @@ import cn.kk.kkdict.utils.Helper;
 import cn.kk.kkdict.utils.PinyinHelper;
 
 public class PinyinIndexGenerator {
-    private static final String OUT_DIR = Helper.DIR_OUT_WORDS;
+    private static final String OUT_DIR = Helper.DIR_OUT_WORDS + File.separator + "output";
+    private static final String OUT_FILE = OUT_DIR + File.separator + "output-summarized.pinyin";
     private static final String IN_DIR = Helper.DIR_OUT_WORDS;
     private static final String IN_FILE = IN_DIR + "\\output-occurrences.pinyin";
 
@@ -64,8 +65,7 @@ public class PinyinIndexGenerator {
             }
         }
 
-        BufferedWriter writer = new BufferedWriter(
-                new FileWriter(OUT_DIR + File.separator + "output-summarized.pinyin"), Helper.BUFFER_SIZE);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
         for (ListStat s : combinations) {
             writer.write(s.getCounter());
             writer.write(Helper.SEP_PARTS);

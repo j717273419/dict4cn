@@ -1,0 +1,3 @@
+Kiingereza=en
+Kikatalani=ca
+Kireno=pt

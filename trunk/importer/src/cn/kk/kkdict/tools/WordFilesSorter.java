@@ -337,7 +337,7 @@ public class WordFilesSorter {
                     tmp = p;
                 }
             }
-            if (bb.limit() > 0 && b != '\n') {
+            if (bb.limit() > 0 && b != '\n' && b != '\r') {
                 linesCounter++;
                 p = lastPos + bb.position();
                 maxLen = Math.max(p - tmp, maxLen);
@@ -564,7 +564,7 @@ public class WordFilesSorter {
         int len;
         if (startIdx != -1 && endIdx >= startIdx) {
             // System.out.println("merge: " + startIdx + ", " + endIdx);
-            ByteBuffer bb = ArrayHelper.getByteBufferLarge();
+            ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
             len = readMerged(sortedPosArray, startIdx, endIdx, bb);
             out.write(bb.array(), 0, len);
             out.write('\n');

@@ -1,3 +1,26 @@
 #lng2name_SL
+Latvijščina=lv
+Angleščina=en
+Nemščina=de
+Galicijščina=gl
+Latinščina=la
+Poljščina=pl
+Slovenščina=sl
+Volapük=vo
+Esperanto=eo
+Litovščina=lt
+Španščina=es
+Katalonščina=ca
+Baskovščina=eu
+Švedščina=sv
+Finščina=fi
+Italijanščina=it
+Limburgščina=li
+Romunščina=ro
+Češčina=cs
+Portugalščina=pt
+Interlingua=ia
+Filipinščina=fil
+Francoščina=fr
 #Tue Apr 10 01:09:46 CEST 2012
 Slovenščina\ (Slovenija)=sl

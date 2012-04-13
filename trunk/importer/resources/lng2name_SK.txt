@@ -1,3 +1,23 @@
 #lng2name_SK
+Arabčina=ar
+Havajčina=haw
+Angličtina=en
+Nemčina=de
+Latinčina=la
+Poľština=pl
+Slovinčina=sl
+Frízština=fy
+Esperanto=eo
+Španielčina=es
+Katalánčina=ca
+Fínčina=fi
+Albánčina=sq
+Čeština=cs
+Slovenčina=sk
+Holandčina=nl
+Dánčina=da
+Afrikánčina=af
+Kórejčina=ko
+Francúzština=fr
 #Tue Apr 10 01:09:46 CEST 2012
 Slovenčina\ (Slovenská\ republika)=sk

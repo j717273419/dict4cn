@@ -9,8 +9,8 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WordsMerger {
     private static final String IN_DIR = Helper.DIR_OUT_WORDS;
-    private static final String OUT_DIR = Helper.DIR_OUT_WORDS;
-    private static final String OUT_FILE = OUT_DIR + "\\output-words-merged.words";
+    private static final String OUT_DIR = Helper.DIR_OUT_WORDS + File.separator + "output";
+    private static final String OUT_FILE = OUT_DIR + File.separator + "output-words-merged.words";
 
     /**
      * @param args

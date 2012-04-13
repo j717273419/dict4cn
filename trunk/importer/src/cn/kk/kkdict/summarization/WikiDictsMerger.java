@@ -27,9 +27,9 @@ public class WikiDictsMerger {
     private static final String OUTPUT_DICT_NAME = "output-dict.";
     private static final String SKIPPED_EXTRACTOR_NAME = "output-dict" + DictFilesExtractor.SUFFIX_SKIPPED + ".";
     public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String WORK_DIR = OUT_DIR + "\\work";
-    public static final String OUT_FILE = OUT_DIR + "\\output-dict-merged.wiki";
+    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
+    public static final String WORK_DIR = IN_DIR + File.separator + "work";
+    public static final String OUT_FILE = OUT_DIR + File.separator + "output-dict-merged.wiki";
     private static final String SKIPPED_MERGED_NAME = "output-dict" + DictFilesJoiner.SUFFIX_SKIPPED + ".";
 
     /**
@@ -44,9 +44,10 @@ public class WikiDictsMerger {
             if (workDirFile.isDirectory()) {
                 System.out.println("临时文件夹已存在：'" + WORK_DIR + "'。删除临时文件夹 ... （文件数："
                         + Helper.deleteDirectory(workDirFile) + "）");
-                while (workDirFile.exists());
+                while (workDirFile.exists())
+                    ;
             }
-            
+
             TimeUnit.SECONDS.sleep(1);
             new File(WORK_DIR).mkdirs();
             new File(OUT_DIR).mkdirs();
@@ -81,7 +82,7 @@ public class WikiDictsMerger {
                 }
             });
             for (File f : files) {
-                if (f.length() > DictHelper.SEP_LIST_BYTES.length) {
+                if (f.length() > Helper.SEP_LIST_BYTES.length) {
                     f.renameTo(new File(f.getAbsolutePath().replace(SKIPPED_EXTRACTOR_NAME, OUTPUT_DICT_NAME)));
                 } else {
                     f.delete();
@@ -104,7 +105,8 @@ public class WikiDictsMerger {
             new File(extractorOutFile).renameTo(mf);
             String mainFile = mf.getAbsolutePath();
 
-            for (int i = 1; i <= 3; i++) {
+            // merge rounds
+            for (int i = 1; i <= 1; i++) {
                 System.out.println("\n【" + (++step) + "。合并数据 " + i + "】");
                 long start = System.currentTimeMillis();
                 merge(step, workDirFile, tasks, mainFile);
@@ -148,7 +150,7 @@ public class WikiDictsMerger {
             lngOutFile = extractSorter.outFile;
             System.out.println("。。。【" + step + "。" + step2 + "：输出文件：'" + lngOutFile + "'（"
                     + Helper.formatSpace(new File(lngOutFile).length()) + "）】");
-            if (new File(lngOutFile).length() > DictHelper.SEP_LIST_BYTES.length) {
+            if (new File(lngOutFile).length() > Helper.SEP_LIST_BYTES.length) {
                 System.out.println("。。。【" + step + "。" + (++step2) + "。排序文件：'" + mainFile + "'，语言：'" + task + "'】");
                 // sort main file in lng
                 DictFilesSorter sorter = new DictFilesSorter(lng, WORK_DIR, false, false, mainFile);

@@ -1,0 +1,6 @@
+Anglica=en
+Latinã=la
+Armãneashce=rup
+Ispanjolã=es
+Bascheascã=eu
+Romãneashce=ro

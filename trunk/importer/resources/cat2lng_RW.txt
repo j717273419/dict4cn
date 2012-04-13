@@ -1,0 +1,2 @@
+Kinyarwanda=rw
+mu_kinyarwanda=rw

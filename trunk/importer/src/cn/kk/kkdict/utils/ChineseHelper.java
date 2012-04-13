@@ -66,7 +66,7 @@ public final class ChineseHelper {
 
     public static void main(String[] args) {
         Charset cs = Helper.CHARSET_UTF8;
-        ByteBuffer bb = ArrayHelper.getByteBufferNormal();
+        ByteBuffer bb = ArrayHelper.borrowByteBufferNormal();
         byte[] array = cs.encode("丟並乾亂亙亞丢并干乱亘亚").array();
         System.out.println(ArrayHelper.toHexString(array));
         System.arraycopy(array, 0, bb.array(), 0, array.length);

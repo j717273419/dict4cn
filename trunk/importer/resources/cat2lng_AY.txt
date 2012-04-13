@@ -1,0 +1,6 @@
+Inlish\ aru=en
+Aliman\ aru=de
+Aymar\ aru=ay
+Kastilla\ aru=es
+Purtugal\ aru=pt
+Phransya\ aru=fr

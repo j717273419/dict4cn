@@ -31,10 +31,13 @@ import java.util.zip.InflaterInputStream;
 
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
-import cn.kk.kkdict.beans.Word;
+import cn.kk.kkdict.beans.DictRow;
 import cn.kk.kkdict.types.Category;
 
 public final class Helper {
+    public static boolean DEBUG = true;
+    private static final boolean INFO = true;
+
     public static final int BUFFER_SIZE = 1024 * 1024 * 4;
     public static final Charset CHARSET_EUCJP = Charset.forName("EUC-JP");
     public static final Charset CHARSET_UTF16LE = Charset.forName("UTF-16LE");
@@ -117,6 +120,9 @@ public final class Helper {
     public static final byte[] SEP_LIST_BYTES = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_WORDS_BYTES = Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8);
     public static final int[] SEP_WORDS_INTS = ArrayHelper.toIntArray(Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8));
+    public static final byte[] SEP_ATTRS_BYTES = Helper.SEP_ATTRIBUTE.getBytes(Helper.CHARSET_UTF8);
+    public static final byte[] SEP_NEWLINE_BYTES = Helper.SEP_NEWLINE.getBytes(Helper.CHARSET_UTF8);
+    public static final byte[] SEP_PARTS_BYTES = Helper.SEP_PARTS.getBytes(Helper.CHARSET_UTF8);
 
     static {
         Arrays.sort(HTML_ENTITIES, new Comparator<String[]>() {
@@ -163,7 +169,7 @@ public final class Helper {
         return file.substring(0, indexOf) + suffix + file.substring(indexOf);
     }
 
-    public static final void changeWordLanguage(Word word, String currentLng, Map<String, String> translations) {
+    public static final void changeWordLanguage(DictRow word, String currentLng, Map<String, String> translations) {
         if (translations.containsKey(currentLng)) {
             translations.put(currentLng, word.getName());
             String enDef = translations.get(currentLng);
@@ -177,7 +183,9 @@ public final class Helper {
     }
 
     public static String download(String url, String file, boolean overwrite) throws IOException {
-        System.out.println("下载'" + url + "'到'" + file + "'。。。");
+        if (DEBUG) {
+            System.out.println("下载'" + url + "'到'" + file + "'。。。");
+        }
         if (!overwrite && new File(file).exists()) {
             System.err.println("文件'" + file + "'已存在。跳过下载程序。");
             return null;
@@ -189,14 +197,30 @@ public final class Helper {
                     "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
             conn.addRequestProperty("Cache-Control", "no-cache");
             conn.addRequestProperty("Pragma", "no-cache");
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-            InputStream in = new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
-            writeInputStream(in, out);
-            in.close();
-            out.close();
-            long duration = System.currentTimeMillis() - start;
-            System.out.println("下载文件'" + url + "'用时" + Helper.formatDuration(duration) + "（"
-                    + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
+            conn.setUseCaches(false);
+            OutputStream out = null;
+            InputStream in = null;
+            try {
+                out = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
+                in = new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
+                writeInputStream(in, out);
+            } catch (IOException e) {
+                System.err.println("下载失败：" + e.toString());
+            } finally {
+                if (in != null) {
+                    in.close();
+                }
+                if (out != null) {
+                    out.close();
+                    
+                    long duration = System.currentTimeMillis() - start;
+                    if (INFO) {
+                        System.out.println("下载文件'" + url + "'（" + formatSpace(new File(file).length()) + "），用时"
+                                + Helper.formatDuration(duration) + "（"
+                                + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
+                    }                    
+                }
+            }
             return file;
         }
     }
@@ -402,14 +426,14 @@ public final class Helper {
         return map;
     }
 
-    public final static Word readPinyinWord(String line) {
+    public final static DictRow readPinyinWord(String line) {
         if (Helper.isNotEmptyOrNull(line)) {
             String[] parts = line.split(Helper.SEP_PARTS);
             if (parts.length == 2) {
                 String name = parts[0];
                 String pinyin = parts[1];
                 if (Helper.isNotEmptyOrNull(name) && Helper.isNotEmptyOrNull(pinyin)) {
-                    Word w = new Word();
+                    DictRow w = new DictRow();
                     w.setName(name);
                     w.setPronounciation(pinyin);
                     return w;
@@ -428,13 +452,13 @@ public final class Helper {
         return set;
     }
 
-    public final static Word readWikiWord(String line) {
+    public final static DictRow readWikiWord(String line) {
         if (Helper.isNotEmptyOrNull(line)) {
             final String[] parts = line.split(Helper.SEP_PARTS);
             if (parts.length > 1) {
                 final String name = parts[0];
                 if (Helper.isNotEmptyOrNull(name)) {
-                    final Word w = new Word();
+                    final DictRow w = new DictRow();
                     w.setName(name);
                     final Map<String, String> translations = readMapStringString(parts[1]);
                     w.setTranslations(translations);

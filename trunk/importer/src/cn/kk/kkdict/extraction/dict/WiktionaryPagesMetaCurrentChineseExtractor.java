@@ -3,11 +3,16 @@ package cn.kk.kkdict.extraction.dict;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import cn.kk.kkdict.beans.ByteArrayPairs;
 import cn.kk.kkdict.beans.WikiParseStep;
+import cn.kk.kkdict.types.Gender;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
+import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
@@ -20,20 +25,43 @@ import cn.kk.kkdict.utils.Helper;
  */
 public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBase {
 
+    private static final byte[] LNG_FCT_KEY_BYTES = "{{-".getBytes(Helper.CHARSET_UTF8);
+
     // TODO: http://zh.wiktionary.org/w/index.php?title=apa&action=edit&section=6
     public static final String IN_DIR = Helper.DIR_IN_DICTS + "\\wiktionary";
 
     public static final String OUT_DIR = Helper.DIR_OUT_DICTS + "\\wiktionary";
 
+    public static final Language[] RELEVANT_LANGUAGES = { Language.EN, Language.RU, Language.PL, Language.JA,
+            Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT, Language.ES, Language.PT, Language.NL,
+            Language.SV, Language.UK, Language.VI, Language.CA, Language.NO, Language.FI, Language.CS, Language.HU,
+            Language.ID, Language.TR, Language.RO, Language.FA, Language.AR, Language.DA, Language.EO, Language.SR,
+            Language.LT, Language.SK, Language.SL, Language.MS, Language.HE, Language.BG, Language.KK, Language.EU,
+            Language.VO, Language.WAR, Language.HR, Language.HI, Language.LA };
+
+    // extended:
+    // Language.BR, Language.LI, Language.LB, Language.HSB, Language.MG, Language.CSB, Language.AST, Language.GL,
+    // Language.LV, Language.BS, Language.IO, Language.BE, Language.CY, Language.EL, Language.KL, Language.ET,
+    // Language.NAH, Language.GU, Language.AF, Language.GA, Language.FJ, Language.JV, Language.IS, Language.UR,
+    // Language.OC, Language.WA, Language.KA, Language.AZ, Language.UZ, Language.FY, Language.SO, Language.TG,
+    // Language.ML, Language.LN, Language.TH, Language.SI, Language.KW, Language.ZH_MIN_NAN, Language.CHR, Language.TI,
+    // Language.SCN, Language.FO, Language.ZA, Language.SW, Language.NDS, Language.WO, Language.ROA_RUP, Language.SU,
+    // Language.LO, Language.MN, Language.AN, Language.AY, Language.MI, Language.TPI, Language.KN, Language.KM,
+    // Language.IU, Language.ANG, Language.TL, Language.MY, Language.TE, Language.TA, Language.SH, Language.ZU,
+    // Language.TK, Language.UG, Language.KU, Language.OM, Language.NA, Language.CO, Language.KY, Language.SS,
+    // Language.GV, Language.SA, Language.SM, Language.MT, Language.SQ, Language.IA, Language.HY, Language.TT,
+    // Language.YI, Language.MK, Language.RW, Language.QU
+
     public static final byte[] KEY_TRANSLATION_BYTES = "翻译".getBytes(Helper.CHARSET_UTF8);
 
     byte[] sourceLng;
     byte[] targetLng;
-    byte[] sourceWordType;
-    byte[] sourceGender;
-    byte[] targetWordType;
-    byte[] targetGender;
+    List<WordType> sourceWordTypes = new ArrayList<WordType>();
+    Gender sourceGender;
+    List<WordType> targetWordTypes = new ArrayList<WordType>();
+    Gender targetGender;
     ByteArrayPairs languageNames;
+    ByteArrayPairs categoriesNames;
 
     private final static ByteArrayPairs languageAlternatives = LanguageConstants.createByteArrayPairs(LanguageConstants
             .getLngProperties("lng2alt.txt"));
@@ -50,12 +78,14 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
         initialize(f, OUT_DIR, "output-dict.wikt_", null, null);
         ParserResult pr;
         byte[] tmp;
-        while (-1 != (len = ArrayHelper.readLine(in, lineBB))) {
+        while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
             signal();
             if (WikiParseStep.HEADER == step) {
                 parseHeader();
             } else {
-                if (ArrayHelper.substringBetween(lineArray, 0, len, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES, tmpBB) > 0) {
+                if (lineLen > MIN_TITLE_LINE_BYTES
+                        && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
+                                tmpBB) > 0) {
                     // new title found
                     // write old definition
                     writeDefinition();
@@ -64,22 +94,24 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                 } else if (isValid()) {
                     if (step == WikiParseStep.TITLE) {
                         int idx;
-                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, len, TAG_TEXT_BEGIN_BYTES))) {
+                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
+                            // System.out.print(ArrayHelper.toString(lineBB));
                             int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
-                            len = len - offset;
-                            System.arraycopy(lineArray, offset, lineArray, 0, len);
-                            lineBB.limit(len);
-                            step = WikiParseStep.CONTENT;
+                            lineLen = lineLen - offset;
+                            System.arraycopy(lineArray, offset, lineArray, 0, lineLen);
+                            lineBB.limit(lineLen);
+                            // System.out.print(ArrayHelper.toString(lineBB));
+                            step = WikiParseStep.PAGE;
                         }
                     }
-                    if (step == WikiParseStep.CONTENT) {
+                    if (step == WikiParseStep.PAGE) {
                         // within content
-                        if (ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes, SUFFIX_WIKI_TAG_BYTES,
-                                tmpBB) > 0
-                                || ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes2,
-                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                        if (lineLen > minCatBytes
+                                && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes,
+                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0,
+                                        lineLen, catKeyBytes2, SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
                             // new category found for current name
-                            // addCategory();
+                            addCategory();
                         } else if (ParserResult.NO_RESULT != (pr = parseSubTitle())) {
                             if (chinese) {
                                 ChineseHelper.toSimplifiedChinese(tmpBB);
@@ -113,6 +145,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
         case VALUE:
             return languageNames.findKey(tmpBB);
         case KEY:
+            // System.out.println(ArrayHelper.toString(tmpBB));
             result = languageNames.containsKey(tmpBB);
             if (result == null) {
                 result = languageAlternatives.findKey(tmpBB);
@@ -134,7 +167,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
      * @return -1: not found, 1: tag, 2: lng, result saved in tmpBB
      */
     private ParserResult parseSubTitle() {
-        if (len > 8 && len < 50) {
+        if (lineLen > 7 && lineLen < 50) {
             final byte b0 = lineArray[0];
             final byte b1 = lineArray[1];
             final byte b2 = lineArray[2];
@@ -143,11 +176,12 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
             final byte b5 = lineArray[5];
 
             byte b;
+            int idx;
             // approx. length of source language line
             if (b0 == '=' && b1 == '=') {
                 if (b2 == '[' && b3 == '[') {
                     // ==[[德语]]==
-                    for (int i = 6; i < len; i++) {
+                    for (int i = 6; i < lineLen; i++) {
                         b = lineArray[i];
                         if (b == ']' || b == '|') {
                             System.arraycopy(lineArray, 4, tmpArray, 0, i - 4);
@@ -157,7 +191,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                     }
                 } else if (b2 != '=') {
                     // ==德语==
-                    for (int i = 4; i < len; i++) {
+                    for (int i = 4; i < lineLen; i++) {
                         b = lineArray[i];
                         if (b == '=' || b == '[') {
                             System.arraycopy(lineArray, 2, tmpArray, 0, i - 2);
@@ -169,7 +203,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
             } else if (b0 == '{' && b1 == '{') {
                 if (b2 == '-') {
                     // {{-jbo-|cmauo}}, {{-mnc-}}, {{-fra-}}, {{-eng-|}}
-                    for (int i = 4; i < len; i++) {
+                    for (int i = 4; i < lineLen; i++) {
                         b = lineArray[i];
                         if (b == '-' || b == '}') {
                             System.arraycopy(lineArray, 3, tmpArray, 0, i - 3);
@@ -179,7 +213,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                     }
                 } else if (b5 == '|' && b4 == '=' && b2 == '=') {
                     // {{=n=|英|mail}}
-                    for (int i = 7; i < len; i++) {
+                    for (int i = 7; i < lineLen; i++) {
                         b = lineArray[i];
                         if (b == '|' || b == '}') {
                             System.arraycopy(lineArray, 6, tmpArray, 0, i - 6);
@@ -187,9 +221,50 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                             return ParserResult.ABBR;
                         }
                     }
+                } else if (-1 != (idx = ArrayHelper.indexOf(lineArray, 5, lineLen, LNG_FCT_KEY_BYTES))) {
+                    // {{also|-faction}}{{-en-}}
+                    final int offset = idx + LNG_FCT_KEY_BYTES.length;
+                    for (int i = offset; i < lineLen; i++) {
+                        b = lineArray[i];
+                        if (b == '-' || b == '}') {
+                            System.arraycopy(lineArray, offset, tmpArray, 0, i - offset);
+                            tmpBB.limit(i - offset);
+                            return ParserResult.KEY;
+                        }
+                    }
+                }
+                /*
+                 * else { // {{en-noun}} for (int i = 3; i < 6; i++) { b = lineArray[i]; if (b == '-' || b == '}') {
+                 * System.arraycopy(lineArray, 2, tmpArray, 0, i - 2); tmpBB.limit(i - 2); return ParserResult.KEY; } }
+                 * }
+                 */
+            } else if (b0 == '=') {
+                if (b1 == '[' && b2 == '[') {
+                    // =[[德语]]=
+                    for (int i = 5; i < lineLen; i++) {
+                        b = lineArray[i];
+                        if (b == ']' || b == '|') {
+                            System.arraycopy(lineArray, 3, tmpArray, 0, i - 3);
+                            tmpBB.limit(i - 3);
+                            return ParserResult.VALUE;
+                        }
+                    }
+                } else {
+                    if (b1 != '[' && b1 != '{') {
+                        // =德语=
+                        for (int i = 3; i < lineLen; i++) {
+                            b = lineArray[i];
+                            if (b == '=' || b == '[') {
+                                System.arraycopy(lineArray, 1, tmpArray, 0, i - 1);
+                                tmpBB.limit(i - 1);
+                                return ParserResult.VALUE;
+                            }
+                        }
+                    }
                 }
             }
         }
+
         return ParserResult.NO_RESULT;
     }
 
@@ -198,9 +273,9 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
         super.clearAttributes();
         sourceLng = null;
         targetLng = null;
-        sourceWordType = null;
+        sourceWordTypes.clear();
         sourceGender = null;
-        targetWordType = null;
+        targetWordTypes.clear();
         targetGender = null;
     }
 
@@ -208,19 +283,37 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     protected void initialize(final String f, final String outDir, final String outPrefix,
             final String outPrefixCategories, final String outPrefixRelated) throws IOException {
         super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated);
-        this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(Helper.toConstantName(fileLng)));
+        final String lngName = Helper.toConstantName(fileLng);
+        this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(lngName));
+        categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_"
+                + lngName + ".txt"));
     }
 
     @Override
     protected void writeDefinition() throws IOException {
-        if (DEBUG) {
-            if (isValid()) {
-                String n = ArrayHelper.toString(name);
-                if (!ChineseHelper.containsChinese(n) && sourceLng == null) {
-                    System.out.println("=> 没找到源语言：" + n);
+        if (sourceLng == null) {
+            // read source lng from category
+            byte[] tmp;
+            for (byte[] c : categories) {
+                if ((tmp = categoriesNames.findKey(c)) != null) {
+                    if (sourceLng == null) {
+                        sourceLng = tmp;
+                    } else if (!Arrays.equals(sourceLng, tmp)) {
+                        System.err.println("找到多种语言：" + ArrayHelper.toString(name));
+                        sourceLng = null;
+                        break;
+                    }
                 }
             }
         }
+        // if (DEBUG) {
+        if (isValid()) {
+            String n = ArrayHelper.toString(name);
+            if (!ChineseHelper.containsChinese(n) && sourceLng == null) {
+                System.err.println("=> 没找到源语言：" + n);
+            }
+        }
+        // }
     }
 
     public static enum ParserResult {

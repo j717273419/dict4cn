@@ -1,5 +1,5 @@
 package cn.kk.kkdict.beans;
 
 public enum WikiParseStep {
-    HEADER, TITLE, CONTENT
+    HEADER, TITLE, PAGE
 }

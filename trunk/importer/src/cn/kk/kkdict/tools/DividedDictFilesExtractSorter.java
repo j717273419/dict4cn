@@ -47,7 +47,7 @@ public class DividedDictFilesExtractSorter {
                     if (DEBUG) {
                         System.out.println("加入文件：'" + f + "'（" + Helper.formatSpace(s) + "）。。。");
                     }
-                    if (s > DictHelper.SEP_LIST_BYTES.length) {
+                    if (s > Helper.SEP_LIST_BYTES.length) {
                         working.add(f);
                     }
                     size += s;
@@ -60,11 +60,11 @@ public class DividedDictFilesExtractSorter {
             DictFilesExtractor extractor = new DictFilesExtractor(sortLng, this.outDir, tmpFile.getName(),
                     writeSkippedExtracted, working.toArray(new String[working.size()]));
             extractor.extract();
-            if (tmpFile.length() > DictHelper.SEP_LIST_BYTES.length) {
+            if (tmpFile.length() > Helper.SEP_LIST_BYTES.length) {
                 DictFilesSorter sorter = new DictFilesSorter(sortLng, this.outDir, true, false, extractor.outFile);
                 sorter.sort();
                 File sorterOutFile = new File(sorter.outFile);
-                if (sorterOutFile.length() > DictHelper.SEP_LIST_BYTES.length) {
+                if (sorterOutFile.length() > Helper.SEP_LIST_BYTES.length) {
                     if (first) {
                         first = false;
                         tmpFile.delete();
