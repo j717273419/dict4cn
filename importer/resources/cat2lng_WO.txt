@@ -1,0 +1,15 @@
+wu-angalteer=en
+wu-itaali=it
+wolof=wo
+wu-faraas=fr
+�ngum_wolof=wo
+xam-xamu_nosukaay_ci_wu-faraas=fr
+saytubiddiw_ci_wu-faraas=fr
+Gëstubiddiw_ci_wu-faraas=fr
+jëf_yu_wu-faraas=fr
+tur_yu_wu-faraas=fr
+jëmm_ci_wu-faraas=fr
+nos-wax_ci_wu-faraas=fr
+grammaire=fr
+français=fr
+melosuuf_ci_wu-faraas=fr

@@ -1,0 +1,3 @@
+Parolas\ in\ georgiano=ka
+Parolas\ in\ portugese=pt
+Interlingua=ia

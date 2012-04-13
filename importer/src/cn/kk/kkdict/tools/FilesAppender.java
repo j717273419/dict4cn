@@ -24,7 +24,7 @@ public class FilesAppender {
         long size = Helper.getFilesSize(inFiles);
         System.out.println("合并" + inFiles.length + "文件（" + Helper.formatSpace(size) + "）至'" + outFile + "'。。。");
         BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
-        ByteBuffer bb = ArrayHelper.getByteBufferLarge();
+        ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
         byte[] array = bb.array();
         for (String f : inFiles) {
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);

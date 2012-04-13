@@ -49,12 +49,14 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
         String f = file.getAbsolutePath();
         initialize(f, OUT_DIR, "output-dict.wiki_", "output-dict_categories.wiki_", "output-dict_related.wiki_");
 
-        while (-1 != (len = ArrayHelper.readLine(in, lineBB))) {
+        while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
             signal();
             if (WikiParseStep.HEADER == step) {
                 parseHeader();
             } else {
-                if (ArrayHelper.substringBetween(lineArray, 0, len, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES, tmpBB) > 0) {
+                if (lineLen > MIN_TITLE_LINE_BYTES
+                        && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
+                                tmpBB) > 0) {
                     // new title found
                     // write old definition
                     writeDefinition();
@@ -62,32 +64,32 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                 } else if (isValid()) {
                     if (step == WikiParseStep.TITLE) {
                         int idx;
-                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, len, TAG_TEXT_BEGIN_BYTES))) {
+                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
                             int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
-                            len = len - offset;
-                            System.arraycopy(lineArray, offset, lineArray, 0, len);
-                            lineBB.limit(len);
-                            step = WikiParseStep.CONTENT;
+                            lineLen = lineLen - offset;
+                            System.arraycopy(lineArray, offset, lineArray, 0, lineLen);
+                            lineBB.limit(lineLen);
+                            step = WikiParseStep.PAGE;
                         }
                     }
-                    if (step == WikiParseStep.CONTENT) {
+                    if (step == WikiParseStep.PAGE) {
                         // within content
-                        if (ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes, SUFFIX_WIKI_TAG_BYTES,
-                                tmpBB) > 0
-                                || ArrayHelper.substringBetween(lineArray, 0, len, categoryKeyBytes2,
-                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                        if (lineLen > minCatBytes
+                                && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes,
+                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0,
+                                        lineLen, catKeyBytes2, SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
                             // new category found for current name
                             addCategory();
-                        } else if (ArrayHelper.substringBetween(lineArray, 0, len, PREFIX_WIKI_TAG_BYTES,
+                        } else if (ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_WIKI_TAG_BYTES,
                                 SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
                             // found wiki tag
                             int idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
                             if (idx > 0 && idx < 13) {
                                 // has : in tag, perhaps translation
                                 addTranslation(idx);
-                            } else if (idx == -1 && !categoryName) {
+                            } else if (idx == -1 && !catName) {
                                 // something else
-                                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, len, tmpArray, 0, tmpBB.limit()))
+                                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, tmpArray, 0, tmpBB.limit()))
                                         && idx < 6) {
                                     // tag at beginning of line, perhaps related word
                                     addRelated();

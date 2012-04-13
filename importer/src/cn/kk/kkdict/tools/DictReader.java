@@ -6,6 +6,11 @@ import java.io.IOException;
 
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * 
+ * TODO refactoring
+ *
+ */
 public class DictReader {
     //public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
     //public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";    

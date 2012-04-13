@@ -29,6 +29,12 @@ import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * TODO 
+ * - Redirects: <redirect title="Ҭенгиз Лакербаиа" />
+ * - Abstracts: until first empty line or starting ==title==. remove ''', {}, [], [|(text)]
+ *
+ */
 class WikiExtractorBase {
 
     static final boolean DEBUG = true;
@@ -46,6 +52,8 @@ class WikiExtractorBase {
     static final byte[] SUFFIX_TITLE_BYTES = "</title>".getBytes(Helper.CHARSET_UTF8);
 
     static final byte[] PREFIX_TITLE_BYTES = "<title>".getBytes(Helper.CHARSET_UTF8);
+    
+    static final int MIN_TITLE_LINE_BYTES = SUFFIX_TITLE_BYTES.length + PREFIX_TITLE_BYTES.length;
 
     static final byte[] SUFFIX_XML_TAG_BYTES = ">".getBytes(Helper.CHARSET_UTF8);
 
@@ -68,11 +76,13 @@ class WikiExtractorBase {
     long started;
     byte[][] displayableLngs;
     byte[][] irrelevantPrefixesBytes;
-    byte[] categoryKeyBytes;
-    byte[] categoryKeyBytes2;
-    byte[] categoryNameBytes;
+    byte[] catKeyBytes;
+    byte[] catKeyBytes2;
+    byte[] catNameBytes;
+    int minCatBytes = 0;
     WikiParseStep step = WikiParseStep.HEADER;
-    int len;
+    int lineLen;
+    int lineOffset;
     byte[] name = null;
     final Set<byte[]> categories = new HashSet<byte[]>();
     final Map<byte[], byte[]> languages = new HashMap<byte[], byte[]>();
@@ -83,7 +93,7 @@ class WikiExtractorBase {
     int statSkippedCategory;
     int statRelated;
     long lineCount;
-    boolean categoryName = false;
+    boolean catName = false;
     final Set<byte[]> irrelevantPrefixes = new HashSet<byte[]>();
     ByteBuffer tmpBB;
     byte[] tmpArray;
@@ -98,8 +108,15 @@ class WikiExtractorBase {
     BufferedOutputStream outCategories;
     BufferedOutputStream outRelated;
 
+    @Override
+    protected void finalize() throws Throwable {
+        ArrayHelper.giveBack(lineBB);
+        ArrayHelper.giveBack(tmpBB);
+        super.finalize();
+    }
+    
     void parseHeader() {
-        if (ArrayHelper.contains(lineArray, 0, len, SUFFIX_NAMESPACES_BYTES)) {
+        if (ArrayHelper.contains(lineArray, 0, lineLen, SUFFIX_NAMESPACES_BYTES)) {
             // finish prefixes
             irrelevantPrefixesBytes = new byte[irrelevantPrefixes.size()][];
             int i = 0;
@@ -114,7 +131,7 @@ class WikiExtractorBase {
                 }
             }
             step = WikiParseStep.TITLE;
-        } else if (ArrayHelper.substringBetweenLast(lineArray, 0, len, SUFFIX_XML_TAG_BYTES, SUFFIX_NAMESPACE_BYTES,
+        } else if (ArrayHelper.substringBetweenLast(lineArray, 0, lineLen, SUFFIX_XML_TAG_BYTES, SUFFIX_NAMESPACE_BYTES,
                 tmpBB) > 0) {
             // add prefix
             int limit = tmpBB.limit();
@@ -124,19 +141,20 @@ class WikiExtractorBase {
                 System.out.println("找到域码：" + ArrayHelper.toString(tmpBB));
             }
             // System.out.println(ArrayHelper.toString(lineBB));
-            if (ArrayHelper.contains(lineArray, 0, len, ATTR_CATEGORY_KEY_BYTES)) {
-                categoryKeyBytes = new byte[tmpBB.limit() + 2];
-                categoryKeyBytes[0] = '[';
-                categoryKeyBytes[1] = '[';
-                System.arraycopy(tmpArray, 0, categoryKeyBytes, 2, tmpBB.limit());
+            if (ArrayHelper.contains(lineArray, 0, lineLen, ATTR_CATEGORY_KEY_BYTES)) {
+                catKeyBytes = new byte[tmpBB.limit() + 2];
+                catKeyBytes[0] = '[';
+                catKeyBytes[1] = '[';
+                System.arraycopy(tmpArray, 0, catKeyBytes, 2, tmpBB.limit());
 
-                categoryKeyBytes2 = new byte[tmpBB.limit() + 3];
-                categoryKeyBytes2[0] = '[';
-                categoryKeyBytes2[1] = '[';
-                categoryKeyBytes2[2] = ':';
-                System.arraycopy(tmpArray, 0, categoryKeyBytes2, 3, tmpBB.limit());
+                catKeyBytes2 = new byte[tmpBB.limit() + 3];
+                catKeyBytes2[0] = '[';
+                catKeyBytes2[1] = '[';
+                catKeyBytes2[2] = ':';
+                System.arraycopy(tmpArray, 0, catKeyBytes2, 3, tmpBB.limit());
 
-                categoryNameBytes = ArrayHelper.toBytes(tmpBB);
+                minCatBytes = Math.min(catKeyBytes.length, catKeyBytes2.length) + SUFFIX_WIKI_TAG_BYTES.length;
+                catNameBytes = ArrayHelper.toBytes(tmpBB);
                 if (DEBUG) {
                     System.out.println("找到类别代码：" + ArrayHelper.toString(tmpBB));
                 }
@@ -204,7 +222,7 @@ class WikiExtractorBase {
 
     void writeDefinition() throws IOException {
         if (isValid()) {
-            if (categoryName) {
+            if (catName) {
                 if (outCategories != null) {
                     if (write()) {
                         if (DEBUG) {
@@ -251,9 +269,10 @@ class WikiExtractorBase {
         outFileRelated = null;
 
         irrelevantPrefixesBytes = null;
-        categoryKeyBytes = PREFIX_CATEGORY_KEY_EN_BYTES;
-        categoryKeyBytes2 = PREFIX_CATEGORY_KEY_EN2_BYTES;
-        categoryNameBytes = CATEGORY_KEY_BYTES;
+        catKeyBytes = PREFIX_CATEGORY_KEY_EN_BYTES;
+        catKeyBytes2 = PREFIX_CATEGORY_KEY_EN2_BYTES;
+        minCatBytes = Math.min(catKeyBytes.length, catKeyBytes2.length) + SUFFIX_WIKI_TAG_BYTES.length;
+        catNameBytes = CATEGORY_KEY_BYTES;
         step = WikiParseStep.HEADER;
 
         name = null;
@@ -266,11 +285,11 @@ class WikiExtractorBase {
         statSkippedCategory = 0;
         statRelated = 0;
         lineCount = 0;
-        categoryName = false;
+        catName = false;
         irrelevantPrefixes.clear();
-        tmpBB = ArrayHelper.getByteBufferNormal();
+        tmpBB = ArrayHelper.borrowByteBufferNormal();
         tmpArray = tmpBB.array();
-        lineBB = ArrayHelper.getByteBufferNormal();
+        lineBB = ArrayHelper.borrowByteBufferNormal();
         lineArray = lineBB.array();
         chinese = false;
 
@@ -315,15 +334,15 @@ class WikiExtractorBase {
         }
         if (relevant) {
             if (chinese) {
-                len = ChineseHelper.toSimplifiedChinese(tmpBB);
+                lineLen = ChineseHelper.toSimplifiedChinese(tmpBB);
             }
             name = ArrayHelper.toBytes(tmpBB);
             if (outFileCategories != null) {
-                categoryName = isCategory();
+                catName = isCategory();
             }
-            if (DEBUG && !categoryName) {
+            if (DEBUG && !catName) {
                 System.out.println("新词：" + ArrayHelper.toString(tmpBB));
-                if ("coward".equals(ArrayHelper.toString(tmpBB))) {
+                if ("faction".equals(ArrayHelper.toString(tmpBB))) {
                     System.out.println("break");
                 }
             }
@@ -369,12 +388,12 @@ class WikiExtractorBase {
     }
 
     final boolean isCategory() {
-        return ArrayHelper.startsWith(name, categoryNameBytes);
+        return ArrayHelper.startsWith(name, catNameBytes);
     }
 
     boolean write() throws IOException {
         if (name != null && !languages.isEmpty()) {
-            if (categoryName) {
+            if (catName) {
                 return writeCategory();
             } else {
                 return writeDef();
@@ -388,7 +407,7 @@ class WikiExtractorBase {
         Set<byte[]> lngs = languages.keySet();
         byte[] sourceStringBytes = (Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key)
                 .getBytes(Helper.CHARSET_UTF8);
-        ByteBuffer bb = ArrayHelper.getByteBufferMedium();
+        ByteBuffer bb = ArrayHelper.borrowByteBufferMedium();
         for (byte[] l : lngs) {
             bb.clear();
             bb.put(languages.get(l)).put(sourceStringBytes);
@@ -424,7 +443,7 @@ class WikiExtractorBase {
         Set<byte[]> lngs = languages.keySet();
         byte[] sourceStringBytes = (Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key)
                 .getBytes(Helper.CHARSET_UTF8);
-        ByteBuffer bb = ArrayHelper.getByteBufferMedium();
+        ByteBuffer bb = ArrayHelper.borrowByteBufferMedium();
         for (byte[] l : lngs) {
             bb.clear();
             bb.put(languages.get(l)).put(sourceStringBytes);
@@ -455,11 +474,11 @@ class WikiExtractorBase {
         int idx;
         idx = ArrayHelper.indexOf(tmpArray, 0, tmpBB.limit(), (byte) '|');
         if (idx != -1) {
-            len = idx;
+            lineLen = idx;
         } else {
-            len = tmpBB.limit();
+            lineLen = tmpBB.limit();
         }
-        tmpBB.limit(len);
+        tmpBB.limit(lineLen);
         final byte[] relatedBytes;
         if (chinese) {
             ChineseHelper.toSimplifiedChinese(tmpBB);
@@ -475,7 +494,7 @@ class WikiExtractorBase {
 
     void addTranslation(int idx) {
         if (chinese) {
-            len = ChineseHelper.toSimplifiedChinese(tmpBB);
+            lineLen = ChineseHelper.toSimplifiedChinese(tmpBB);
         }
         byte[] tmpLngBytes = ArrayHelper.toBytes(tmpBB, idx);
         int i = 0;
@@ -503,7 +522,7 @@ class WikiExtractorBase {
             tmpBB.limit(wildcardIdx);
         }
         if (chinese) {
-            len = ChineseHelper.toSimplifiedChinese(tmpBB);
+            lineLen = ChineseHelper.toSimplifiedChinese(tmpBB);
         }
         byte[] category = ArrayHelper.toBytes(tmpBB);
         categories.add(category);

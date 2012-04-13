@@ -17,7 +17,7 @@ import cn.kk.kkdict.utils.Helper;
 
 /**
  * Merge sorted dict files
- * 
+ * TODO refactoring 
  */
 public class DictFilesMerger {
     private static boolean noticed = false;
@@ -143,11 +143,11 @@ public class DictFilesMerger {
             throws IOException {
         ByteBuffer[] inFileBBs = new ByteBuffer[inFilesIns.length];
         for (int i = 0; i < inFilesIns.length; i++) {
-            inFileBBs[i] = ArrayHelper.getByteBufferMedium();
+            inFileBBs[i] = ArrayHelper.borrowByteBufferMedium();
             inFileBBs[i].limit(0);
         }
-        ByteBuffer mergeBB = ArrayHelper.getByteBufferLarge();
-        ByteBuffer lineBB = ArrayHelper.getByteBufferMedium();
+        ByteBuffer mergeBB = ArrayHelper.borrowByteBufferLarge();
+        ByteBuffer lineBB = ArrayHelper.borrowByteBufferMedium();
         while (-1 != ArrayHelper.readLine(inFilesMainIn, lineBB)) {
             if (DEBUG) {
                 System.out.println("合并词组：" + ArrayHelper.toString(lineBB));
@@ -245,7 +245,7 @@ public class DictFilesMerger {
                                     bbStopLen)) {
                                 // merge
                                 mergeBB.position(mergedPosition);
-                                mergedPosition = DictHelper.mergeDefinitionsAndAttributes(mergeBB, inFileBB);
+                                mergedPosition = DictHelper.mergeOneDefinitionAndAttributes(mergeBB, inFileBB);
                                 if (DEBUG) {
                                     System.out.println(inFileIdx + ": merge "
                                             + ArrayHelper.toString(inFileBB.array(), inFileStartIdx, inFileStopLen)

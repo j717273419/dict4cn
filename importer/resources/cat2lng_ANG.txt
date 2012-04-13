@@ -1,0 +1,8 @@
+Englisc=en
+Īslendisc\ sprǣc=is
+Frencisc=fr
+slendisc_nama=is
+Frencisc_word=fr
+Frencisc_nama=fr
+Frencisc_fōresetnes=fr
+Frencisce_naman=fr

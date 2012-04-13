@@ -1,0 +1,7 @@
+Engelsch=en
+Hoochdüütsch=de
+Plattdüütsch=nds
+Esperanto=eo
+Finnsch=fi
+Jiddisch=yi
+Portugeessch=pt

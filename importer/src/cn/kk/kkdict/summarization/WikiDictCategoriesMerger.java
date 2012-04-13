@@ -18,8 +18,8 @@ import cn.kk.kkdict.utils.Helper;
 public class WikiDictCategoriesMerger {
     private static final int PROCESS_LIMIT = 1024 * 1024 * 200;
     public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String OUT_FILE = OUT_DIR + "\\output-dict_categories-merged.wiki";
+    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
+    public static final String OUT_FILE = OUT_DIR + File.separator + "output-dict_categories-merged.wiki";
     private static final boolean DEBUG = false;
 
     /**
@@ -98,17 +98,16 @@ public class WikiDictCategoriesMerger {
             DictFilesSorter sorter = new DictFilesSorter(Language.DE, OUT_DIR, new File(OUT_FILE).getName(), false,
                     false, outFileTmp);
             sorter.sort();
-            
+
             new File(outFileTmp).delete();
             new File(OUT_FILE).renameTo(new File(outFileTmp));
             TimeUnit.SECONDS.sleep(1);
-            sorter = new DictFilesSorter(Language.ZH, OUT_DIR, new File(OUT_FILE).getName(), false,
-                    false, outFileTmp);
+            sorter = new DictFilesSorter(Language.ZH, OUT_DIR, new File(OUT_FILE).getName(), false, false, outFileTmp);
             sorter.sort();
             new File(outFileTmp).delete();
             System.out.println("排序中文完成.输出文件：'" + OUT_FILE + "'（" + Helper.formatSpace(new File(OUT_FILE).length())
                     + "）");
         }
     }
-    
+
 }

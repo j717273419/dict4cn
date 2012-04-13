@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +63,7 @@ public class ByteArrayPairs {
 
     public final byte[] findKey(final ByteBuffer value) {
         final int offset = ArrayHelper.findTrimmedOffset(value);
-        final int len = ArrayHelper.findTrimmedLimit(value) - offset;
+        final int len = ArrayHelper.findTrimmedEndIdx(value) - offset;
         return findKey(ArrayHelper.toBytes(value, offset, len));
     }
 
@@ -79,7 +78,7 @@ public class ByteArrayPairs {
 
     public final byte[] containsKey(final ByteBuffer key) {
         final int offset = ArrayHelper.findTrimmedOffset(key);
-        final int len = ArrayHelper.findTrimmedLimit(key) - offset;
+        final int len = ArrayHelper.findTrimmedEndIdx(key) - offset;
         return containsKey(ArrayHelper.toBytes(key, offset, len));
     }
 

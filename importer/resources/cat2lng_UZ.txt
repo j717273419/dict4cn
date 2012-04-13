@@ -1,0 +1,7 @@
+Arabcha=ar
+Inglizcha=en
+Turkcha=tr
+Ispancha=es
+Ruscha=ru
+O‘zbek=uz
+Fransuzcha=fr

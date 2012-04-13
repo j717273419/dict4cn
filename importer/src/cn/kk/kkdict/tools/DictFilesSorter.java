@@ -11,7 +11,7 @@ import cn.kk.kkdict.utils.Helper;
 
 /**
  * sorts and merges files together depending on the given definition key
- * 
+ * TODO refactoring 
  */
 public class DictFilesSorter extends WordFilesSorter {
     protected final Language sortLng;
@@ -68,7 +68,7 @@ public class DictFilesSorter extends WordFilesSorter {
     protected int readMerged(int[] sortedPosArray, int startIdx, int endIdx, ByteBuffer cachedBytes) {
         ByteBuffer mergeBB = cachedBytes;
         if (WRITE_SORT_LNG_DEF_FIRST) {
-            mergeBB = ArrayHelper.getByteBufferLarge();
+            mergeBB = ArrayHelper.borrowByteBufferLarge();
         }
         mergeBB.limit(mergeBB.capacity());
         int mergePos;
@@ -89,7 +89,7 @@ public class DictFilesSorter extends WordFilesSorter {
             System.arraycopy(bb.array(), bb.position(), mergeArray, 0, stopPoint);
             mergeBB.position(stopPoint);
             bb.position(bb.position() + stopPoint);
-            mergePos = DictHelper.mergeDefinitionsAndAttributes(mergeBB, bb);
+            mergePos = DictHelper.mergeOneDefinitionAndAttributes(mergeBB, bb);
             // System.out.println("multi 2: " + new String(cachedBytesBig2.array(), 0, cacheIdx, Helper.CHARSET_UTF8));
         }
         mergeBB.limit(mergePos);
@@ -107,13 +107,13 @@ public class DictFilesSorter extends WordFilesSorter {
             System.arraycopy(mergeArray, s1, cachedArray, 0, s2);
             mergePos = s2;
             // System.out.println("result 1: " + new String(cachedBytes.array(), 0, cacheIdx, Helper.CHARSET_UTF8));
-            if (s1 > DictHelper.SEP_LIST_BYTES.length && s1 - s0 > 0) {
+            if (s1 > Helper.SEP_LIST_BYTES.length && s1 - s0 > 0) {
                 // there is something before
                 // copy part before sort lng
-                System.arraycopy(DictHelper.SEP_LIST_BYTES, 0, cachedArray, mergePos, DictHelper.SEP_LIST_BYTES.length);
-                mergePos += DictHelper.SEP_LIST_BYTES.length;
-                System.arraycopy(mergeArray, 0, cachedArray, mergePos, s1 - DictHelper.SEP_LIST_BYTES.length);
-                mergePos += s1 - DictHelper.SEP_LIST_BYTES.length;
+                System.arraycopy(Helper.SEP_LIST_BYTES, 0, cachedArray, mergePos, Helper.SEP_LIST_BYTES.length);
+                mergePos += Helper.SEP_LIST_BYTES.length;
+                System.arraycopy(mergeArray, 0, cachedArray, mergePos, s1 - Helper.SEP_LIST_BYTES.length);
+                mergePos += s1 - Helper.SEP_LIST_BYTES.length;
                 // System.out.println("result 2 (" + s1 + "): "
                 // + new String(cachedBytes.array(), 0, cacheIdx, Helper.CHARSET_UTF8));
                 if (s3 > 0) {

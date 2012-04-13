@@ -26,7 +26,7 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WikiDictRelatedRepairman {
     public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
+    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
     public static final String SUFFIX_WEIGHTED = "_repaired";
     private static final boolean DEBUG = false;
     private static final boolean TRACE = false;
@@ -53,7 +53,7 @@ public class WikiDictRelatedRepairman {
 
             long start = System.currentTimeMillis();
             String[] filePaths = Helper.getFileNames(files);
-            ByteBuffer lineBB = ArrayHelper.getByteBufferVeryLarge();
+            ByteBuffer lineBB = ArrayHelper.borrowByteBufferVeryLarge();
             byte[] lineArray = lineBB.array();
             HashMap<IndexedByteArray, HashSet<Integer>> defDict = new HashMap<IndexedByteArray, HashSet<Integer>>();
             // map to itself
@@ -152,7 +152,7 @@ public class WikiDictRelatedRepairman {
                             }
                             out.write(rel.getData());
                             if (writeAttributes) {
-                                out.write(DictHelper.SEP_ATTRS_BYTES);
+                                out.write(Helper.SEP_ATTRS_BYTES);
                                 out.write(Score.TYPE_ID_BYTES);
                                 int score = rel.getWeight();
                                 if (score == 0) {

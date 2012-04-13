@@ -1,0 +1,6 @@
+Tok\ Inglis=en
+Tok\ Siaman=de
+Latin=la
+Tok\ Pisin=tpi
+Tok\ Siapan=ja
+Tok\ Pranis=fr

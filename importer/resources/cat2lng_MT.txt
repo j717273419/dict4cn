@@ -1,0 +1,9 @@
+Lingwa\ Katalana=ca
+Lingwa\ Maltija=mt
+mt
+Avverbji_Maltin=mt
+Nomi_Maltin=mt
+Konġunzjonijiet_Maltin=mt
+Aġġettivi_Maltin=mt
+Numri_Maltin=mt
+Nomi_propji_Maltin=mt

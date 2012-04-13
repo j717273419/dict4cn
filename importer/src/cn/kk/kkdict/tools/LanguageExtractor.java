@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.Set;
 import cn.kk.kkdict.beans.FormattedArrayList;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
+import cn.kk.kkdict.beans.TranslationInfo;
+import cn.kk.kkdict.extraction.dict.WiktionaryPagesMetaCurrentChineseExtractor;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.Helper;
@@ -43,61 +46,7 @@ public class LanguageExtractor {
 
     // public static final Language[] RELEVANT_LANGUAGES = { Language.ZH };
 
-    public static final Language[] RELEVANT_LANGUAGES = { Language.EN, Language.RU, Language.PL, Language.JA,
-            Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT, Language.ES, Language.PT, Language.NL,
-            Language.SV, Language.UK, Language.VI, Language.CA, Language.NO, Language.FI, Language.CS, Language.HU,
-            Language.ID, Language.TR, Language.RO, Language.FA, Language.AR, Language.DA, Language.EO, Language.SR,
-            Language.LT, Language.SK, Language.SL, Language.MS, Language.HE, Language.BG, Language.KK, Language.EU,
-            Language.VO, Language.WAR, Language.HR, Language.HI, Language.LA };
-
-    final static class RowInfo implements Comparable<RowInfo> {
-        public RowInfo() {
-        }
-
-        String key = Helper.EMPTY_STRING;
-        String family = Helper.EMPTY_STRING;
-        String iso1 = Helper.EMPTY_STRING;
-        String iso2 = Helper.EMPTY_STRING;
-        String iso3 = Helper.EMPTY_STRING;
-        Map<String, String> lngMap = new FormattedTreeMap<String, String>();
-
-        String direction = Helper.EMPTY_STRING;
-        String original = Helper.EMPTY_STRING;
-        String comment = Helper.EMPTY_STRING;
-
-        public void invalidate() {
-            key = Helper.EMPTY_STRING;
-            iso1 = Helper.EMPTY_STRING;
-            iso2 = Helper.EMPTY_STRING;
-            iso3 = Helper.EMPTY_STRING;
-        }
-
-        public boolean isValid() {
-            if (key.isEmpty()) {
-                if (Helper.isNotEmptyOrNull(iso1)) {
-                    key = iso1;
-                } else if (Helper.isNotEmptyOrNull(iso2)) {
-                    key = iso2;
-                } else if (Helper.isNotEmptyOrNull(iso3)) {
-                    key = iso3;
-                }
-            }
-            return Helper.isNotEmptyOrNull(key);
-        }
-
-        @Override
-        public int compareTo(RowInfo o) {
-            return key.compareTo(o.key);
-        }
-
-        public void put(Language lng, String value) {
-            this.lngMap.put(lng.key, value);
-        }
-
-        public String get(Language lng) {
-            return this.lngMap.get(lng.key);
-        }
-    }
+    public static final Language[] RELEVANT_LANGUAGES = WiktionaryPagesMetaCurrentChineseExtractor.RELEVANT_LANGUAGES;
 
     /**
      * @param args
@@ -107,27 +56,27 @@ public class LanguageExtractor {
         new File(GENERATED_DIR).mkdirs();
         // full english: http://s23.org/wikistats/wikipedias_html.php?sort=prefix_asc
         // actual iso template: http://zh.wikipedia.org/wiki/Template:ISO639
-        String listOfWikipediasUrlZh = "http://zh.wikipedia.org/zh-cn/Wikipedia:%E7%BB%B4%E5%9F%BA%E7%99%BE%E7%A7%91%E8%AF%AD%E8%A8%80%E5%88%97%E8%A1%A8";
-        List<RowInfo> wikiInfos = parseListOfWikipediasHtml(Helper.download(listOfWikipediasUrlZh));
+        String listOfWikipediasUrlZh = "https://zh.wikipedia.org/zh-cn/Wikipedia:%E7%BB%B4%E5%9F%BA%E7%99%BE%E7%A7%91%E8%AF%AD%E8%A8%80%E5%88%97%E8%A1%A8";
+        List<TranslationInfo> wikiInfos = parseListOfWikipediasHtml(Helper.download(listOfWikipediasUrlZh));
 
-        String listOfWiktionariesUrl = "http://meta.wikimedia.org/wiki/Wiktionary#List_of_Wiktionaries";
-        List<RowInfo> wiktInfos = parseListOfWiktionariesHtml(Helper.download(listOfWiktionariesUrl));
+        String listOfWiktionariesUrl = "https://meta.wikimedia.org/wiki/Wiktionary#List_of_Wiktionaries";
+        List<TranslationInfo> wiktInfos = parseListOfWiktionariesHtml(Helper.download(listOfWiktionariesUrl));
 
-        List<RowInfo> allInfos = new FormattedArrayList<RowInfo>(wikiInfos);
+        List<TranslationInfo> allInfos = new FormattedArrayList<TranslationInfo>(wikiInfos);
 
         String wikiTranslationSource = GENERATED_DIR + "\\TranslationSource.java";
         generateInitialTranslationSourceJava(wikiInfos, wiktInfos, wikiTranslationSource);
 
         // merges infos into allInfos
         mergeWikiWiktLanguages(allInfos, wiktInfos);
-        List<RowInfo> reducedInfos = new FormattedArrayList<RowInfo>(allInfos);
+        List<TranslationInfo> reducedInfos = new FormattedArrayList<TranslationInfo>(allInfos);
 
-        String iso639MainPageUrl = "http://en.wiktionary.org/wiki/Transwiki:ISO_639";
+        String iso639MainPageUrl = "https://en.wiktionary.org/wiki/Transwiki:ISO_639";
         enrichWithIso639Languages(allInfos, iso639MainPageUrl);
 
         enrichWithJavaLocales(allInfos);
 
-        generateInitialLanguageFamilyJava(reducedInfos, GENERATED_DIR + "\\LanguageFamily.java");
+        generateInitialLanguageFamilyJava(allInfos, GENERATED_DIR + "\\LanguageFamily.java");
 
         generateInitialLanguageJava(reducedInfos, GENERATED_DIR + "\\Language.java");
 
@@ -135,12 +84,12 @@ public class LanguageExtractor {
 
     }
 
-    private static void enrichWithJavaLocales(List<RowInfo> wikiInfos) {
+    private static void enrichWithJavaLocales(List<TranslationInfo> wikiInfos) {
         String tmp;
         Locale[] locales = Locale.getAvailableLocales();
         for (int i = 0; i < locales.length; i++) {
             Locale locale = locales[i];
-            RowInfo rowInfo = new RowInfo();
+            TranslationInfo rowInfo = new TranslationInfo();
             rowInfo.key = locale.getLanguage();
             rowInfo.original = locale.getDisplayName(locale);
             String displayNameEn = locale.getDisplayName(Locale.ENGLISH);
@@ -154,7 +103,7 @@ public class LanguageExtractor {
         }
     }
 
-    private static void enrichWithIso639Languages(final List<RowInfo> wikiInfos, final String iso639MainPageUrl)
+    private static void enrichWithIso639Languages(final List<TranslationInfo> wikiInfos, final String iso639MainPageUrl)
             throws IOException {
         for (char c = 'a'; c <= 'z'; c++) {
             enrichWithIso639LanguagesPage(wikiInfos, Helper.download(iso639MainPageUrl + ":" + c));
@@ -163,7 +112,7 @@ public class LanguageExtractor {
         Collections.sort(wikiInfos);
     }
 
-    private static void enrichWithIso639LanguagesPage(List<RowInfo> infos, String file) throws IOException {
+    private static void enrichWithIso639LanguagesPage(List<TranslationInfo> infos, String file) throws IOException {
         System.out.println("分析“Transwiki ISO 639”HTML文件'" + file + "' 。。。");
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -171,7 +120,7 @@ public class LanguageExtractor {
         boolean started = false;
         String startTag = ">deu<";
         String stopTag = "</table>";
-        RowInfo rowInfo = new RowInfo();
+        TranslationInfo rowInfo = new TranslationInfo();
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!started) {
@@ -184,7 +133,7 @@ public class LanguageExtractor {
                     break;
                 } else if (line.contains("</tr>")) {
                     enrichByRowInfo(infos, rowInfo);
-                    rowInfo = new RowInfo();
+                    rowInfo = new TranslationInfo();
                     row = 0;
                     rowInfo.invalidate();
                 }
@@ -227,11 +176,11 @@ public class LanguageExtractor {
         }
     }
 
-    private static boolean enrichByRowInfo(List<RowInfo> wikiInfos, RowInfo rowInfo) {
+    private static boolean enrichByRowInfo(List<TranslationInfo> wikiInfos, TranslationInfo rowInfo) {
         boolean found = false;
         if (rowInfo.isValid()) {
             String tmp;
-            for (RowInfo j : wikiInfos) {
+            for (TranslationInfo j : wikiInfos) {
                 if (j.key.equals(rowInfo.key)) {
                     if (null != (tmp = getNewContent(j.original, rowInfo.original))) {
                         j.original = tmp;
@@ -274,25 +223,25 @@ public class LanguageExtractor {
         return null;
     }
 
-    private static void mergeWikiWiktLanguages(List<RowInfo> wikiInfos, List<RowInfo> wiktInfos) {
+    private static void mergeWikiWiktLanguages(List<TranslationInfo> wikiInfos, List<TranslationInfo> wiktInfos) {
         System.out.println("合并语言信息 。。。");
-        for (RowInfo i : wiktInfos) {
+        for (TranslationInfo i : wiktInfos) {
             enrichByRowInfo(wikiInfos, i);
         }
         System.out.println("合并后总共语言：" + wikiInfos.size());
     }
 
-    private static void generateInitialTranslationSourceJava(List<RowInfo> wikiInfos, List<RowInfo> wiktInfos,
+    private static void generateInitialTranslationSourceJava(List<TranslationInfo> wikiInfos, List<TranslationInfo> wiktInfos,
             String file) throws IOException {
         System.out.println("创建TranslationSourceWiki.java文件'" + file + "' 。。。");
         StringBuilder sb = new StringBuilder(1024 * 32);
         sb.append("package cn.kk.kkdict.types;").append(Helper.SEP_NEWLINE);
         sb.append("public enum TranslationSource {").append(Helper.SEP_NEWLINE);
-        for (RowInfo i : wikiInfos) {
+        for (TranslationInfo i : wikiInfos) {
             sb.append("WIKI_").append(getEnumKey(i)).append("(\"").append("wiki_").append(getEnumKey(i).toLowerCase())
                     .append("\"),").append(Helper.SEP_NEWLINE);
         }
-        for (RowInfo i : wiktInfos) {
+        for (TranslationInfo i : wiktInfos) {
             sb.append("WIKT_").append(getEnumKey(i)).append("(\"").append("wikt_").append(getEnumKey(i).toLowerCase())
                     .append("\"),").append(Helper.SEP_NEWLINE);
         }
@@ -309,15 +258,25 @@ public class LanguageExtractor {
         System.out.println("创建TranslationSourceWiki.java文件成功。");
     }
 
-    private static void generateInitialLanguageFamilyJava(List<RowInfo> rowInfos, String file) throws IOException {
+    private static void generateInitialLanguageFamilyJava(List<TranslationInfo> rowInfos, String file) throws IOException {
         Set<String> families = new FormattedTreeSet<String>();
-        for (RowInfo i : rowInfos) {
+        for (TranslationInfo i : rowInfos) {
             String enumName = Helper.toConstantName(i.family);
             if (Helper.isNotEmptyOrNull(enumName)) {
                 families.add(enumName);
             }
         }
         Collections.sort(rowInfos);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file + "_sorted"));
+        for (String f : families) {
+            for (TranslationInfo i : rowInfos) {
+                if (f.equals(Helper.toConstantName(i.family))) {
+                    writer.write(getEnumKey(i) + "(\"" + i.key + "\", LanguageFamily." + getLanguageFamily(i) + "),"
+                            + Helper.SEP_NEWLINE);
+                }
+            }
+        }
+        writer.close();
         System.out.println("创建LanguageFamily.java文件'" + file + "'（语系：" + families.size() + "） 。。。");
         StringBuilder sb = new StringBuilder(1024 * 32);
         sb.append("package cn.kk.kkdict.types;").append(Helper.SEP_NEWLINE);
@@ -329,15 +288,15 @@ public class LanguageExtractor {
         }
         sb.append('}').append(Helper.SEP_NEWLINE).append(Helper.SEP_NEWLINE);
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        writer = new BufferedWriter(new FileWriter(file));
         writer.write(sb.toString());
         writer.close();
         System.out.println("创建LanguageFamily.java文件成功。");
     }
 
-    private static void generateInitialLanguageJava(List<RowInfo> rowInfos, String file) throws IOException {
+    private static void generateInitialLanguageJava(List<TranslationInfo> rowInfos, String file) throws IOException {
         Set<String> families = new FormattedTreeSet<String>();
-        for (RowInfo i : rowInfos) {
+        for (TranslationInfo i : rowInfos) {
             String enumName = Helper.toConstantName(i.family);
             if (Helper.isNotEmptyOrNull(enumName)) {
                 families.add(enumName);
@@ -350,7 +309,7 @@ public class LanguageExtractor {
         sb.append("package cn.kk.kkdict.types;").append(Helper.SEP_NEWLINE);
         sb.append("public enum Language {").append(Helper.SEP_NEWLINE);
         // lng enums
-        for (RowInfo i : rowInfos) {
+        for (TranslationInfo i : rowInfos) {
             sb.append(getEnumKey(i)).append("(\"").append(i.key).append("\", LanguageFamily.")
                     .append(getLanguageFamily(i)).append("),").append(Helper.SEP_NEWLINE);
         }
@@ -371,10 +330,10 @@ public class LanguageExtractor {
         System.out.println("创建Language.java文件成功。");
     }
 
-    private static void generateInitialLanguageConstantsJava(List<RowInfo> rowInfos, List<RowInfo> wikiInfos,
-            List<RowInfo> wiktInfos, String file) throws IOException {
+    private static void generateInitialLanguageConstantsJava(List<TranslationInfo> rowInfos, List<TranslationInfo> wikiInfos,
+            List<TranslationInfo> wiktInfos, String file) throws IOException {
         Set<String> families = new FormattedTreeSet<String>();
-        for (RowInfo i : rowInfos) {
+        for (TranslationInfo i : rowInfos) {
             String enumName = Helper.toConstantName(i.family);
             if (Helper.isNotEmptyOrNull(enumName)) {
                 families.add(enumName);
@@ -426,7 +385,7 @@ public class LanguageExtractor {
         for (Language lng : RELEVANT_LANGUAGES) {
             String name = lng.name();
             Properties props = new Properties();
-            for (RowInfo i : rowInfos) {
+            for (TranslationInfo i : rowInfos) {
                 if (Helper.isNotEmptyOrNull(tmp = i.get(lng))) {
                     String[] names = tmp.split("[、;/]");
                     for (String n : names) {
@@ -443,7 +402,7 @@ public class LanguageExtractor {
 
         // original
         Properties props = new Properties();
-        for (RowInfo i : rowInfos) {
+        for (TranslationInfo i : rowInfos) {
             String[] names = i.original.split("[;/、]");
             for (String n : names) {
                 n = n.trim();
@@ -458,7 +417,9 @@ public class LanguageExtractor {
         sb.append("Properties props = null;").append(Helper.SEP_NEWLINE);
         sb.append("try {").append(Helper.SEP_NEWLINE);
         sb.append("props = new Properties();").append(Helper.SEP_NEWLINE);
-        sb.append("props.load(LanguageConstants.class.getResourceAsStream(\"/\" + f));").append(Helper.SEP_NEWLINE);
+        sb.append(
+                "props.load(new InputStreamReader(LanguageConstants.class.getResourceAsStream(\"/\" + f), Helper.CHARSET_UTF8));")
+                .append(Helper.SEP_NEWLINE);
         sb.append("} catch (IOException e) {").append(Helper.SEP_NEWLINE);
         sb.append("System.err.println(\"Failed to load language properties for '\" + f + \"': \" + e);").append(
                 Helper.SEP_NEWLINE);
@@ -467,7 +428,7 @@ public class LanguageExtractor {
 
         sb.append("private static final String[] getWikiLngs() {").append(Helper.SEP_NEWLINE);
         sb.append("return new String[] {").append(Helper.SEP_NEWLINE);
-        for (RowInfo i : wikiInfos) {
+        for (TranslationInfo i : wikiInfos) {
             sb.append("Language.").append(getEnumKey(i)).append(".key,").append(Helper.SEP_NEWLINE);
         }
         sb.append("};").append(Helper.SEP_NEWLINE);
@@ -479,7 +440,7 @@ public class LanguageExtractor {
 
         sb.append("private static final String[] getWiktLngs() {").append(Helper.SEP_NEWLINE);
         sb.append("return new String[] {").append(Helper.SEP_NEWLINE);
-        for (RowInfo i : wiktInfos) {
+        for (TranslationInfo i : wiktInfos) {
             sb.append("Language.").append(getEnumKey(i)).append(".key,").append(Helper.SEP_NEWLINE);
         }
         sb.append("};").append(Helper.SEP_NEWLINE);
@@ -496,7 +457,7 @@ public class LanguageExtractor {
         System.out.println("创建LanguageConstants.java文件成功。");
     }
 
-    private static String getLanguageFamily(RowInfo i) {
+    private static String getLanguageFamily(TranslationInfo i) {
         String tmp = Helper.toConstantName(i.family);
         if (Helper.isNotEmptyOrNull(tmp)) {
             return tmp;
@@ -508,11 +469,11 @@ public class LanguageExtractor {
         }
     }
 
-    private static String getEnumKey(RowInfo i) {
+    private static String getEnumKey(TranslationInfo i) {
         return Helper.toConstantName(i.key);
     }
 
-    public static List<RowInfo> parseListOfWikipediasHtml(String file) throws IOException {
+    public static List<TranslationInfo> parseListOfWikipediasHtml(String file) throws IOException {
         System.out.println("分析“维基百科语言列表”HTML文件'" + file + "' 。。。");
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -520,8 +481,8 @@ public class LanguageExtractor {
         boolean started = false;
         String startTag = "<th>备注</th>";
         String stopTag = "</table>";
-        List<RowInfo> rowInfos = new FormattedArrayList<RowInfo>();
-        RowInfo rowInfo = new RowInfo();
+        List<TranslationInfo> rowInfos = new FormattedArrayList<TranslationInfo>();
+        TranslationInfo rowInfo = new TranslationInfo();
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!started) {
@@ -538,7 +499,7 @@ public class LanguageExtractor {
                     if (rowInfo.isValid()) {
                         rowInfos.add(rowInfo);
                     }
-                    rowInfo = new RowInfo();
+                    rowInfo = new TranslationInfo();
                     row = 0;
                     rowInfo.invalidate();
                 }
@@ -575,7 +536,7 @@ public class LanguageExtractor {
         return rowInfos;
     }
 
-    private static List<RowInfo> parseListOfWiktionariesHtml(String file) throws IOException {
+    private static List<TranslationInfo> parseListOfWiktionariesHtml(String file) throws IOException {
         System.out.println("分析“List of Wiktionaries”HTML文件'" + file + "' 。。。");
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -583,8 +544,8 @@ public class LanguageExtractor {
         boolean started = false;
         String startTag = ">List of Wiktionaries by language family<";
         String stopTag = "</table>";
-        List<RowInfo> rowInfos = new FormattedArrayList<RowInfo>();
-        RowInfo rowInfo = new RowInfo();
+        List<TranslationInfo> rowInfos = new FormattedArrayList<TranslationInfo>();
+        TranslationInfo rowInfo = new TranslationInfo();
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!started) {
@@ -601,7 +562,7 @@ public class LanguageExtractor {
                     if (rowInfo.isValid()) {
                         rowInfos.add(rowInfo);
                     }
-                    rowInfo = new RowInfo();
+                    rowInfo = new TranslationInfo();
                     row = 0;
                     rowInfo.invalidate();
                 }

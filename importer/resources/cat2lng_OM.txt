@@ -1,0 +1,6 @@
+Afaan\ Ingiliffaa=en
+Afaan\ Germenii=de
+Afaan\ Spenii=es
+Afaan\ Oromoo=om
+Afaan\ Ayislandii=is
+Afaan\ Ferensay=fr

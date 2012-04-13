@@ -1,0 +1,11 @@
+Dorerin\ Ingerand=en
+Dorerin\ Tsipain=es
+Dorerin\ Naoero=na
+Dorerin\ Pinrand=fi
+Dorerin\ Itari=it
+Dorerin\ Norwei=no
+Dorerin\ Eben\ Eyong=nl
+Dorerin\ Tubaru=tvl
+Dorerin\ Portsiugar=pt
+Dorerin\ Bitinam=vi
+Dorerin\ Prant=fr

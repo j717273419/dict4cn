@@ -1,0 +1,16 @@
+ᖃᓪᓗᓈᑎᑐᑦ\ /\ qallunaatitut=en
+ᔮᒪᓂᑎᑐᑦ\ /\ jaamanitut=de
+ᓵᕈᑭ\ /\ saaruki=chr
+ᐊᐃᒪᕋ\ /\ aimara=ay
+ᐃᓄᒃᑎᑐᑦ\ /\ inuktitut=iu
+ᐃᓯᐱᕋᓐᑐ\ /\ isipirantu=eo
+ᓯᐸᐃᓂᑎᑐᑦ\ /\ sipainititut=es
+ᓱᐃᑦᑎᑐᑦ\ /\ suittitut=sv
+ᕖᓂᑎᑐᑦ\ /\ viinititut=fi
+ᕈᓯ\ /\ rusi=ru
+ᓇᕙᓱ\ /\ navasu=nv
+ᑭᓱᐊᐦᐃᓪᐃ\ /\ kisuahili=sw
+ᓃᑕᓚᓯᑎᑐᑦ\ /\ niitalasititut=nl
+ᑮᓱᐊ\ /\ kiisia=qu
+ᑯᕆᐊᑎᑐᑦ\ /\ kuriatituq=ko
+ᐅᐃᒍᐃᕐᒥᐅᖅ\ /\ uiguirmiuq=fr

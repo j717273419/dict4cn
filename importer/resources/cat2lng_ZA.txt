@@ -1,0 +1,6 @@
+Yinghyij=en
+Dwzyij=de
+Vahdai=th
+Sihbanhyazyij=es
+Vahcuengh=za
+Fazyij=fr
