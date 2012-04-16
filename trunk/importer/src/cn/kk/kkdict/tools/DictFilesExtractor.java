@@ -31,7 +31,8 @@ public class DictFilesExtractor {
     public final String outFile;
     private final ByteBuffer lngBB;
     private boolean writeSkipped;
-
+    private DictByteBufferRow mainRow = new DictByteBufferRow();
+    
     public static void main(String[] args) throws IOException {
         String outDir = Helper.DIR_OUT_DICTS + File.separator + "wiki" + File.separator + "test";
         String inFileTest = outDir + File.separator + "output-dict.wiki_ang";
@@ -114,11 +115,10 @@ public class DictFilesExtractor {
         final ByteBuffer bb = ArrayHelper.borrowByteBufferMedium();
         final byte[] array = bb.array();
         int limit;
-        DictByteBufferRow row = new DictByteBufferRow();
         while (-1 != ArrayHelper.readLine(in, bb)) {
             limit = bb.limit();
-            row.parseFrom(bb);
-            if (-1 != row.indexOfLanguage(lngBB)) {
+            mainRow.parseFrom(bb);
+            if (-1 != mainRow.indexOfLanguage(lngBB)) {
                 out.write(array, 0, limit);
                 out.write('\n');
             } else if (skippedOut != null) {

@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.tools.DictFilesExtractor;
-import cn.kk.kkdict.tools.DictFilesJoiner;
+import cn.kk.kkdict.tools.SortedDictFilesJoiner;
 import cn.kk.kkdict.tools.DictFilesSorter;
 import cn.kk.kkdict.tools.DividedDictFilesExtractSorter;
 import cn.kk.kkdict.types.Language;
@@ -30,7 +30,7 @@ public class WikiDictsMerger {
     public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
     public static final String WORK_DIR = IN_DIR + File.separator + "work";
     public static final String OUT_FILE = OUT_DIR + File.separator + "output-dict-merged.wiki";
-    private static final String SKIPPED_MERGED_NAME = "output-dict" + DictFilesJoiner.SUFFIX_SKIPPED + ".";
+    private static final String SKIPPED_MERGED_NAME = "output-dict" + SortedDictFilesJoiner.SUFFIX_SKIPPED + ".";
 
     /**
      * @param args
@@ -165,11 +165,11 @@ public class WikiDictsMerger {
 
                 System.out.print("。。。【" + step + "。" + step2 + "。合并'" + task + "'文件：'" + lngOutFile + "'，'" + mainFile
                         + "'，语言：'" + task + "'】");
-                DictFilesJoiner joiner = new DictFilesJoiner(lng, WORK_DIR, DictFilesJoiner.OUT_FILE, mainFile,
+                SortedDictFilesJoiner joiner = new SortedDictFilesJoiner(lng, WORK_DIR, SortedDictFilesJoiner.OUT_FILE, mainFile,
                         lngOutFile);
                 joiner.join();
                 new File(lngOutFile).delete();
-                new File(Helper.appendFileName(lngOutFile, DictFilesJoiner.SUFFIX_SKIPPED)).delete();
+                new File(Helper.appendFileName(lngOutFile, SortedDictFilesJoiner.SUFFIX_SKIPPED)).delete();
                 new File(mainFile).delete();
                 new File(joiner.outFile).renameTo(new File(mainFile));
                 TimeUnit.SECONDS.sleep(1);

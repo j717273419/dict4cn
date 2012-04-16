@@ -109,6 +109,7 @@ public final class ChineseHelper {
     }
 
     private static final int decode(ByteBuffer bb, int[] from, int[] to) {
+    	final int oldPosition = bb.position();
         int mark = bb.position();
         int limit = bb.limit();
         int idx;
@@ -118,14 +119,16 @@ public final class ChineseHelper {
             b1 = bb.get();
             i1 = b1;
             if (i1 >= 0) {
+            	// 1 byte
                 mark++;
-            } else if ((i1 >> 5) == -2) {
+            } else if ((i1 >> 5) == -2 || (i1 >> 5) == -3) {
+            	// 2 bytes
                 if (limit - mark < 2) {
                     return -1;
                 }
                 mark += 2;
-            } else if ((i1 >> 4) == -2) {
-                // chinese characters in convertion map are all of 3 bytes length, replace the bytes here
+            } else if ((i1 >> 4) == -2) {            	
+                // 3 bytes, chinese characters in convertion map are all of 3 bytes length, replace the bytes here
                 if (limit - mark < 3) {
                     return -1;
                 }
@@ -150,11 +153,11 @@ public final class ChineseHelper {
                 }
                 mark += 4;
             } else {
-                return -1;
+            	mark++;
             }
         }
         mark = bb.position();
-        bb.rewind();
+        bb.position(oldPosition);
         return mark;
     }
 

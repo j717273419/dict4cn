@@ -212,13 +212,13 @@ public final class Helper {
                 }
                 if (out != null) {
                     out.close();
-                    
+
                     long duration = System.currentTimeMillis() - start;
                     if (INFO) {
                         System.out.println("下载文件'" + url + "'（" + formatSpace(new File(file).length()) + "），用时"
                                 + Helper.formatDuration(duration) + "（"
                                 + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
-                    }                    
+                    }
                 }
             }
             return file;
@@ -500,16 +500,79 @@ public final class Helper {
 
     public static String stripHtmlText(final String line, final boolean startOk) {
         final int count = line.length();
-        StringBuilder sb = new StringBuilder(count);
+        final StringBuilder sb = new StringBuilder(count);
         boolean ok = startOk;
+        char c;
         for (int i = 0; i < count; i++) {
-            char c = line.charAt(i);
+            c = line.charAt(i);
             if (c == '>') {
                 ok = true;
             } else if (c == '<') {
                 ok = false;
             } else if (ok) {
                 sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String stripWikiText(final String wiki) {
+        // ==title==. remove ''', {}, [], [|(text)]
+        final StringBuilder sb = new StringBuilder(wiki.length());
+        char cp;
+        int countEquals = 0;
+        int countQuos = 0;
+        int countSpaces = 0;
+        int linkOpened = -1;
+        char last = '\0';
+        for (int i = 0; i < wiki.length(); i++) {
+            cp = wiki.charAt(i);
+            if (cp != ' ' && countSpaces > 0) {
+                if (last != ' ' && last != '(') {
+                    sb.append(' ');
+                    last = ' ';
+                }
+                countSpaces = 0;
+            }
+            if (cp != '\'' && countQuos == 1) {
+                sb.append('\'');
+                last = '\'';
+                countQuos = 0;
+            }
+            if (cp != '=' && countEquals == 1) {
+                sb.append('=');
+                last = '=';
+                countEquals = 0;
+            }
+            switch (cp) {
+            case ' ':
+                countSpaces++;
+                continue;
+            case '{':
+            case '}':
+                continue;
+            case '[':
+                linkOpened = i;
+                continue;
+            case '|':
+                linkOpened = -1;
+                continue;
+            case ']':
+                if (linkOpened != -1) {
+                    i = linkOpened;
+                }
+                linkOpened = -1;
+                continue;
+            case '\'':
+                countQuos++;
+                continue;
+            case '=':
+                countEquals++;
+                continue;
+            }
+            if (linkOpened == -1) {
+                sb.append(cp);
+                last = cp;
             }
         }
         return sb.toString();

@@ -260,7 +260,7 @@ public final class DictHelper {
      * @param merged
      * @return
      */
-    private static boolean mergeDefinitionsAndAttributes(DictByteBufferRow row1, DictByteBufferRow row2,
+    public static boolean mergeDefinitionsAndAttributes(DictByteBufferRow row1, DictByteBufferRow row2,
             ByteBuffer merged) {
         boolean first = true;
         if (!row1.isEmpty() && !row2.isEmpty() && row1.isLinkedBy(row2) && !row1.equals(row2)) {
