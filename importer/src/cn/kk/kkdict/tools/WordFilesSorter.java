@@ -44,13 +44,13 @@ public class WordFilesSorter {
         new WordFilesSorter(outDir, false, true, inFile0).sort();
     }
 
-    private static final void swap(int[] sortedPosArray, int a, int b) {
-        int t = sortedPosArray[a];
+    private static final void swap(final int[] sortedPosArray, final int a, final int b) {
+        final int t = sortedPosArray[a];
         sortedPosArray[a] = sortedPosArray[b];
         sortedPosArray[b] = t;
     }
 
-    private static final void vecswap(int[] sortedPosArray, int a, int b, final int n) {
+    private static final void vecswap(final int[] sortedPosArray, int a, int b, final int n) {
         for (int i = 0; i < n; i++, a++, b++) {
             swap(sortedPosArray, a, b);
         }
@@ -119,7 +119,7 @@ public class WordFilesSorter {
                 read(sortedPosArray, i, cachedBytes1);
                 read(sortedPosArray, i - 1, cachedBytes2);
                 if (!ArrayHelper.isSuccessor(cachedBytes1, cachedBytes2)
-                        && !ArrayHelper.isEquals(cachedBytes1, cachedBytes2)) {
+                        && !ArrayHelper.equals(cachedBytes1, cachedBytes2)) {
                     len = read(sortedPosArray, i - 1, cachedBytes3);
                     System.err.println("\n" + (i - 1) + ": "
                             + new String(cachedBytes3.array(), 0, len, Helper.CHARSET_UTF8) + ", "
@@ -177,6 +177,7 @@ public class WordFilesSorter {
         int inFileIdx = getInFileIdxByPos(startPosition);
         if (inFileIdx != -1 && inFileIdx < inFiles.length) {
             ByteBuffer bb = rawBytes[inFileIdx];
+            bb.clear();
             int lastBytesLimit = inFilesStartPos[inFileIdx];
             int start = startPosition - lastBytesLimit;
             bb.position(start);
@@ -200,8 +201,8 @@ public class WordFilesSorter {
                 : a));
     }
 
-    protected int read(int[] sortedPosArray, int idx, ByteBuffer cachedBytes) {
-        int startPos = sortedPosArray[idx];
+    protected int read(int[] sortedPosArray, int fileIdx, ByteBuffer cachedBytes) {
+        int startPos = sortedPosArray[fileIdx];
         if (USE_CACHE) {
             int j;
             for (int i = 0; i < CACHE_SIZE; i++) {
@@ -216,9 +217,9 @@ public class WordFilesSorter {
                 }
             }
         }
-        ByteBuffer bb = getPosBuffer(sortedPosArray, idx);
+        ByteBuffer bb = getPosBuffer(sortedPosArray, fileIdx);
         if (bb != null) {
-            int len = DictHelper.getStopPoint(bb, DictHelper.ORDER_ATTRIBUTE);
+            int len = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_ATTRIBUTE);
             System.arraycopy(bb.array(), bb.position(), cachedBytes.array(), 0, len);
             if (USE_CACHE) {
                 if (cachedIdx >= CACHE_SIZE) {
@@ -247,16 +248,16 @@ public class WordFilesSorter {
         int attrPoint = 0;
         if (startIdx == endIdx) {
             ByteBuffer bb = getPosBuffer(sortedPosArray, startIdx);
-            stopPoint = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
+            stopPoint = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_PARTS);
             System.arraycopy(bb.array(), bb.position(), cachedBytes.array(), cacheIdx, stopPoint);
             cacheIdx = stopPoint;
         } else {
             boolean first = true;
             for (int i = startIdx; i <= endIdx; i++) {
                 ByteBuffer bb = getPosBuffer(sortedPosArray, i);
-                stopPoint = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
+                stopPoint = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_PARTS);
                 if (attrPoint == 0) {
-                    attrPoint = DictHelper.getStopPoint(bb, DictHelper.ORDER_ATTRIBUTE);
+                    attrPoint = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_ATTRIBUTE);
                 }
                 if (first) {
                     System.arraycopy(bb.array(), bb.position(), cachedBytes.array(), cacheIdx, attrPoint);
@@ -266,7 +267,7 @@ public class WordFilesSorter {
                     int idx = attrPoint;
                     bb.position(bb.position() + idx);
                     int rest = stopPoint - attrPoint;
-                    while (0 < (rest -= (idx = DictHelper.getStopPoint(bb, DictHelper.ORDER_ATTRIBUTE)))) {
+                    while (0 < (rest -= (idx = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_ATTRIBUTE)))) {
                         cacheIdx = copyAttribute(cachedBytes, cacheIdx, attrPoint, bb, idx);
                         bb.position(bb.position() + idx);
                     }
@@ -381,7 +382,7 @@ public class WordFilesSorter {
             }
             int writtenLines = write(out, skippedOut, posBuffer.array(), 0, posBuffer.limit());
             out.close();
-            if (skippedFile != null) {
+            if (skippedOut != null) {
                 skippedOut.close();
             }
             totalSorted = writtenLines;
@@ -442,7 +443,7 @@ public class WordFilesSorter {
             while (b <= c) {
                 read(x, b, cachedBytes2);
                 if (ArrayHelper.isPredessorEquals(cachedBytes2, cachedBytes3)) {
-                    if (ArrayHelper.isEquals(cachedBytes2, cachedBytes3)) {
+                    if (ArrayHelper.equals(cachedBytes2, cachedBytes3)) {
                         if (DEBUG && TRACE) {
                             System.out.println("swap(a:" + a + ", b:" + b + ")");
                             if (TRACE) {
@@ -464,7 +465,7 @@ public class WordFilesSorter {
             while (c >= b) {
                 read(x, c, cachedBytes2);
                 if (ArrayHelper.isPredessorEquals(cachedBytes3, cachedBytes2)) {
-                    if (ArrayHelper.isEquals(cachedBytes2, cachedBytes3)) {
+                    if (ArrayHelper.equals(cachedBytes2, cachedBytes3)) {
                         if (DEBUG && TRACE) {
                             System.out.println("swap(c:" + c + ", d:" + d + ")");
                             if (TRACE) {
@@ -540,7 +541,7 @@ public class WordFilesSorter {
                     if (skippedOut != null) {
                         ByteBuffer bb = getPosBuffer(sortedPosArray, i);
                         if (bb != null) {
-                            int l = DictHelper.getStopPoint(bb, DictHelper.ORDER_PARTS);
+                            int l = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_PARTS);
                             skippedOut.write(bb.array(), bb.position(), l);
                             skippedOut.write('\n');
                         }

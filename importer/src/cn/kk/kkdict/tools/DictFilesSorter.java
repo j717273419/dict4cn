@@ -11,15 +11,17 @@ import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * sorts and merges files together depending on the given definition key TODO test
+ * 针对指定的语言排序词典文件。如同个语言含有多个单词，最小的单词将被用来排序。如果多个文件中含有相同的排序单词，含有这个单词的行将被合并。
+ * 通过filterAttributes可以在写出时过滤属性数据。
+ * 如skipIrrelevant为true，没有指定语言的行将被过滤。
+ * 如writeIrrelevantFiles为true，过滤的行讲单独写入输入文件。
+ * TODO test
  */
 public class DictFilesSorter extends WordFilesSorter {
     protected final Language sortLng;
     protected final ByteBuffer lngBB;
-    private boolean filterAttributes = true;
+    private boolean filterAttributes = false;
     public static final String OUTFILE = "output-dict_sort-result.dict";
-    public final static boolean WRITE_SORT_LNG_DEF_FIRST = true;
-    protected final static boolean DEBUG = false;
     private final DictByteBufferRow mainRow = new DictByteBufferRow();
     private final DictByteBufferRow otherRow = new DictByteBufferRow();
 
@@ -61,9 +63,9 @@ public class DictFilesSorter extends WordFilesSorter {
         this.lngBB = ByteBuffer.wrap(sortLng.key.getBytes(Helper.CHARSET_UTF8));
     }
 
-    public DictFilesSorter(Language sortLng, String outDir, boolean skipIrrelevant, boolean writeIrrelevant,
+    public DictFilesSorter(Language sortLng, String outDir, boolean skipIrrelevant, boolean writeIrrelevantFiles,
             String... inFiles) {
-        super(outDir, OUTFILE, skipIrrelevant, writeIrrelevant, inFiles);
+        super(outDir, OUTFILE, skipIrrelevant, writeIrrelevantFiles, inFiles);
         this.sortLng = sortLng;
         this.lngBB = ByteBuffer.wrap(sortLng.key.getBytes(Helper.CHARSET_UTF8));
     }
@@ -88,12 +90,15 @@ public class DictFilesSorter extends WordFilesSorter {
 
         if (startIdx < endIdx) {
             for (int j = startIdx + 1; j <= endIdx; j++) {
+                System.out.println(j + "前: " + ArrayHelper.toStringP(mergeBB));
+                otherRow.parseFrom(getPosBuffer(sortedPosArray, j));                
                 mainRow.parseFrom(mergeBB, true);
                 DictHelper.mergeDefinitionsAndAttributes(mainRow, otherRow, mergeBB);
+                System.out.println(j + "后: " + ArrayHelper.toStringP(mergeBB));
             }
         }
         if (DEBUG) {
-            System.out.println("合并后: " + ArrayHelper.toString(mergeBB));
+            System.out.println("从" + startIdx + "到" + endIdx + "合并后: " + ArrayHelper.toString(mergeBB));
         }
         if (filterAttributes) {
             DictHelper.filterAttributes(mergeBB);
@@ -105,9 +110,9 @@ public class DictFilesSorter extends WordFilesSorter {
     }
 
     @Override
-    protected int read(int[] sortedPosArray, int idx, ByteBuffer transferBB) {
+    protected int read(int[] sortedPosArray, int fileIdx, ByteBuffer transferBB) {
         if (USE_CACHE) {
-            int startPos = sortedPosArray[idx];
+            int startPos = sortedPosArray[fileIdx];
             int j;
             for (int i = 0; i < CACHE_SIZE; i++) {
                 j = cachedKeys[i];
@@ -121,14 +126,16 @@ public class DictFilesSorter extends WordFilesSorter {
                 }
             }
         }
-        ByteBuffer bb = getPosBuffer(sortedPosArray, idx);
+        ByteBuffer bb = getPosBuffer(sortedPosArray, fileIdx);
         if (bb != null) {
-            mainRow.parseFrom(bb);
-            int i;
-            if (-1 != (i = mainRow.indexOfLanguage(lngBB))) {
-                int len = ArrayHelper.copy(mainRow.getValue(i), transferBB);
+            mainRow.parseFrom(bb).sortValues();
+            // mainRow.debug(0);
+            int defIdx;
+            if (-1 != (defIdx = mainRow.indexOfLanguage(lngBB))) {
+                transferBB.clear();
+                int len = ArrayHelper.copyP(mainRow.getFirstValue(defIdx), transferBB);
                 if (USE_CACHE) {
-                    int startPos = sortedPosArray[idx];
+                    int startPos = sortedPosArray[fileIdx];
                     if (cachedIdx >= CACHE_SIZE) {
                         cachedIdx = 0;
                     }
@@ -137,14 +144,13 @@ public class DictFilesSorter extends WordFilesSorter {
                     ArrayHelper.copy(transferBB, cached);
                     cachedIdx++;
                 }
-                transferBB.rewind();
                 if (DEBUG && TRACE) {
                     System.out.println("读出：" + ArrayHelper.toString(transferBB));
                 }
                 return len;
             }
         }
-        transferBB.rewind().limit(0);
+        transferBB.limit(0);
         return -1;
     }
 

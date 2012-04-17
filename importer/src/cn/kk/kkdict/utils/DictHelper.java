@@ -31,7 +31,7 @@ public final class DictHelper {
      */
     public static final int positionSortLng(final ByteBuffer bb, final byte[] lngDefBytes, final boolean includeDef) {
         final byte[] array = bb.array();
-        final int endIdx = DictHelper.getStopPoint(array, bb.position(), bb.limit(), DictHelper.ORDER_PARTS);
+        final int endIdx = DictHelper.getNextStopPoint(array, bb.position(), bb.limit(), DictHelper.ORDER_PARTS);
         int lngIdx = bb.position() - 1;
         byte c;
         do {
@@ -68,8 +68,8 @@ public final class DictHelper {
      * @param innerstSep
      * @return absolute idx of stop separator
      */
-    public static final int getStopPoint(byte[] array, final int start, final int limit, final int innerstSep) {
-        return getStopPoint(array, start, limit, innerstSep, false);
+    public static final int getNextStopPoint(byte[] array, final int start, final int limit, final int innerstSep) {
+        return getNextStopPoint(array, start, limit, innerstSep, false);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class DictHelper {
      * @param ignoreFirst
      * @return absolute idx of stop separator
      */
-    public static final int getStopPoint(byte[] array, final int start, final int limit, final int innerstSep,
+    public static final int getNextStopPoint(byte[] array, final int start, final int limit, final int innerstSep,
             final boolean includeFirst) {
         byte b;
         int l = 0;
@@ -136,9 +136,9 @@ public final class DictHelper {
      * @param innerstSep
      * @return relative length to stop separator
      */
-    public static final int getStopPoint(ByteBuffer bb, int innerstSep) {
+    public static final int getNextStopPoint(ByteBuffer bb, int innerstSep) {
         int start = bb.position();
-        return getStopPoint(bb.array(), start, bb.limit(), innerstSep) - start;
+        return getNextStopPoint(bb.array(), start, bb.limit(), innerstSep) - start;
     }
 
     /**
@@ -154,12 +154,12 @@ public final class DictHelper {
         int listLen;
         int idx;
         int mergedPosition = mergeBB.position();
-        int inFileStop = DictHelper.getStopPoint(inFileBB, DictHelper.ORDER_PARTS);
+        int inFileStop = DictHelper.getNextStopPoint(inFileBB, DictHelper.ORDER_PARTS);
         while (inFileBB.position() < inFileStop) {
             // len of first element, next attribute/list/part/nl stop
-            attrLen = DictHelper.getStopPoint(inFileBB, DictHelper.ORDER_ATTRIBUTE);
+            attrLen = DictHelper.getNextStopPoint(inFileBB, DictHelper.ORDER_ATTRIBUTE);
             // next list/part/nl stop
-            listLen = DictHelper.getStopPoint(inFileBB, DictHelper.ORDER_LIST);
+            listLen = DictHelper.getNextStopPoint(inFileBB, DictHelper.ORDER_LIST);
             // index of definition key in mergeBB
             final byte[] mergeBBArray = mergeBB.array();
             final byte[] inFileBBArray = inFileBB.array();
@@ -179,10 +179,10 @@ public final class DictHelper {
                 inFileBB.position(inFileBB.position() + attrLen);
                 listLen -= attrLen;
                 final int mergeStart = idx + attrLen;
-                final int mergeStop = DictHelper.getStopPoint(mergeBBArray, mergeStart, mergedPosition,
+                final int mergeStop = DictHelper.getNextStopPoint(mergeBBArray, mergeStart, mergedPosition,
                         DictHelper.ORDER_LIST, true);
                 while (inFileBB.hasRemaining()) {
-                    attrLen = DictHelper.getStopPoint(inFileBB, DictHelper.ORDER_ATTRIBUTE);
+                    attrLen = DictHelper.getNextStopPoint(inFileBB, DictHelper.ORDER_ATTRIBUTE);
                     if (DictHelper.isRelevantAttribute(inFileBB, attrLen)) {
                         idx = ArrayHelper.indexOf(mergeBBArray, mergeStart, mergeStop - mergeStart, inFileBBArray,
                                 inFileBB.position(), attrLen);
@@ -252,6 +252,16 @@ public final class DictHelper {
         return mergeDefinitionsAndAttributes(row1, row2, merged);
     }
 
+    public static boolean mergeDefinitionsAndAttributes(DictByteBufferRow row1, DictByteBufferRow row2,
+            ByteBuffer merged) {
+        return mergeDefinitionsAndAttributes(row1, row2, merged, false);
+    }
+   
+    public static boolean mergeDefinitionsAndAttributesLinked(DictByteBufferRow row1, DictByteBufferRow row2,
+            ByteBuffer merged) {
+        return mergeDefinitionsAndAttributes(row1, row2, merged, true);
+    }
+    
     /**
      * Merge linked definitions and attributes.
      * 
@@ -261,39 +271,72 @@ public final class DictHelper {
      * @return
      */
     public static boolean mergeDefinitionsAndAttributes(DictByteBufferRow row1, DictByteBufferRow row2,
-            ByteBuffer merged) {
-        boolean first = true;
-        if (!row1.isEmpty() && !row2.isEmpty() && row1.isLinkedBy(row2) && !row1.equals(row2)) {
+            ByteBuffer merged, boolean linked) {
+        boolean firstDef = true;
+        if (!row1.isEmpty() && !row2.isEmpty() && (!linked || row1.isLinkedBy(row2)) && !row1.equals(row2)) {
             merged.clear();
-            int idx;
-            for (int i = 0; i < row1.size(); i++) {
-                if (first) {
-                    first = false;
+            int defIdx2;
+            int valIdx2;
+            for (int defIdx1 = 0; defIdx1 < row1.size(); defIdx1++) {
+                if (firstDef) {
+                    firstDef = false;
                 } else {
                     merged.put(Helper.SEP_LIST_BYTES);
                 }
-                merged.put(row1.getDefinitionWithAttributes(i));
-                if (-1 != (idx = row2.indexOfLanguage(row1.getLanguage(i)))) {
-                    final int attrsSize = row2.getAttributesSize(idx);
-                    for (int j = 0; j < attrsSize; j++) {
-                        if (!row1.hasAttribute(i, row2.getAttribute(idx, j))) {
-                            merged.put(Helper.SEP_ATTRS_BYTES);
-                            merged.put(row2.getByteBuffer());
+                if (-1 != (defIdx2 = row2.indexOfLanguage(row1.getLanguage(defIdx1)))) {
+                    // merge same lng
+                    merged.put(row1.lastResult());
+                    merged.put(Helper.SEP_DEFINITION_BYTES);
+                    boolean firstVal = true;
+                    final int valSize1 = row1.getValueSize(defIdx1);
+                    for (int valIdx1 = 0; valIdx1 < valSize1; valIdx1++) {
+                        if (firstVal) {
+                            firstVal = false;
+                        } else {
+                            merged.put(Helper.SEP_WORDS_BYTES);
+                        }
+                        // copy row1 value with attrs
+                        merged.put(row1.getValueWithAttributes(defIdx1, valIdx1));
+                        if (-1 != (valIdx2 = row2.indexOfValue(defIdx2, row1.getValue(defIdx1, valIdx1)))) {
+                            // merge same value attrs
+                            final int attrsSize2 = row2.getAttributesSize(defIdx2, valIdx2);
+                            for (int attrIdx2 = 0; attrIdx2 < attrsSize2; attrIdx2++) {
+                                if (!row1.hasAttribute(defIdx1, valIdx1, row2.getAttribute(defIdx2, valIdx2, attrIdx2))) {
+                                    merged.put(Helper.SEP_ATTRS_BYTES);
+                                    merged.put(row2.lastResult());
+                                }
+                            }
                         }
                     }
+                    final int valSize2 = row2.getValueSize(defIdx2);
+                    for (valIdx2 = 0; valIdx2 < valSize2; valIdx2++) {
+                        // values only in row2
+                        if (-1 == (row1.indexOfValue(defIdx1, row2.getValue(defIdx2, valIdx2)))) {
+                            if (firstVal) {
+                                firstVal = false;
+                            } else {
+                                merged.put(Helper.SEP_WORDS_BYTES);
+                            }
+                            merged.put(row2.getValueWithAttributes(defIdx2, valIdx2));
+                        }
+                    }
+                } else {
+                    // lng only in row1
+                    merged.put(row1.getDefinitionWithAttributes(defIdx1));
                 }
             }
-            for (int i = 0; i < row2.size(); i++) {
-                if (-1 == (idx = row1.indexOfLanguage(row2.getLanguage(i)))) {
-                    if (first) {
-                        first = false;
+            for (defIdx2 = 0; defIdx2 < row2.size(); defIdx2++) {
+                // defs only in row2
+                if (-1 == (row1.indexOfLanguage(row2.getLanguage(defIdx2)))) {
+                    if (firstDef) {
+                        firstDef = false;
                     } else {
                         merged.put(Helper.SEP_LIST_BYTES);
                     }
-                    merged.put(row2.getDefinitionWithAttributes(i));
+                    merged.put(row2.getDefinitionWithAttributes(defIdx2));
                 }
             }
-            merged.limit(merged.position()).position(0);
+            merged.limit(merged.position()).rewind();
             return true;
         }
         return false;
@@ -319,7 +362,7 @@ public final class DictHelper {
     }
 
     public static final boolean isSeparator(final ByteBuffer bb, final int idx) {
-        return idx == getStopPoint(bb.array(), idx, idx + 3, ORDER_ATTRIBUTE, true);
+        return idx == getNextStopPoint(bb.array(), idx, idx + 3, ORDER_ATTRIBUTE, true);
     }
 
     public static final int filterAttributes(ByteBuffer mergeBB) {
@@ -327,7 +370,7 @@ public final class DictHelper {
         mergeBB.rewind();
         while (-1 != (idx = ArrayHelper.indexOf(mergeBB.array(), mergeBB.position(),
                 mergeBB.limit() - mergeBB.position(), DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
-            int stopIdx = DictHelper.getStopPoint(mergeBB.array(), idx
+            int stopIdx = DictHelper.getNextStopPoint(mergeBB.array(), idx
                     + DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES.length, mergeBB.limit(), DictHelper.ORDER_ATTRIBUTE);
             if (mergeBB.limit() > stopIdx) {
                 System.arraycopy(mergeBB.array(), stopIdx, mergeBB.array(), idx, mergeBB.limit() - stopIdx);
@@ -465,6 +508,16 @@ public final class DictHelper {
             System.arraycopy(lineBB.array(), start, result, 0, end - start);
             return result;
         }
+    }
+
+    public static final int getNextStartPoint(final byte[] array, final int offset, final int limit) {
+        for (int i = offset; i < limit; i++) {
+            final byte b = array[i];
+            if (b != '\n' || b != '\t' || b != '\0') {
+                return i;
+            }
+        }
+        return offset;
     }
 
 }

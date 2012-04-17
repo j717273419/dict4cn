@@ -29,9 +29,9 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import cn.kk.kkdict.beans.DictRow;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
-import cn.kk.kkdict.beans.DictRow;
 import cn.kk.kkdict.types.Category;
 
 public final class Helper {

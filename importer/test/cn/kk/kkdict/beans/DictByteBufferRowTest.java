@@ -1,6 +1,8 @@
 package cn.kk.kkdict.beans;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
@@ -47,6 +49,16 @@ public class DictByteBufferRowTest {
     }
 
     @Test
+    public void testHasAttribute() {
+        assertTrue(row3.hasFirstValueAttributes(0));
+        assertTrue(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源2".getBytes(Helper.CHARSET_UTF8))));
+        assertTrue(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源1".getBytes(Helper.CHARSET_UTF8))));
+        
+        assertFalse(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源".getBytes(Helper.CHARSET_UTF8))));
+        assertFalse(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("‹源2‹源3".getBytes(Helper.CHARSET_UTF8))));
+    }
+
+    @Test
     public void testEquals() {
         String t1 = "sl═Seznam jezikovnih družin in jezikov‹源wiki_sl▫cs═Seznam jazyků a jazykových rodin‹源1‹源2‹源3▫ja═言語のグループの一覧‹源wiki_sl";
         String t2 = "sl═Seznam jezikovnih družin in jezikov‹源wiki_sl▫cs═Seznam jazyků a jazykových rodin‹源1‹源2▫ja═言語のグループの一覧‹源wiki_sl";
@@ -54,12 +66,14 @@ public class DictByteBufferRowTest {
         String t4 = "";
         String t5 = "   sl═Seznam jezikovnih družin in jezikov‹源1‹源2‹源3  ";
         String t6 = "  sl═Seznam jezikovnih družin in jezikov‹源1‹源2‹源3";
+        String t7 = "sl═Seznam jezikovnih družin in jezikov‹源wiki_sl▫ja═言語のグループの一覧‹源wiki_sl▫cs═Seznam jazyků a jazykových rodin‹源1‹源2‹源3";
         ByteBuffer b1 = ByteBuffer.wrap(t1.getBytes(Helper.CHARSET_UTF8));
         ByteBuffer b2 = ByteBuffer.wrap(t2.getBytes(Helper.CHARSET_UTF8));
         ByteBuffer b3 = ArrayHelper.trimP(ByteBuffer.wrap(t3.getBytes(Helper.CHARSET_UTF8)));
         ByteBuffer b4 = ByteBuffer.wrap(t4.getBytes(Helper.CHARSET_UTF8));
         ByteBuffer b5 = ArrayHelper.trimP(ByteBuffer.wrap(t5.getBytes(Helper.CHARSET_UTF8)));
         ByteBuffer b6 = ArrayHelper.trimP(ByteBuffer.wrap(t6.getBytes(Helper.CHARSET_UTF8)));
+        ByteBuffer b7 = ArrayHelper.trimP(ByteBuffer.wrap(t7.getBytes(Helper.CHARSET_UTF8)));
         DictByteBufferRow r1 = DictByteBufferRow.parse(b1);
         DictByteBufferRow r1c = DictByteBufferRow.parse(b1, true);
         DictByteBufferRow r2 = DictByteBufferRow.parse(b2);
@@ -71,6 +85,7 @@ public class DictByteBufferRowTest {
         DictByteBufferRow r5 = DictByteBufferRow.parse(b5);
         DictByteBufferRow r5c = DictByteBufferRow.parse(b5, true);
         DictByteBufferRow r6 = DictByteBufferRow.parse(b6);
+        DictByteBufferRow r7 = DictByteBufferRow.parse(b7);
 
         assertFalse(r1.equals(r2));
         assertFalse(r2.equals(r1));
@@ -83,6 +98,8 @@ public class DictByteBufferRowTest {
         assertFalse(r1.equals(r3));
         assertFalse(r3.equals(r1));
 
+        assertTrue(r1.equals(r7));
+        assertTrue(r7.equals(r1));
         assertTrue(r1.equals(r1));
         assertTrue(r1.equals(r1c));
         assertTrue(r2.equals(r2c));
@@ -97,37 +114,37 @@ public class DictByteBufferRowTest {
 
     @Test
     public void testGetAttribute() {
-        assertEquals("", ArrayHelper.toStringP(row1.getAttribute(0, 0)));
-        assertEquals("", ArrayHelper.toStringP(row1.getAttribute(3, 0)));
-        assertEquals("源1", ArrayHelper.toStringP(row3.getAttribute(0, 0)));
-        assertEquals("源2", ArrayHelper.toStringP(row3.getAttribute(0, 1)));
-        assertEquals("源3", ArrayHelper.toStringP(row3.getAttribute(0, 2)));
-        assertEquals("源wiki_sl", ArrayHelper.toStringP(row2.getAttribute(2, 0)));
-        assertEquals("源1", ArrayHelper.toStringP(row2.getAttribute(1, 0)));
-        assertEquals("源2", ArrayHelper.toStringP(row2.getAttribute(1, 1)));
-        assertEquals("源3", ArrayHelper.toStringP(row2.getAttribute(1, 2)));
-        assertEquals("", ArrayHelper.toStringP(row5.getAttribute(3, 0)));
-        assertEquals("", ArrayHelper.toStringP(row6.getAttribute(3, 0)));
+        assertEquals("", ArrayHelper.toStringP(row1.getFirstValueAttribute(0, 0)));
+        assertEquals("", ArrayHelper.toStringP(row1.getFirstValueAttribute(3, 0)));
+        assertEquals("源1", ArrayHelper.toStringP(row3.getFirstValueAttribute(0, 0)));
+        assertEquals("源2", ArrayHelper.toStringP(row3.getFirstValueAttribute(0, 1)));
+        assertEquals("源3", ArrayHelper.toStringP(row3.getFirstValueAttribute(0, 2)));
+        assertEquals("源wiki_sl", ArrayHelper.toStringP(row2.getFirstValueAttribute(2, 0)));
+        assertEquals("源1", ArrayHelper.toStringP(row2.getFirstValueAttribute(1, 0)));
+        assertEquals("源2", ArrayHelper.toStringP(row2.getFirstValueAttribute(1, 1)));
+        assertEquals("源3", ArrayHelper.toStringP(row2.getFirstValueAttribute(1, 2)));
+        assertEquals("", ArrayHelper.toStringP(row5.getFirstValueAttribute(3, 0)));
+        assertEquals("", ArrayHelper.toStringP(row6.getFirstValueAttribute(3, 0)));
     }
 
     @Test
     public void testGetAttributes() {
-        assertEquals("", ArrayHelper.toStringP(row1.getAttributes(0)));
-        assertEquals("", ArrayHelper.toStringP(row1.getAttributes(3)));
-        assertEquals("源1‹源2‹源3", ArrayHelper.toStringP(row3.getAttributes(0)));
-        assertEquals("源wiki_sl", ArrayHelper.toStringP(row2.getAttributes(2)));
-        assertEquals("", ArrayHelper.toStringP(row5.getAttributes(3)));
+        assertEquals("", ArrayHelper.toStringP(row1.getFirstValueAttributes(0)));
+        assertEquals("", ArrayHelper.toStringP(row1.getFirstValueAttributes(3)));
+        assertEquals("源1‹源2‹源3", ArrayHelper.toStringP(row3.getFirstValueAttributes(0)));
+        assertEquals("源wiki_sl", ArrayHelper.toStringP(row2.getFirstValueAttributes(2)));
+        assertEquals("", ArrayHelper.toStringP(row5.getFirstValueAttributes(3)));
     }
 
     @Test
     public void testGetAttributesSize() {
-        assertEquals(0, row1.getAttributesSize(0));
-        assertEquals(0, row1.getAttributesSize(3));
-        assertEquals(3, row3.getAttributesSize(0));
-        assertEquals(3, row2.getAttributesSize(1));
-        assertEquals(1, row2.getAttributesSize(2));
-        assertEquals(0, row5.getAttributesSize(3));
-        assertEquals(0, row6.getAttributesSize(3));
+        assertEquals(0, row1.getFirstValueAttributesSize(0));
+        assertEquals(0, row1.getFirstValueAttributesSize(3));
+        assertEquals(3, row3.getFirstValueAttributesSize(0));
+        assertEquals(3, row2.getFirstValueAttributesSize(1));
+        assertEquals(1, row2.getFirstValueAttributesSize(2));
+        assertEquals(0, row5.getFirstValueAttributesSize(3));
+        assertEquals(0, row6.getFirstValueAttributesSize(3));
     }
 
     @Test
@@ -153,23 +170,23 @@ public class DictByteBufferRowTest {
 
     @Test
     public void testGetValue() {
-        assertEquals("اَدَب", ArrayHelper.toStringP(row1.getValue(0)));
-        assertEquals("ಸಾಹಿತ್ಯ", ArrayHelper.toStringP(row1.getValue(3)));
-        assertEquals("Seznam jezikovnih družin in jezikov", ArrayHelper.toStringP(row3.getValue(0)));
-        assertEquals("言語のグループの一覧", ArrayHelper.toStringP(row2.getValue(2)));
-        assertEquals("", ArrayHelper.toStringP(row5.getValue(3)));
-        assertEquals("Адабият", ArrayHelper.toStringP(row6.getValue(3)));
+        assertEquals("اَدَب", ArrayHelper.toStringP(row1.getFirstValue(0)));
+        assertEquals("ಸಾಹಿತ್ಯ", ArrayHelper.toStringP(row1.getFirstValue(3)));
+        assertEquals("Seznam jezikovnih družin in jezikov", ArrayHelper.toStringP(row3.getFirstValue(0)));
+        assertEquals("言語のグループの一覧", ArrayHelper.toStringP(row2.getFirstValue(2)));
+        assertEquals("", ArrayHelper.toStringP(row5.getFirstValue(3)));
+        assertEquals("Адабият", ArrayHelper.toStringP(row6.getFirstValue(3)));
     }
 
     @Test
     public void testGetValueWithAttributes() {
-        assertEquals("اَدَب", ArrayHelper.toStringP(row1.getValueWithAttributes(0)));
-        assertEquals("ಸಾಹಿತ್ಯ", ArrayHelper.toStringP(row1.getValueWithAttributes(3)));
+        assertEquals("اَدَب", ArrayHelper.toStringP(row1.getFirstValueWithAttributes(0)));
+        assertEquals("ಸಾಹಿತ್ಯ", ArrayHelper.toStringP(row1.getFirstValueWithAttributes(3)));
         assertEquals("Seznam jezikovnih družin in jezikov‹源1‹源2‹源3",
-                ArrayHelper.toStringP(row3.getValueWithAttributes(0)));
-        assertEquals("言語のグループの一覧‹源wiki_sl", ArrayHelper.toStringP(row2.getValueWithAttributes(2)));
-        assertEquals("", ArrayHelper.toStringP(row5.getValueWithAttributes(3)));
-        assertEquals("Адабият", ArrayHelper.toStringP(row6.getValueWithAttributes(3)));
+                ArrayHelper.toStringP(row3.getFirstValueWithAttributes(0)));
+        assertEquals("言語のグループの一覧‹源wiki_sl", ArrayHelper.toStringP(row2.getFirstValueWithAttributes(2)));
+        assertEquals("", ArrayHelper.toStringP(row5.getFirstValueWithAttributes(3)));
+        assertEquals("Адабият", ArrayHelper.toStringP(row6.getFirstValueWithAttributes(3)));
     }
 
     @Test

@@ -1,6 +1,5 @@
 package cn.kk.kkdict;
 
-import cn.kk.kkdict.extraction.dict.EdictZhDeExtractor;
 import cn.kk.kkdict.extraction.word.BaiduBcdExtractor;
 import cn.kk.kkdict.extraction.word.QQPinyinQpydExtractor;
 import cn.kk.kkdict.extraction.word.SogouScelPinyinExtractor;

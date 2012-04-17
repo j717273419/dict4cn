@@ -97,14 +97,15 @@ public class IntList {
         return num;
     }
 
-    public final void size(final int size) {
-        if (num < size) {
+    public final IntList size(final int size) {
+        if (ints.length <= size) {
             int[] temp = new int[size];
             System.arraycopy(ints, 0, temp, 0, num);
             ints = temp;
             num = size;
         }
         num = size;
+        return this;
     }
 
     public final void clear() {

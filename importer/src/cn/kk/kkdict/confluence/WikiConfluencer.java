@@ -1,19 +1,5 @@
 package cn.kk.kkdict.confluence;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
-
-import cn.kk.kkdict.extraction.dict.EdictZhDeExtractor.HanDeCategory;
-import cn.kk.kkdict.utils.Helper;
-
 public class WikiConfluencer {
     /*
     public static final String[] INPUT_FILES = { "O:\\wiki\\wiki_zh\\output.txt", "O:\\wiki\\wiki_de\\output.txt" };
