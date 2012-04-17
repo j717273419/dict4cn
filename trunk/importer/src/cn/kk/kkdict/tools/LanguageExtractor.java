@@ -7,22 +7,18 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import cn.kk.kkdict.beans.FormattedArrayList;
-import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.beans.TranslationInfo;
 import cn.kk.kkdict.extraction.dict.WiktionaryPagesMetaCurrentChineseExtractor;
 import cn.kk.kkdict.types.Language;
-import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.Helper;
 
 /**

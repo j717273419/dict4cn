@@ -9,16 +9,16 @@ import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.tools.DictFilesExtractor;
-import cn.kk.kkdict.tools.SortedDictFilesJoiner;
 import cn.kk.kkdict.tools.DictFilesSorter;
 import cn.kk.kkdict.tools.DividedDictFilesExtractSorter;
+import cn.kk.kkdict.tools.SortedDictFilesJoiner;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * TODO
+ * TODO merge redirects
  * 
  * @author x_kez
  * 

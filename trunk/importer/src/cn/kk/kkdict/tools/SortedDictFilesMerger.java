@@ -17,11 +17,11 @@ import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * Merge sorted dict files TODO refactoring
+ * 将多个已排序的文件合并为一个文件。 TODO test
  */
-public class DictFilesMerger {
+public class SortedDictFilesMerger {
     private static boolean noticed = false;
-    private final static boolean DEBUG = false;
+    private final static boolean DEBUG = true;
     private final String[] inFiles;
     private final String outDir;
     private final Language mergeLng;
@@ -41,13 +41,13 @@ public class DictFilesMerger {
         }
         // DictFilesMerger merger = new DictFilesMerger(Language.ZH, Helper.DIR_OUT_DICTS + "\\wiki\\work",
         // "output-dict_ddfs.wiki", files);
-        DictFilesMerger merger = new DictFilesMerger(Language.ZH, Helper.DIR_OUT_DICTS + "\\wiki\\work",
+        SortedDictFilesMerger merger = new SortedDictFilesMerger(Language.ZH, Helper.DIR_OUT_DICTS + "\\wiki\\work",
                 "output-dict_ddfs-test.wiki", Helper.DIR_OUT_DICTS + "\\wiki\\work\\test1.txt", Helper.DIR_OUT_DICTS
                         + "\\wiki\\work\\test2.txt");
         merger.merge();
     }
 
-    public DictFilesMerger(Language mergeLng, String outDir, String outFile, String... inFiles) {
+    public SortedDictFilesMerger(Language mergeLng, String outDir, String outFile, String... inFiles) {
         if (new File(outDir).isDirectory()) {
             if (!noticed) {
                 System.out.println("温馨提示：需合并的文件必须事先排序。");
@@ -156,7 +156,7 @@ public class DictFilesMerger {
             if (DEBUG) {
                 System.out.println("合并词组：" + ArrayHelper.toString(lineBB));
             }
-            mainRow.parseFrom(lineBB);
+            mainRow.parseFrom(lineBB).sortValues();
             if (-1 == (mainIdx = mainRow.indexOfLanguage(lngBB))) {
                 // main file has no more sort key
                 out.write(mainRow.array(), 0, mainRow.limit());
@@ -177,12 +177,18 @@ public class DictFilesMerger {
         }
         int i = 0;
         for (BufferedInputStream inFileIn : inFilesIns) {
+            final ByteBuffer inBB = inFileBBs[i];
+            if (inBB != null && inBB.hasRemaining()) {
+                out.write(inBB.array(), 0, inBB.limit());
+                out.write('\n');
+                inFileBBs[i] = null;
+                ArrayHelper.giveBack(inBB);
+            }
             if (inFileIn != null) {
                 while ((len = inFileIn.read(mergeBB.array())) != -1) {
                     out.write(mergeBB.array(), 0, len);
                 }
             }
-            ArrayHelper.giveBack(inFileBBs[i]);
             i++;
         }
         ArrayHelper.giveBack(mergeBB);
@@ -194,44 +200,47 @@ public class DictFilesMerger {
         BufferedInputStream inFileIn = inFileIns[inFileIdx];
         if (inFileIn != null) {
             do {
-                ByteBuffer inFileBB = inFileBBs[inFileIdx];
-                if (inFileBB != null) {
+                ByteBuffer inBB = inFileBBs[inFileIdx];
+                if (inBB != null) {
                     boolean eof = false;
-                    if (inFileBB.limit() == 0) {
-                        if (-1 != ArrayHelper.readLine(inFileIn, inFileBB)) {
-                            otherRow.parseFrom(inFileBB);
-                            if (-1 == (otherIdx = otherRow.indexOfLanguage(inFileBB))) {
+                    if (inBB.limit() == 0) {
+                        if (-1 != ArrayHelper.readLine(inFileIn, inBB)) {
+                            otherRow.parseFrom(inBB).sortValues();
+                            if (-1 == (otherIdx = otherRow.indexOfLanguage(lngBB))) {
                                 // in file has no more sort key
                                 eof = true;
                             }
                         } else {
                             eof = true;
                         }
+                    } else {
+                        otherRow.parseFrom(inBB).sortValues();
                     }
                     if (eof) {
                         if (DEBUG) {
                             System.out.println(inFileIdx + ": end");
                         }
                         inFileBBs[inFileIdx] = null;
-                        ArrayHelper.giveBack(inFileBB);
+                        ArrayHelper.giveBack(inBB);
                         predessor = false;
                     } else {
                         if (DEBUG) {
                             System.out.println(inFileIdx + ": cmp " + ArrayHelper.toStringP(mainRow.getByteBuffer())
                                     + " <> " + ArrayHelper.toStringP(otherRow.getByteBuffer()));
                         }
-                        predessor = ArrayHelper.isPredessorEquals(mainRow.getValue(mainIdx),
-                                otherRow.getValue(otherIdx));
+                        predessor = ArrayHelper.isPredessorEqualsP(otherRow.getFirstValue(otherIdx),
+                                mainRow.getFirstValue(mainIdx));
 
                         if (predessor) {
-                            if (DictHelper.mergeDefinitionsAndAttributes(mainRow, otherRow, mergeBB)) {
+                            if (ArrayHelper.equalsP(otherRow.getFirstValue(otherIdx), mainRow.getFirstValue(mainIdx))) {
                                 // merge
-                                mainRow.parseFrom(mergeBB, true);
+                                DictHelper.mergeDefinitionsAndAttributes(mainRow, otherRow, mergeBB);
                                 if (DEBUG) {
                                     System.out.println(inFileIdx + ": merge "
-                                            + ArrayHelper.toStringP(mainRow.getByteBuffer()) + " == "
-                                            + ArrayHelper.toStringP(otherRow.getByteBuffer()));
+                                            + ArrayHelper.toStringP(otherRow.getByteBuffer()) + " == "
+                                            + ArrayHelper.toStringP(mainRow.getByteBuffer()));
                                 }
+                                mainRow.parseFrom(mergeBB, true);
                             } else {
                                 if (DEBUG) {
                                     System.out.println(inFileIdx + ": skip "
@@ -241,13 +250,15 @@ public class DictFilesMerger {
                                 out.write(otherRow.array(), 0, otherRow.limit());
                                 out.write('\n');
                             }
-                            inFileBB.limit(0);
+                            inBB.limit(0);
                         } else {
                             if (DEBUG) {
                                 System.out.println(inFileIdx + ": skip post "
                                         + ArrayHelper.toString(otherRow.getByteBuffer()) + " > "
                                         + ArrayHelper.toString(mainRow.getByteBuffer()));
                             }
+                            // reset inBB limit and position
+                            otherRow.getByteBuffer();
                         }
                     }
                 }
@@ -255,5 +266,4 @@ public class DictFilesMerger {
         }
         return mergeBB.position();
     }
-
 }

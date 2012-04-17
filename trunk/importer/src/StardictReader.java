@@ -13,8 +13,6 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 
-import cn.kk.kkdict.utils.Helper;
-
 public class StardictReader {
 
     /**

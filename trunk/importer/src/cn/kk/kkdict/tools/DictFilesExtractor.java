@@ -12,12 +12,10 @@ import cn.kk.kkdict.beans.DictByteBufferRow;
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
-import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
  * 
- * extract lines containing certain definition to another file
  * 
  */
 public class DictFilesExtractor {
@@ -56,13 +54,13 @@ public class DictFilesExtractor {
         // inFile5, inFile6, inFile7, inFile8, inFile9).extract();
     }
 
-    public DictFilesExtractor(Language extractLng, String outDir, String outFile, boolean writeSkipped,
+    public DictFilesExtractor(Language extractLng, String outDir, String outFileName, boolean writeSkipped,
             String... inFiles) {
         if (new File(outDir).isDirectory()) {
             this.inFiles = inFiles;
             this.outDir = outDir;
             this.extractLng = extractLng;
-            this.outFile = outDir + File.separator + outFile;
+            this.outFile = outDir + File.separator + outFileName;
             this.lngBB = ByteBuffer.wrap(extractLng.key.getBytes(Helper.CHARSET_UTF8));
             this.writeSkipped = writeSkipped;
         } else {

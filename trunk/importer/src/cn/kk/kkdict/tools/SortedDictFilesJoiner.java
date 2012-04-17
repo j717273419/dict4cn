@@ -15,7 +15,7 @@ import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * Merge sorted dict files TODO test
+ * 将多个已排序的文件中的数据合并为进主文件。如果主文件与分文件的单词相同，它们的行将合并为一行。（主文件不会多出行。）如一定义里一种语言有含有多个单词，最小的单词将拿已比较。 TODO test
  */
 public class SortedDictFilesJoiner {
     private static boolean noticed = false;
@@ -30,6 +30,7 @@ public class SortedDictFilesJoiner {
     private final String inFileMain;
     private final DictByteBufferRow otherRow = new DictByteBufferRow();
     private final DictByteBufferRow mainRow = new DictByteBufferRow();
+    private boolean writeSkipped = true;
     private int mainIdx;
     private int otherIdx;
 
@@ -100,7 +101,9 @@ public class SortedDictFilesJoiner {
                 }
                 String skippedOutFile = Helper.appendFileName(outDir + File.separator + f.getName(), SUFFIX_SKIPPED);
 
-                skippedOuts[i] = new BufferedOutputStream(new FileOutputStream(skippedOutFile), Helper.BUFFER_SIZE);
+                if (writeSkipped) {
+                    skippedOuts[i] = new BufferedOutputStream(new FileOutputStream(skippedOutFile), Helper.BUFFER_SIZE);
+                }
                 inFilesIns[i] = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);
             } else {
                 System.err.println("分文件不可读'" + f.getAbsolutePath() + "'！");
@@ -137,23 +140,23 @@ public class SortedDictFilesJoiner {
         }
         final ByteBuffer mergeBB = ArrayHelper.borrowByteBufferLarge();
         final ByteBuffer lineBB = ArrayHelper.borrowByteBufferMedium();
-        final byte[] lineArray = lineBB.array();
         while (-1 != ArrayHelper.readLine(inFilesMainIn, lineBB)) {
             if (DEBUG) {
                 System.out.println("兼并词组：" + ArrayHelper.toString(lineBB));
             }
-            mainRow.parseFrom(lineBB);
+            mainRow.parseFrom(lineBB).sortValues();
             if (-1 == (mainIdx = mainRow.indexOfLanguage(lngBB))) {
                 // main file has no more sort key
-                out.write(lineArray, 0, mainRow.limit());
+                out.write(mainRow.array(), 0, mainRow.limit());
                 out.write('\n');
                 break;
             }
-            ArrayHelper.copy(mainRow.getByteBuffer(), mergeBB);
+            mergeBB.clear();
+            ArrayHelper.copyP(mainRow.getByteBuffer(), mergeBB);
             for (int i = 0; i < inFilesIns.length; i++) {
                 mergeInFile(mergeBB, inFileBBs, inFilesIns, skippedOuts, i);
             }
-            out.write(mergeBB.array(), 0, mergeBB.position());
+            out.write(mergeBB.array(), 0, mergeBB.limit());
             out.write('\n');
         }
         ArrayHelper.giveBack(lineBB);
@@ -163,13 +166,21 @@ public class SortedDictFilesJoiner {
         }
         int i = 0;
         for (BufferedInputStream inFileIn : inFilesIns) {
+            final ByteBuffer inBB = inFileBBs[i];
+            if (inBB != null && inBB.hasRemaining()) {
+                out.write(inBB.array(), 0, inBB.limit());
+                out.write('\n');
+                inFileBBs[i] = null;
+                ArrayHelper.giveBack(inBB);
+            }
             if (inFileIn != null) {
                 BufferedOutputStream skippedOut = skippedOuts[i];
-                while ((len = inFileIn.read(mergeBB.array())) != -1) {
-                    skippedOut.write(mergeBB.array(), 0, len);
+                if (skippedOut != null) {
+                    while ((len = inFileIn.read(mergeBB.array())) != -1) {
+                        skippedOut.write(mergeBB.array(), 0, len);
+                    }
                 }
             }
-            ArrayHelper.giveBack(inFileBBs[i]);
             i++;
         }
         ArrayHelper.giveBack(mergeBB);
@@ -186,7 +197,7 @@ public class SortedDictFilesJoiner {
                     boolean eof = false;
                     if (inBB.limit() == 0) {
                         if (-1 != ArrayHelper.readLine(in, inBB)) {
-                            otherRow.parseFrom(inBB);
+                            otherRow.parseFrom(inBB).sortValues();
                             if (-1 == (otherIdx = otherRow.indexOfLanguage(lngBB))) {
                                 // in file has no more sort key
                                 eof = true;
@@ -194,6 +205,8 @@ public class SortedDictFilesJoiner {
                         } else {
                             eof = true;
                         }
+                    } else {
+                        otherRow.parseFrom(inBB).sortValues();
                     }
                     if (eof) {
                         if (DEBUG) {
@@ -203,16 +216,18 @@ public class SortedDictFilesJoiner {
                         ArrayHelper.giveBack(inBB);
                         predessor = false;
                     } else {
-                        predessor = ArrayHelper.isPredessorEqualsP(mainRow.getValue(mainIdx), otherRow.getValue(otherIdx));
+                        predessor = ArrayHelper.isPredessorEqualsP(otherRow.getFirstValue(otherIdx),
+                                mainRow.getFirstValue(mainIdx));
                         if (predessor) {
-                            if (DictHelper.mergeDefinitionsAndAttributes(mainRow, otherRow, mergeBB)) {
+                            if (ArrayHelper.equalsP(otherRow.getFirstValue(otherIdx), mainRow.getFirstValue(mainIdx))) {
                                 // merge
-                                mainRow.parseFrom(mergeBB, true);
+                                DictHelper.mergeDefinitionsAndAttributes(mainRow, otherRow, mergeBB);
                                 if (DEBUG) {
                                     System.out.println(idx + ": merge "
-                                            + ArrayHelper.toStringP(mainRow.getByteBuffer()) + " == "
-                                            + ArrayHelper.toStringP(otherRow.getByteBuffer()));
+                                            + ArrayHelper.toStringP(otherRow.getByteBuffer()) + " == "
+                                            + ArrayHelper.toStringP(mainRow.getByteBuffer()));
                                 }
+                                mainRow.parseFrom(mergeBB, true);
                             } else {
                                 if (DEBUG) {
                                     System.out.println(idx + ": skip "
@@ -222,8 +237,10 @@ public class SortedDictFilesJoiner {
                                 // System.out.println(i + ": skip " + Helper.toHexString(bb.array(), 0,
                                 // inBBStopPoint)
                                 // + " < " + Helper.toHexString(inFileBB.array(), 0, inFileBBStopPoint));
-                                skippedOuts[idx].write(otherRow.array(), otherRow.position(), otherRow.limit());
-                                skippedOuts[idx].write('\n');
+                                if (skippedOuts[idx] != null) {
+                                    skippedOuts[idx].write(otherRow.array(), otherRow.position(), otherRow.limit());
+                                    skippedOuts[idx].write('\n');
+                                }
                             }
                             inBB.limit(0);
                         } else {
@@ -231,11 +248,12 @@ public class SortedDictFilesJoiner {
                                 System.out.println(idx + ": skip " + ArrayHelper.toStringP(otherRow.getByteBuffer())
                                         + " > " + ArrayHelper.toStringP(mainRow.getByteBuffer()));
                             }
+                            // reset inBB limit and position
+                            otherRow.getByteBuffer();
                         }
                     }
                 }
             } while (predessor);
         }
     }
-
 }

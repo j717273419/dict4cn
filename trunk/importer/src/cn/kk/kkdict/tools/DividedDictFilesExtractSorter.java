@@ -7,9 +7,13 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.types.Language;
-import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * 
+ * 排序多个字典文件中的指定语言。
+ *
+ */
 public class DividedDictFilesExtractSorter {
     private final Language sortLng;
     private final String outDir;
@@ -73,7 +77,7 @@ public class DividedDictFilesExtractSorter {
                         tmpFile.delete();
                         outFileFile.renameTo(tmpFile);
                         TimeUnit.SECONDS.sleep(1);
-                        DictFilesMerger merger = new DictFilesMerger(sortLng, outDir, outFileFile.getName(),
+                        SortedDictFilesMerger merger = new SortedDictFilesMerger(sortLng, outDir, outFileFile.getName(),
                                 tmpOutFile, sorter.outFile);
                         merger.merge();
                         tmpFile.delete();

@@ -1,62 +1,45 @@
 package cn.kk.kkdict.tools;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
+import cn.kk.kkdict.beans.DictByteBufferRow;
+import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
  * 
  * TODO refactoring
- *
+ * 
  */
 public class DictReader {
-    //public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
-    //public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";    
-    public static final String IN_FILE = "O:\\handedict\\output-dict_ja_en.jedict_u8";
-    
+    // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
+    // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";
+    public static final String IN_FILE = Helper.DIR_OUT_DICTS + File.separator + "wiki" + File.separator
+            + "output-dict.wiki_ak";
+
     /**
      * @param args
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(IN_FILE));
-        String line;
-        int idx;
-        while (null != (line = reader.readLine())) {
-            line = line.trim();
-            if (-1 != (idx = line.indexOf(Helper.SEP_PARTS))) {
-                line = line.substring(0, idx);
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(IN_FILE));
+        ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
+
+        DictByteBufferRow row = new DictByteBufferRow();
+        while (-1 != ArrayHelper.readLine(in, bb)) {
+            row.parseFrom(bb);
+
+            for (int defIdx = 0; defIdx < row.size(); defIdx++) {
+                System.out.println(row.toString(defIdx));
             }
-            if (Helper.isNotEmptyOrNull(line)) {
-                String[] lngs = line.split(Helper.SEP_LIST);
-                for (String lng : lngs) {
-                    idx = lng.indexOf(Helper.SEP_DEFINITION);
-                    String l = lng.substring(0, idx);
-                    System.out.print(l + ": ");
-                    String definition = lng.substring(idx + 1);
-                    String[] defs = definition.split(Helper.SEP_SAME_MEANING);
-                    boolean first = true;
-                    for (String def : defs) {
-                        idx = def.indexOf(Helper.SEP_ATTRIBUTE);
-                        String d;
-                        if (idx == -1) {
-                            d = def;
-                        } else {
-                            d = def.substring(0, idx);
-                        }
-                        if (first) {
-                            first = false;
-                            System.out.print(d);
-                        } else {
-                            System.out.print(", " + d);
-                        }
-                    }
-                    System.out.println();
-                }
-                System.out.println();
-            }
+
+            System.out.println();
         }
     }
 

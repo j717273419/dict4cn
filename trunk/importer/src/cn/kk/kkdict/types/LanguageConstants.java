@@ -14,91 +14,91 @@ public final class LanguageConstants {
     public static final ByteArrayPairs getLanguageNamesBytes(final Language lng) {
 
         if (lng == null) {
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_ORIGINAL.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_ORIGINAL.txt"));
         }
         switch (lng) {
         case EN:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_EN.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_EN.txt"));
         case RU:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_RU.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_RU.txt"));
         case PL:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_PL.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_PL.txt"));
         case JA:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_JA.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_JA.txt"));
         case KO:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_KO.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_KO.txt"));
         case ZH:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_ZH.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_ZH.txt"));
         case DE:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_DE.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_DE.txt"));
         case FR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_FR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_FR.txt"));
         case IT:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_IT.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_IT.txt"));
         case ES:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_ES.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_ES.txt"));
         case PT:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_PT.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_PT.txt"));
         case NL:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_NL.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_NL.txt"));
         case SV:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_SV.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_SV.txt"));
         case UK:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_UK.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_UK.txt"));
         case VI:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_VI.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_VI.txt"));
         case CA:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_CA.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_CA.txt"));
         case NO:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_NO.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_NO.txt"));
         case FI:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_FI.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_FI.txt"));
         case CS:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_CS.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_CS.txt"));
         case HU:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_HU.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_HU.txt"));
         case ID:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_ID.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_ID.txt"));
         case TR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_TR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_TR.txt"));
         case RO:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_RO.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_RO.txt"));
         case FA:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_FA.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_FA.txt"));
         case AR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_AR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_AR.txt"));
         case DA:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_DA.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_DA.txt"));
         case EO:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_EO.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_EO.txt"));
         case SR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_SR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_SR.txt"));
         case LT:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_LT.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_LT.txt"));
         case SK:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_SK.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_SK.txt"));
         case SL:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_SL.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_SL.txt"));
         case MS:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_MS.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_MS.txt"));
         case HE:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_HE.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_HE.txt"));
         case BG:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_BG.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_BG.txt"));
         case KK:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_KK.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_KK.txt"));
         case EU:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_EU.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_EU.txt"));
         case VO:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_VO.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_VO.txt"));
         case WAR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_WAR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_WAR.txt"));
         case HR:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_HR.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_HR.txt"));
         case HI:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_HI.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_HI.txt"));
         case LA:
-            return createByteArrayPairs(INSTANCE.getLngProperties("lng2name_LA.txt"));
+            return createByteArrayPairs(LanguageConstants.getLngProperties("lng2name_LA.txt"));
         }
         return null;
     }

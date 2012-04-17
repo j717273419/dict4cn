@@ -1,7 +1,6 @@
 package cn.kk.kkdict.extraction.word;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -9,7 +8,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Set;

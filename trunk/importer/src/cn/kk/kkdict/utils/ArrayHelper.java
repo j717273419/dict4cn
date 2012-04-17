@@ -479,26 +479,6 @@ public class ArrayHelper {
         return indexOf(bb.array(), bb.position(), bb.remaining(), b);
     }
 
-    public static final boolean isEquals(final ByteBuffer bb1, final ByteBuffer bb2) {
-        final int l1 = bb1.limit();
-        final int l2 = bb2.limit();
-        return isEquals(bb1, 0, l1, bb2, 0, l2);
-    }
-
-    public static final boolean isEquals(final ByteBuffer bb1, int offset1, int l1, final ByteBuffer bb2, int offset2,
-            final int l2) {
-        // return v1.equalsIgnoreCase(v2);
-        if (l1 == l2) {
-            while (l1-- != 0) {
-                if (bb1.get(offset1 + l1) != bb2.get(offset2 + l1)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
     public static final boolean isPredessorEquals(final ByteBuffer bb1, final ByteBuffer bb2) {
         final int l1 = bb1.limit();
         final int l2 = bb2.limit();
@@ -520,12 +500,28 @@ public class ArrayHelper {
         return compareTo(bb1.array(), offset1, l1, bb2.array(), offset2, l2) <= 0;
     }
 
+    /**
+     * 
+     * @param bb1
+     * @param bb2
+     * @return
+     */
     public static final boolean isSuccessor(final ByteBuffer bb1, final ByteBuffer bb2) {
         final int l1 = bb1.limit();
         final int l2 = bb2.limit();
         return isSuccessor(bb1, 0, l1, bb2, 0, l2);
     }
 
+    /**
+     * 
+     * @param bb1
+     * @param offset1
+     * @param l1 relative length
+     * @param bb2
+     * @param offset2
+     * @param l2 relative length
+     * @return
+     */
     public static final boolean isSuccessor(final ByteBuffer bb1, final int offset1, final int l1,
             final ByteBuffer bb2, final int offset2, final int l2) {
         // return v1.compareToIgnoreCase(v2) > 0;
