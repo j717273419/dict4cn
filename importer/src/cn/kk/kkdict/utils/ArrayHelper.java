@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class ArrayHelper {
+public final class ArrayHelper {
     public static final int[] EMPTY_INTS = new int[0];
 
     private static final List<ByteBuffer> byteBuffersPoolLarge = new ArrayList<ByteBuffer>();
@@ -248,6 +248,10 @@ public class ArrayHelper {
         }
     }
 
+    public final static boolean equals(final byte[] array1, final int offset1, final byte[] array2) {
+        return equals(array1, offset1, array2, 0, array2.length);
+    }
+
     public final static boolean equals(final ByteBuffer bb1, final ByteBuffer bb2) {
         final byte[] array1 = bb1.array();
         final byte[] array2 = bb2.array();
@@ -281,7 +285,7 @@ public class ArrayHelper {
         byte b;
         for (int i = limit - 1; i >= offset; i--) {
             b = array[i];
-            if (b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\0') {
+            if (b == ' ' || b == '\t' || b == Helper.SEP_NEWLINE_CHAR || b == '\r' || b == '\0') {
                 continue;
             } else {
                 return i + 1;
@@ -322,7 +326,7 @@ public class ArrayHelper {
         byte b;
         for (int i = offset; i < endIdx; i++) {
             b = array[i];
-            if (b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\0') {
+            if (b == ' ' || b == '\t' || b == Helper.SEP_NEWLINE_CHAR || b == '\r' || b == '\0') {
                 continue;
             } else {
                 return i;
@@ -426,33 +430,33 @@ public class ArrayHelper {
      * 
      * @param text
      * @param offset
-     * @param limit
-     *            relative limit
+     * @param len
+     *            relative
      * @param s
      * @return absolute index
      */
-    public final static int indexOf(final byte[] text, final int offset, final int limit, final byte[] s) {
-        return indexOf(text, offset, limit, s, 0, s.length);
+    public final static int indexOf(final byte[] text, final int offset, final int len, final byte[] s) {
+        return indexOf(text, offset, len, s, 0, s.length);
     }
 
     /**
      * 
      * @param text
      * @param offset
-     * @param limit
-     *            relative limit
+     * @param len1
+     *            relative
      * @param s
      * @param offset2
-     * @param limit2
-     *            relative limit
+     * @param len2
+     *            relative
      * @return absolute index
      */
-    public final static int indexOf(final byte[] text, final int offset, final int limit, final byte[] s,
-            final int offset2, final int limit2) {
-        if (limit >= limit2) {
-            final int size = limit - limit2 + 1 + offset;
+    public final static int indexOf(final byte[] text, final int offset, final int len1, final byte[] s,
+            final int offset2, final int len2) {
+        if (len1 >= len2) {
+            final int size = len1 - len2 + 1 + offset;
             for (int i = offset; i < size; i++) {
-                if (equals(text, i, s, offset2, limit2)) {
+                if (equals(text, i, s, offset2, len2)) {
                     return i;
                 }
             }
@@ -516,10 +520,12 @@ public class ArrayHelper {
      * 
      * @param bb1
      * @param offset1
-     * @param l1 relative length
+     * @param l1
+     *            relative length
      * @param bb2
      * @param offset2
-     * @param l2 relative length
+     * @param l2
+     *            relative length
      * @return
      */
     public static final boolean isSuccessor(final ByteBuffer bb1, final int offset1, final int l1,
@@ -580,7 +586,7 @@ public class ArrayHelper {
      * 
      * @param in
      * @param bb
-     * @return line without '\n'-character
+     * @return line without Helper.SEP_NEWLINE_CHAR-character
      * @throws IOException
      */
     public static final int readLine(BufferedInputStream in, ByteBuffer bb) throws IOException {
@@ -589,39 +595,26 @@ public class ArrayHelper {
         int len = 0;
         while (-1 != (b = in.read())) {
             len++;
-            if (b == '\r') {
-                b = in.read();
-                if (-1 == b) {
-                    break;
-                } else if (b != '\n') {
-                    if (bb.hasRemaining()) {
-                        // skip beyond max line size
-                        bb.put((byte) '\r');
-                    }
-                }
-            }
-            if (b != '\n') {
+            if (b != Helper.SEP_NEWLINE_CHAR && b != '\r') {
                 if (bb.hasRemaining()) {
                     // skip beyond max line size
                     bb.put((byte) b);
                 }
             } else {
-                b = bb.position();
-                bb.limit(b);
-                bb.rewind();
+                bb.limit(bb.position()).rewind();
                 if (WARN && --len > bb.capacity()) {
                     System.err.println("跳过超长部分：总" + len + "字符，跳过" + (len - bb.limit()) + "字符");
                 }
-                return b;
+                return bb.limit();
             }
         }
-        if ((b = bb.position()) != 0) {
-            bb.limit(b);
+        if (bb.position() != 0) {
+            bb.limit(bb.position());
             bb.rewind();
             if (len > bb.capacity()) {
                 System.err.println("跳过超长部分：总" + len + "字符，跳过" + (len - bb.limit()) + "字符");
             }
-            return b;
+            return bb.limit();
         }
         return -1;
     }
@@ -630,7 +623,7 @@ public class ArrayHelper {
      * 
      * @param fileBB
      * @param lineBB
-     * @return line length without '\n'-character, -1 if eof
+     * @return line length without Helper.SEP_NEWLINE_CHAR-character, -1 if eof
      * @throws IOException
      */
     public static int readLine(ByteBuffer fileBB, ByteBuffer lineBB) {
@@ -646,14 +639,14 @@ public class ArrayHelper {
                 } else {
                     break;
                 }
-                if (b != '\n') {
+                if (b != Helper.SEP_NEWLINE_CHAR) {
                     if (lineBB.hasRemaining()) {
                         // skip beyond max line size
                         lineBB.put((byte) '\r');
                     }
                 }
             }
-            if (b != '\n') {
+            if (b != Helper.SEP_NEWLINE_CHAR) {
                 if (lineBB.hasRemaining()) {
                     // skip beyond max line size
                     lineBB.put((byte) b);
@@ -683,7 +676,7 @@ public class ArrayHelper {
      * 
      * @param in
      * @param bb
-     * @return line without '\n'-character
+     * @return line without Helper.SEP_NEWLINE_CHAR-character
      * @throws IOException
      */
     public static final int readLineTrimmed(BufferedInputStream in, ByteBuffer bb) throws IOException {
@@ -694,14 +687,7 @@ public class ArrayHelper {
         int lastValid = 0;
         while (-1 != (b = in.read())) {
             len++;
-            if (b == '\r') {
-                b = in.read();
-                len++;
-                if (-1 == b) {
-                    break;
-                }
-            }
-            if (b != '\n') {
+            if (b != Helper.SEP_NEWLINE_CHAR && b != '\r') {
                 final boolean empty = b == ' ' || b == '\t' || b == '\0';
                 if (!empty) {
                     valid = true;
@@ -1050,6 +1036,260 @@ public class ArrayHelper {
 
     public static int sizeP(ByteBuffer bb) {
         return bb.remaining();
+    }
+
+    public final static int stripWikiLine(final ByteBuffer inBB, final ByteBuffer outBB, final int maxChars) {
+        final byte[] array = inBB.array();
+        final int limit = inBB.limit();
+        outBB.clear();
+        return stripWikiLine(array, 0, limit, outBB, maxChars);
+    }
+
+    public final static int stripWikiLineP(final ByteBuffer inBB, final ByteBuffer outBB, final int maxChars) {
+        final byte[] array = inBB.array();
+        final int offset = inBB.position();
+        final int limit = inBB.limit();
+        return stripWikiLine(array, offset, limit, outBB, maxChars);
+    }
+
+    protected static int stripWikiLine(final byte[] array, final int offset, final int limit, final ByteBuffer outBB,
+            final int maxChars) {
+        byte b;
+        int countEquals = 0;
+        int countQuos = 0;
+        int countSpaces = 0;
+        int linkOpened = -1;
+        boolean externalOpened = false;
+        byte lastByte = -1;
+        final int startPos = outBB.position();
+        for (int i = offset; i < limit; i++) {
+            if (outBB.position() > maxChars) {
+                break;
+            }
+            b = array[i];
+            if (b != ' ' && countSpaces > 0) {
+                if (lastByte != ' ' && lastByte != '(' && lastByte != -1) {
+                    outBB.put((byte) ' ');
+                    lastByte = ' ';
+                }
+                countSpaces = 0;
+            }
+            if (b != '\'' && countQuos == 1) {
+                outBB.put((byte) '\'');
+                lastByte = '\'';
+                countQuos = 0;
+            }
+            if (b != '=' && countEquals == 1) {
+                outBB.put((byte) '=');
+                lastByte = '=';
+                countEquals = 0;
+            }
+            switch (b) {
+            case ' ':
+                if (externalOpened && linkOpened != -1) {
+                    linkOpened = -1;
+                }
+                countSpaces++;
+                continue;
+            case '&':
+                if (i + 8 < limit && ArrayHelper.equals(array, i, Helper.SEP_HTML_TAG_START_BYTES)) {
+                    i += Helper.SEP_HTML_TAG_START_BYTES.length - 1;
+                    final int stop = ArrayHelper.indexOf(array, i, limit - i, Helper.SEP_HTML_TAG_STOP_BYTES);
+                    if (stop != -1) {
+                        i = stop + Helper.SEP_HTML_TAG_STOP_BYTES.length - 1;
+                    }
+                } else if (i + 3 < limit) {
+                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) ';');
+                    if (stop != -1) {
+                        i = stop;
+                    }
+                }
+                continue;
+            case '{':
+                if (i + 4 < limit && array[i + 1] == '{') {
+                    final int start = i + 2;
+                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) '}');
+                    final int valueIdx  = ArrayHelper.indexOf(array, i, limit, (byte) '=');
+                    if (-1 != stop && valueIdx == -1) {
+                        final int[] wallsIdx = ArrayHelper.countArray(array, i, stop, (byte) '|');
+                        if (wallsIdx.length > 0 && wallsIdx.length < 3) {
+                            final int end1;
+                            final int len1 = wallsIdx[0] - start;
+                            final int end2;
+                            final int len2;
+                            if (wallsIdx.length > 1) {
+                                end1 = wallsIdx[1];
+                                len2 = wallsIdx[1] - wallsIdx[0] - 1;
+                                if (wallsIdx.length > 2) {
+                                    end2 = wallsIdx[2];
+                                } else {
+                                    end2 = stop;
+                                }
+                            } else {
+                                end1 = stop;
+                                len2 = -1;
+                                end2 = stop;
+                            }
+                            
+                            // main word
+                            if (len1 > len2) {
+                                write(array, wallsIdx[0] + 1, end1, outBB);
+                            } else {
+                                write(array, wallsIdx[1] + 1, end2, outBB);
+                            }
+                            outBB.put((byte) ' ').put((byte) '(');
+                            // first word
+                            write(array, start, wallsIdx[0], outBB);
+                            // further words
+                            if (wallsIdx.length > 1) {
+                                outBB.put((byte) ',').put((byte) ' ');
+                                if (len1 > len2) {
+                                    write(array, wallsIdx[1] + 1, stop, outBB);
+                                } else if (wallsIdx.length > 2) {
+                                    write(array, wallsIdx[2] + 1, stop, outBB);
+                                }
+                            }
+                            outBB.put((byte) ')');
+                            lastByte = ')';
+
+                            i = stop + 1;
+                        } else {
+                            i = stop + 1;
+                        }
+                    }
+                }
+                continue;
+            case '}':
+                continue;
+            case '[':
+                linkOpened = i;
+                if (i + 4 < limit && array[i + 1] == '[') {
+                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) ']');
+                    final int[] wallsIdx = ArrayHelper.countArray(array, i, stop, (byte) '|');
+                    if (wallsIdx.length > 1) {
+                        linkOpened = -1;
+                        i = stop + 1;
+                    }
+                } else if (i + 7 < limit
+                        && (-1 != ArrayHelper.indexOf(array, i + 4, i + 8, Helper.SEP_URI_POSTFIX_BYTES))) {
+                    externalOpened = true;
+                }
+                continue;
+            case '|':
+                if (linkOpened != -1) {
+                    if (i - 4 >= 0 && array[i - 4] == '.' || array[i - 3] == '.') {
+                        externalOpened = true;
+                    }
+                    linkOpened = -1;
+                }
+                continue;
+            case ']':
+                if (!externalOpened && linkOpened != -1) {
+                    i = linkOpened;
+                }
+                linkOpened = -1;
+                externalOpened = false;
+                continue;
+            case '\'':
+                countQuos++;
+                continue;
+            case '=':
+                countEquals++;
+                continue;
+            case '*':
+                continue;
+            case '#':
+                continue;
+            }
+            if (linkOpened == -1) {
+                outBB.put(b);
+                lastByte = b;
+            }
+        }
+        if (outBB.position() > maxChars) {
+            int idx = lastIndexOf(outBB.array(), startPos, outBB.position(), "，".getBytes(Helper.CHARSET_UTF8));
+            if (idx == -1) {
+                idx = lastIndexOf(outBB.array(), startPos, outBB.position(), "。".getBytes(Helper.CHARSET_UTF8));
+                if (idx == -1) {
+                    idx = lastIndexOf(outBB.array(), startPos, outBB.position(), Helper.SEP_SPACE_BYTES);
+                }
+            }
+            if (idx != -1) {
+                outBB.position(idx);
+            }
+            outBB.put((byte) ' ').put(Helper.SEP_ETC_BYTES);
+        }
+        outBB.limit(outBB.position()).rewind();
+        return outBB.limit();
+    }
+
+    private final static void write(final byte[] array, final int offset, final int end, final ByteBuffer outBB) {
+        byte b;
+        for (int i = offset; i < end; i++) {
+            b = array[i];
+            if (b == '|') {
+                outBB.put((byte) ',').put((byte) ' ');
+            } else if (b == '\'') {
+                boolean found = false;
+                while (++i < end) {
+                    b = array[i];
+                    if (b == '\'') {
+                        found = true;
+                        continue;
+                    } else {
+                        if (!found) {
+                            outBB.put((byte) '\'');
+                        }
+                        outBB.put(b);
+                        break;
+                    }
+                }
+                continue;
+            } else {
+                outBB.put(b);
+            }
+        }
+    }
+
+    private static int[] COUNT_ARRAY_INTS = new int[5];
+
+    /**
+     * 
+     * @param array
+     * @param offset
+     *            absolute
+     * @param limit
+     *            absolute
+     * @param b
+     * @return absolute indexes
+     */
+    public final static int[] countArray(final byte[] array, final int offset, final int limit, final byte b) {
+        int j = 0;
+        for (int i = offset; i < limit; i++) {
+            if (array[i] == b) {
+                COUNT_ARRAY_INTS[j++] = i;
+                if (j == COUNT_ARRAY_INTS.length) {
+                    break;
+                }
+            }
+        }
+        if (j == 0) {
+            return EMPTY_INTS;
+        } else {
+            int[] result = new int[j];
+            System.arraycopy(COUNT_ARRAY_INTS, 0, result, 0, j);
+            return result;
+        }
+    }
+
+    /**
+     * position is 0 and limit = capacity.
+     * 
+     * @param bb
+     * @return
+     */
+    public final static boolean isEmpty(final ByteBuffer bb) {
+        return (bb.position() == 0 && bb.limit() == bb.capacity()) || bb.limit() == 0;
     }
 
 }

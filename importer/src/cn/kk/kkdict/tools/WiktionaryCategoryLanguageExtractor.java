@@ -83,10 +83,10 @@ public class WiktionaryCategoryLanguageExtractor {
                     "wiki/Category:");
             writeOtherLanguages(lngCatFile, catLng, catWriters, lngWriters, lngTrans, catTrans);
             transWriter.write(lngTrans.lngMap.toString());
-            transWriter.write('\n');
+            transWriter.write(Helper.SEP_NEWLINE_CHAR);
         }
         transWriter.write(catTrans.lngMap.toString());
-        transWriter.write('\n');
+        transWriter.write(Helper.SEP_NEWLINE_CHAR);
         transWriter.close();
         Set<Language> keys = catWriters.keySet();
         for (Language l : keys) {
@@ -167,7 +167,7 @@ public class WiktionaryCategoryLanguageExtractor {
         lngWriter.write(categoryName.replace(" ", "\\ "));
         lngWriter.write('=');
         lngWriter.write(catLng.key);
-        lngWriter.write('\n');
+        lngWriter.write(Helper.SEP_NEWLINE_CHAR);
     }
 
     private static String getCategoryNameFromUrl(String url) {

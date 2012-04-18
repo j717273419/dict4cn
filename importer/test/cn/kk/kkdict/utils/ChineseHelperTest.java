@@ -13,6 +13,8 @@ public class ChineseHelperTest {
 	private String testTw1 = "不看Ａ片的女人絕不能娶 一般在人們的印象中，一個愛看A片的女人絕不是個好女人，不是靈魂肮臟，就是心理陰暗，不是性欲強烈，就是好色成癮，不是變態發狂，就是放蕩不羈，反正橫豎不是個正經貨色。";
 	private String testZh2 = "国§äöüß";
 	private String testTw2 = "國§äöüß";
+	// TODO
+	private String testTw3 = "Müller，拉丁文名稱：Regiomontanus），德國天文学家。 缪勒生於巴伐利亞，年僅13隨即成為萊比錫大學學生，三年後轉往奧地利维也纳大学就讀，為乔治·普尔巴赫的学生，曾经到意大利学习托勒密的天文学。缪勒後來回到德國，在纽伦堡定居下来后，和他的朋友兼赞助人柏那德·瓦尔特（Bernhard Walther）一起进行天文观测。两人一同编印航海历书 …";
 
 	@Test
 	public void testToTraditionalChineseString() {
@@ -35,6 +37,14 @@ public class ChineseHelperTest {
 
 		bb = ByteBuffer.wrap(testTw2.getBytes(Helper.CHARSET_UTF8));
 		ChineseHelper.toSimplifiedChinese(bb);
+		assertTrue(ArrayHelper.equalsP(
+                ByteBuffer.wrap(testZh2.getBytes(Helper.CHARSET_UTF8)), bb));
+		
+		bb = ByteBuffer.wrap(testTw3.getBytes(Helper.CHARSET_UTF8));
+        ChineseHelper.toSimplifiedChinese(bb);
+        assertEquals(ChineseHelper.toSimplifiedChinese(testTw3), ArrayHelper.toString(bb));
+//        assertTrue(ArrayHelper.equalsP(
+//                ByteBuffer.wrap(testZh3.getBytes(Helper.CHARSET_UTF8)), bb));
 	}
 
 	@Test

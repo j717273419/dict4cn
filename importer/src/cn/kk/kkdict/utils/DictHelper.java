@@ -90,7 +90,7 @@ public final class DictHelper {
         final int lim = Math.min(array.length, limit);
         for (int i = start; i < lim;) {
             b = array[i++];
-            if (b == '\n') {
+            if (b == Helper.SEP_NEWLINE_CHAR) {
                 break;
             } else if ((l != 0 || includeFirst) && b == Helper.SEP_PARTS_BYTES[0] && i + 1 < lim) {
                 b = array[i++];
@@ -416,7 +416,7 @@ public final class DictHelper {
                         b2 = fileBB.get();
                         b3 = fileBB.get();
                         r -= 3;
-                        if (b1 == '\n'
+                        if (b1 == Helper.SEP_NEWLINE_CHAR
                                 || b1 == '\r'
                                 || (b1 == Helper.SEP_WORDS_BYTES[0] && b2 == Helper.SEP_WORDS_BYTES[1] && b3 == Helper.SEP_WORDS_BYTES[2])) {
                             // found
@@ -425,7 +425,7 @@ public final class DictHelper {
                     } else if (r > 0) {
                         b1 = fileBB.get();
                         r -= 1;
-                        if (b1 == '\n' || b1 == '\r') {
+                        if (b1 == Helper.SEP_NEWLINE_CHAR || b1 == '\r') {
                             // found
                             found = true;
                         }
@@ -439,7 +439,7 @@ public final class DictHelper {
                         // next line
                         while (r-- > 0) {
                             b = fileBB.get();
-                            if (b == '\n' || b == '\r') {
+                            if (b == Helper.SEP_NEWLINE_CHAR || b == '\r') {
                                 break;
                             }
                         }
@@ -513,7 +513,7 @@ public final class DictHelper {
     public static final int getNextStartPoint(final byte[] array, final int offset, final int limit) {
         for (int i = offset; i < limit; i++) {
             final byte b = array[i];
-            if (b != '\n' || b != '\t' || b != '\0') {
+            if (b != Helper.SEP_NEWLINE_CHAR || b != '\t' || b != '\0') {
                 return i;
             }
         }

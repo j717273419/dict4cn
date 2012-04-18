@@ -311,7 +311,7 @@ public class WordFilesSorter {
         IntBuffer posBuffer = IntBuffer.allocate(Math.max(100, (int) (totalSize / 80)));
         Arrays.fill(posBuffer.array(), 0, posBuffer.limit() - 1, -1);
 
-        byte b = '\n';
+        byte b = Helper.SEP_NEWLINE_CHAR;
         int linesCounter;
         i = 0;
         int maxLen = 0;
@@ -326,7 +326,7 @@ public class WordFilesSorter {
             tmp = lastPos;
             while (bb.hasRemaining()) {
                 b = bb.get();
-                if ('\n' == b) {
+                if (Helper.SEP_NEWLINE_CHAR == b) {
                     if (++linesCounter == posBuffer.capacity()) {
                         IntBuffer buf = IntBuffer.allocate(posBuffer.capacity() * 2);
                         System.arraycopy(posBuffer.array(), 0, buf.array(), 0, posBuffer.capacity());
@@ -338,7 +338,7 @@ public class WordFilesSorter {
                     tmp = p;
                 }
             }
-            if (bb.limit() > 0 && b != '\n' && b != '\r') {
+            if (bb.limit() > 0 && b != Helper.SEP_NEWLINE_CHAR && b != '\r') {
                 linesCounter++;
                 p = lastPos + bb.position();
                 maxLen = Math.max(p - tmp, maxLen);
@@ -543,7 +543,7 @@ public class WordFilesSorter {
                         if (bb != null) {
                             int l = DictHelper.getNextStopPoint(bb, DictHelper.ORDER_PARTS);
                             skippedOut.write(bb.array(), bb.position(), l);
-                            skippedOut.write('\n');
+                            skippedOut.write(Helper.SEP_NEWLINE_CHAR);
                         }
                     }
                     skippedNoKeyFound++;
@@ -568,7 +568,7 @@ public class WordFilesSorter {
             ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
             len = readMerged(sortedPosArray, startIdx, endIdx, bb);
             out.write(bb.array(), 0, len);
-            out.write('\n');
+            out.write(Helper.SEP_NEWLINE_CHAR);
             ArrayHelper.giveBack(bb);
             return true;
         }

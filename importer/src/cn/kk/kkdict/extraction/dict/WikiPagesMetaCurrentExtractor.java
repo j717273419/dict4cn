@@ -11,9 +11,9 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
 
-    public static final String IN_DIR = Helper.DIR_IN_DICTS + "\\wiki";
+    public static final String IN_DIR = Helper.DIR_IN_DICTS + "\\wiki\\test";
 
-    public static final String OUT_DIR = Helper.DIR_OUT_DICTS + "\\wiki";
+    public static final String OUT_DIR = Helper.DIR_OUT_DICTS + "\\wiki\\test";
 
     public static void main(String args[]) throws IOException {
         WikiPagesMetaCurrentExtractor extractor = new WikiPagesMetaCurrentExtractor();
@@ -47,13 +47,14 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
 
     private int extractWikipediaPagesMetaCurrent(final File file) throws FileNotFoundException, IOException {
         String f = file.getAbsolutePath();
-        initialize(f, OUT_DIR, "output-dict.wiki_", "output-dict_categories.wiki_", "output-dict_related.wiki_");
+        initialize(f, OUT_DIR, "output-dict.wiki_", "output-dict_categories.wiki_", "output-dict_related.wiki_",
+                "output-dict_abstracts.wiki_", "output-dict_redirects.wiki_");
 
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
             signal();
             if (WikiParseStep.HEADER == step) {
-                parseHeader();
-            } else {
+                parseDocumentHeader();
+            } else if (WikiParseStep.BEFORE_TITLE == step) {
                 if (lineLen > MIN_TITLE_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
                                 tmpBB) > 0) {
@@ -61,48 +62,55 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                     // write old definition
                     writeDefinition();
                     handleContentTitle();
-                } else if (isValid()) {
-                    if (step == WikiParseStep.TITLE) {
-                        int idx;
-                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
-                            int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
-                            lineLen = lineLen - offset;
-                            System.arraycopy(lineArray, offset, lineArray, 0, lineLen);
-                            lineBB.limit(lineLen);
-                            step = WikiParseStep.PAGE;
-                        }
-                    }
-                    if (step == WikiParseStep.PAGE) {
-                        // within content
-                        if (lineLen > minCatBytes
-                                && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes,
-                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0,
-                                        lineLen, catKeyBytes2, SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
-                            // new category found for current name
-                            addCategory();
-                        } else if (ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_WIKI_TAG_BYTES,
-                                SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
-                            // found wiki tag
-                            int idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
-                            if (idx > 0 && idx < 13) {
-                                // has : in tag, perhaps translation
-                                addTranslation(idx);
-                            } else if (idx == -1 && !catName) {
-                                // something else
-                                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, tmpArray, 0, tmpBB.limit()))
-                                        && idx < 6) {
-                                    // tag at beginning of line, perhaps related word
-                                    addRelated();
-                                }
-                            }
+                }
+            } else if (step == WikiParseStep.TITLE_FOUND) {
+                int idx;
+                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
+                    handleTextBeginLine(idx);
+                } else if (lineLen > MIN_REDIRECT_LINE_BYTES
+                        && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
+                                SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
+                    handleRedirectLine();
+                }
+            }
+            if (step == WikiParseStep.PAGE) {
+                int idx;
+                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_END_BYTES))) {
+                    handleTextEndLine(idx);
+                }
+                if (parseAbstract && lineLen > 6) {
+                    parseAbstract();
+                }
+                // within content
+                if (lineLen > minCatBytes
+                        && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes, SUFFIX_WIKI_TAG_BYTES,
+                                tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes2,
+                                SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
+                    // new category found for current name
+                    addCategory();
+                } else if (ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_WIKI_TAG_BYTES,
+                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
+                    // found wiki tag
+                    idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
+                    if (idx > 0 && idx < 13) {
+                        // has : in tag, perhaps translation
+                        addTranslation(idx);
+                    } else if (idx == -1 && !catName) {
+                        // something else
+                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, tmpArray, 0, tmpBB.limit()))
+                                && idx < 6) {
+                            // tag at beginning of line, perhaps related word
+                            addRelated();
                         }
                     }
                 }
             }
         }
+
         // write last definition
         writeDefinition();
         cleanup();
         return statOk;
     }
+
 }
