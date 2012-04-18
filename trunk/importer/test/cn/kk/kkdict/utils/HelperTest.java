@@ -1,6 +1,6 @@
 package cn.kk.kkdict.utils;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -8,12 +8,15 @@ public class HelperTest {
 
     @Test
     public void testStripCoreText() {
-        fail("Not yet implemented");
+        String test1 = "11(, )2{, }3[, ]4（,）5《,》66［', '］";
+        // System.out.println(Helper.stripCoreText(test1));
+        assertEquals("11234566", Helper.stripCoreText(test1));
     }
 
     @Test
     public void testStripHtmlText() {
-        fail("Not yet implemented");
+        String test1 = "<tt>test</tt> <b>wawa</b>";
+        assertEquals("test wawa", Helper.stripHtmlText(test1, true));
     }
 
     @Test
@@ -26,5 +29,4 @@ public class HelperTest {
                 .println(Helper
                         .stripWikiText("'''Итерзен''' ({{lang-de|Uetersen}}; [ˈyːtɐzən]){{—}} [[Алмантәыла]] а'қалақь. Атерриториа{{—}} {{км²|11.43}}; иаланхо{{—}} {{иаланхо|17865|2006}}."));
     }
-
 }
