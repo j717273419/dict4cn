@@ -160,7 +160,7 @@ public class SortedDictFilesMerger {
             if (-1 == (mainIdx = mainRow.indexOfLanguage(lngBB))) {
                 // main file has no more sort key
                 out.write(mainRow.array(), 0, mainRow.limit());
-                out.write('\n');
+                out.write(Helper.SEP_NEWLINE_CHAR);
                 break;
             }
             // copy original line
@@ -169,7 +169,7 @@ public class SortedDictFilesMerger {
                 mergeInFile(mergeBB, inFileBBs, inFilesIns, out, i);
             }
             out.write(mergeBB.array(), 0, mergeBB.limit());
-            out.write('\n');
+            out.write(Helper.SEP_NEWLINE_CHAR);
         }
         int len;
         while ((len = inFilesMainIn.read(mergeBB.array())) != -1) {
@@ -180,7 +180,7 @@ public class SortedDictFilesMerger {
             final ByteBuffer inBB = inFileBBs[i];
             if (inBB != null && inBB.hasRemaining()) {
                 out.write(inBB.array(), 0, inBB.limit());
-                out.write('\n');
+                out.write(Helper.SEP_NEWLINE_CHAR);
                 inFileBBs[i] = null;
                 ArrayHelper.giveBack(inBB);
             }
@@ -248,7 +248,7 @@ public class SortedDictFilesMerger {
                                             + ArrayHelper.toStringP(mainRow.getByteBuffer()));
                                 }
                                 out.write(otherRow.array(), 0, otherRow.limit());
-                                out.write('\n');
+                                out.write(Helper.SEP_NEWLINE_CHAR);
                             }
                             inBB.limit(0);
                         } else {

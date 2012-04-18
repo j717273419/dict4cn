@@ -1,8 +1,6 @@
 package cn.kk.kkdict.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 
@@ -13,8 +11,8 @@ public class ArrayHelperTest {
     public void testFindTrimmedOffset() {
         byte[] test1 = { 1 };
         byte[] test2 = { '\t', 1, 2 };
-        byte[] test3 = { '\n', '\0', '\0', 3, 4, 5, 6, '\0' };
-        byte[] test4 = { '\0', '\n', ' ', '\t', '\0', 4, 3, 2, '\0', '\0', '\0' };
+        byte[] test3 = { Helper.SEP_NEWLINE_CHAR, '\0', '\0', 3, 4, 5, 6, '\0' };
+        byte[] test4 = { '\0', Helper.SEP_NEWLINE_CHAR, ' ', '\t', '\0', 4, 3, 2, '\0', '\0', '\0' };
         byte[] test5 = { ' ', '\0', '\r', '\0', '\r', '\0', '\0' };
         byte[] test6 = {};
 
@@ -342,5 +340,42 @@ public class ArrayHelperTest {
         assertTrue(test.equals(ArrayHelper.toStringP(bb3)));
         test = test1.substring(1);
         assertTrue(test.equals(ArrayHelper.toStringP(bb1)));
+    }
+
+    @Test
+    public void testStripWikiText() {
+        String test1 = "'''China''' [http://test.de] [http://test.de test] [{{IPA|'çi na}}] ([[Oberdeutsche Dialekte|oberdt.]]: [{{IPA|'ki na}}]) ist ein kultureller Raum in [[Ostasien]], der vor über 3500 Jahren entstand und politisch-geographisch von 221 v. Chr. bis 1912 das [[Kaiserreich China]], dann die [[Republik China]] umfasste und seit 1949 die [[Volksrepublik China]] (VR) und die [[Republik China]] (ROC, letztere seitdem nur noch auf der [[Taiwan (Insel)|Insel Taiwan]], vgl. [[Taiwan-Konflikt]]) beinhaltet.";
+        String test2 = "'''Итерзен''' ({{lang-de|Uetersen}}; [ˈyːtɐzən]){{—}} [[Алмантәыла]] а'қалақь. Атерриториа{{—}} {{км²|11.43}}; иаланхо{{—}} {{иаланхо|17865|2006}}.";
+        String test3 = "&lt;br /&gt;[[Афаил:William-Adolphe Bouguereau (1825-1905) - The Birth of Venus (1879).jpg|thumb|250px|&quot;Венера лиира&quot; Вилиам Адольф Бужеро]]'''Венера''' ([[алаҭын бызшәа|алаҭ.]] ''venus'' &quot;абзиабара&quot;) - абырзен мифологиаҿ аҧшӡареи абзиабареи рынцәаху ҳәа дыҧхьаӡоуп.";
+        ByteBuffer bb1 = ByteBuffer.wrap(test1.getBytes(Helper.CHARSET_UTF8));
+        ByteBuffer bb2 = ByteBuffer.wrap(test2.getBytes(Helper.CHARSET_UTF8));
+        ByteBuffer bb3 = ByteBuffer.wrap(test3.getBytes(Helper.CHARSET_UTF8));
+        ByteBuffer tmpBB = ArrayHelper.borrowByteBufferMedium();
+        ArrayHelper.stripWikiLineP(bb1, tmpBB, 1000);
+        // System.out.println(ArrayHelper.toStringP(tmpBB));
+        assertEquals(
+                "China test 'çi na (IPA)'çi na (IPA) (oberdt.: 'ki na (IPA)'ki na (IPA)) ist ein kultureller Raum in Ostasien, der vor über 3500 Jahren entstand und politisch-geographisch von 221 v. Chr. bis 1912 das Kaiserreich China, dann die Republik China umfasste und seit 1949 die Volksrepublik China (VR) und die Republik China (ROC, letztere seitdem nur noch auf der Insel Taiwan, vgl. Taiwan-Konflikt) beinhaltet.",
+                ArrayHelper.toStringP(tmpBB));
+        tmpBB.clear();
+        ArrayHelper.stripWikiLineP(bb2, tmpBB, 1000);
+        // System.out.println(ArrayHelper.toStringP(tmpBB));
+        assertEquals(
+                "Итерзен (Uetersen (lang-de); ˈyːtɐzən) Алмантәыла ақалақь. Атерриториа 11.43 (км²); иаланхо 17865 (иаланхо, 2006).",
+                ArrayHelper.toStringP(tmpBB));
+
+        tmpBB.clear();
+        ArrayHelper.stripWikiLineP(bb3, tmpBB, 1000);
+        // System.out.println(ArrayHelper.toStringP(tmpBB));
+        assertEquals(
+                "Венера (алаҭ. venus абзиабара) - абырзен мифологиаҿ аҧшӡареи абзиабареи рынцәаху ҳәа дыҧхьаӡоуп.",
+                ArrayHelper.toStringP(tmpBB));
+        ArrayHelper.giveBack(tmpBB);
+    }
+
+    @Test
+    public void testCountArray() {
+        byte[] test1 = { 1, 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, 1, -1, 5, -8, -22, 46, 8, 1, 0 };
+        assertArrayEquals(new int[] { 0, 12, 19 }, ArrayHelper.countArray(test1, 0, test1.length, (byte) 1));
+        assertArrayEquals(new int[] { 9, 20 }, ArrayHelper.countArray(test1, 8, test1.length, (byte) 0));
     }
 }

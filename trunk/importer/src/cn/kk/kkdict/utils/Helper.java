@@ -106,6 +106,8 @@ public final class Helper {
 
     public final static String SEP_NEWLINE = "\n";
 
+    public final static char SEP_NEWLINE_CHAR = '\n';
+
     public final static String SEP_PARTS = "║";
 
     public final static String SEP_PINYIN = "'";
@@ -116,6 +118,8 @@ public final class Helper {
 
     public final static String SEP_WORDS = "│";
 
+    public final static String SEP_ETC = "…";
+
     public static final byte[] SEP_DEFINITION_BYTES = Helper.SEP_DEFINITION.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_LIST_BYTES = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_WORDS_BYTES = Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8);
@@ -123,7 +127,11 @@ public final class Helper {
     public static final byte[] SEP_ATTRS_BYTES = Helper.SEP_ATTRIBUTE.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_NEWLINE_BYTES = Helper.SEP_NEWLINE.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_PARTS_BYTES = Helper.SEP_PARTS.getBytes(Helper.CHARSET_UTF8);
-
+    public static final byte[] SEP_ETC_BYTES = Helper.SEP_ETC.getBytes(Helper.CHARSET_UTF8);
+    public static final byte[] SEP_URI_POSTFIX_BYTES = { ':', '/', '/' };
+    public static final byte[] SEP_SPACE_BYTES = SEP_SPACE.getBytes(CHARSET_UTF8);
+    public static final byte[] SEP_HTML_TAG_START_BYTES = { '&', 'l', 't', ';'};
+    public static final byte[] SEP_HTML_TAG_STOP_BYTES = { '&', 'g', 't', ';'};
     static {
         Arrays.sort(HTML_ENTITIES, new Comparator<String[]>() {
             @Override
@@ -517,15 +525,17 @@ public final class Helper {
     }
 
     public static String stripWikiText(final String wiki) {
-        // ==title==. remove ''', {}, [], [|(text)]
-        final StringBuilder sb = new StringBuilder(wiki.length());
+        final int length = wiki.length();
+        // ==title==. remove ''', {}, [], [|(text)], {|}
+        final StringBuilder sb = new StringBuilder(length);
         char cp;
         int countEquals = 0;
         int countQuos = 0;
         int countSpaces = 0;
         int linkOpened = -1;
+        boolean externalOpened = false;
         char last = '\0';
-        for (int i = 0; i < wiki.length(); i++) {
+        for (int i = 0; i < length; i++) {
             cp = wiki.charAt(i);
             if (cp != ' ' && countSpaces > 0) {
                 if (last != ' ' && last != '(') {
@@ -546,6 +556,9 @@ public final class Helper {
             }
             switch (cp) {
             case ' ':
+                if (externalOpened) {
+                    linkOpened = -1;
+                }
                 countSpaces++;
                 continue;
             case '{':
@@ -553,6 +566,12 @@ public final class Helper {
                 continue;
             case '[':
                 linkOpened = i;
+                if (i + 7 < length
+                        && ((wiki.charAt(i + 1) == 'h' && wiki.charAt(i + 2) == 't' && wiki.charAt(i + 3) == 't' && wiki
+                                .charAt(i + 4) == 'p') || (wiki.charAt(i + 1) == 'f' && wiki.charAt(i + 2) == 't' && wiki
+                                .charAt(i + 3) == 'p'))) {
+                    externalOpened = true;
+                }
                 continue;
             case '|':
                 linkOpened = -1;
@@ -562,6 +581,7 @@ public final class Helper {
                     i = linkOpened;
                 }
                 linkOpened = -1;
+                externalOpened = false;
                 continue;
             case '\'':
                 countQuos++;

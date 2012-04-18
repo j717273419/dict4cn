@@ -75,13 +75,13 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     }
 
     private int extractWiktionaryPagesMetaCurrent(String f) throws FileNotFoundException, IOException {
-        initialize(f, OUT_DIR, "output-dict.wikt_", null, null);
+        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_");
         ParserResult pr;
         byte[] tmp;
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
             signal();
             if (WikiParseStep.HEADER == step) {
-                parseHeader();
+                parseDocumentHeader();
             } else {
                 if (lineLen > MIN_TITLE_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
@@ -89,22 +89,22 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                     // new title found
                     // write old definition
                     writeDefinition();
-                    clearAttributes();
                     handleContentTitle();
                 } else if (isValid()) {
-                    if (step == WikiParseStep.TITLE) {
+                    if (step == WikiParseStep.TITLE_FOUND) {
                         int idx;
                         if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
-                            // System.out.print(ArrayHelper.toString(lineBB));
-                            int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
-                            lineLen = lineLen - offset;
-                            System.arraycopy(lineArray, offset, lineArray, 0, lineLen);
-                            lineBB.limit(lineLen);
-                            // System.out.print(ArrayHelper.toString(lineBB));
-                            step = WikiParseStep.PAGE;
+                            handleTextBeginLine(idx);
+                        } else if (lineLen > MIN_REDIRECT_LINE_BYTES
+                                && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
+                                        SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
+                            handleRedirectLine();
                         }
                     }
                     if (step == WikiParseStep.PAGE) {
+                        if (parseAbstract) {
+                            parseAbstract();
+                        }                        
                         // within content
                         if (lineLen > minCatBytes
                                 && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes,
@@ -281,8 +281,10 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
 
     @Override
     protected void initialize(final String f, final String outDir, final String outPrefix,
-            final String outPrefixCategories, final String outPrefixRelated) throws IOException {
-        super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated);
+            final String outPrefixCategories, final String outPrefixRelated, final String outPrefixAbstracts,
+            final String outPrefixRedirects) throws IOException {
+        super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated, outPrefixAbstracts,
+                outPrefixRedirects);
         final String lngName = Helper.toConstantName(fileLng);
         this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(lngName));
         categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_"

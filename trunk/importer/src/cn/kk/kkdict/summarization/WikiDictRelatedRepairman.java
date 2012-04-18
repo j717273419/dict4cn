@@ -163,7 +163,7 @@ public class WikiDictRelatedRepairman {
                                 }
                             }
                         }
-                        out.write('\n');
+                        out.write(Helper.SEP_NEWLINE_CHAR);
                         if (DEBUG) {
                             System.out.println("写入定义：" + ArrayHelper.toString(def.getData()) + "，" + rels.size());
                         }

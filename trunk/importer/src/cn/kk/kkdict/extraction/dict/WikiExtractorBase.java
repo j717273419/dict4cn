@@ -20,6 +20,7 @@ import java.util.Set;
 import org.apache.tools.bzip2.CBZip2InputStream;
 
 import cn.kk.kkdict.beans.WikiParseStep;
+import cn.kk.kkdict.types.Abstract;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.types.TranslationSource;
@@ -29,19 +30,27 @@ import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * TODO 
- * - Redirects: <redirect title="Ҭенгиз Лакербаиа" />
- * - Abstracts: until first empty line or starting ==title==. remove ''', {}, [], [|(text)]
- *
+ * TODO - Redirects: <redirect title="Ҭенгиз Лакербаиа" /> - Abstracts: until first empty line or starting ==title==.
+ * remove ''', {}, [], [|(text)]
+ * 
  */
 class WikiExtractorBase {
 
-    static final boolean DEBUG = true;
+    private static final byte[] PAGE_LAYOUT_STOP_BYTES = new byte[] { '}', '}' };
 
-    static final boolean TRACE = true;
+    private static final byte[] PAGE_LAYOUT_START_BYTES = new byte[] { '{', '{' };
+
+    private static final int MAX_ABSTRACT_CHARS = 500;
+
+    static final boolean DEBUG = false;
+
+    static final boolean TRACE = false;
 
     static final byte[] TAG_TEXT_BEGIN_BYTES = "space=\"preserve\">".getBytes(Helper.CHARSET_UTF8);
+    static final byte[] TAG_TEXT_END_BYTES = "</text>".getBytes(Helper.CHARSET_UTF8);
     
+    static final byte[] TAG_REDIRECT_BEGIN_BYTES = "<redirect title=\"".getBytes(Helper.CHARSET_UTF8);
+
     static final byte[] KEY_ZH_BYTES = Language.ZH.key.getBytes(Helper.CHARSET_UTF8);
 
     static final byte[] PREFIX_WIKI_TAG_BYTES = "[[".getBytes(Helper.CHARSET_UTF8);
@@ -51,8 +60,11 @@ class WikiExtractorBase {
     static final byte[] SUFFIX_TITLE_BYTES = "</title>".getBytes(Helper.CHARSET_UTF8);
 
     static final byte[] PREFIX_TITLE_BYTES = "<title>".getBytes(Helper.CHARSET_UTF8);
-    
+    static final byte[] SUFFIX_REDIRECT_BYTES = "\"".getBytes(Helper.CHARSET_UTF8);
+
     static final int MIN_TITLE_LINE_BYTES = SUFFIX_TITLE_BYTES.length + PREFIX_TITLE_BYTES.length;
+
+    static final int MIN_REDIRECT_LINE_BYTES = TAG_REDIRECT_BEGIN_BYTES.length + SUFFIX_REDIRECT_BYTES.length;
 
     static final byte[] SUFFIX_XML_TAG_BYTES = ">".getBytes(Helper.CHARSET_UTF8);
 
@@ -71,6 +83,8 @@ class WikiExtractorBase {
     public String outFile;
     public String outFileCategories;
     public String outFileRelated;
+    public String outFileRedirects;
+    public String outFileAbstracts;
 
     long started;
     byte[][] displayableLngs;
@@ -91,6 +105,9 @@ class WikiExtractorBase {
     int statOkCategory;
     int statSkippedCategory;
     int statRelated;
+    int statRedirects;
+    int statAbstracts;
+    boolean parseAbstract = true;
     long lineCount;
     boolean catName = false;
     final Set<byte[]> irrelevantPrefixes = new HashSet<byte[]>();
@@ -106,15 +123,19 @@ class WikiExtractorBase {
     BufferedOutputStream out;
     BufferedOutputStream outCategories;
     BufferedOutputStream outRelated;
+    BufferedOutputStream outAbstracts;
+    BufferedOutputStream outRedirects;
+    ByteBuffer abstractBB = ArrayHelper.borrowByteBufferMedium();
 
     @Override
     protected void finalize() throws Throwable {
         ArrayHelper.giveBack(lineBB);
         ArrayHelper.giveBack(tmpBB);
+        ArrayHelper.giveBack(abstractBB);
         super.finalize();
     }
-    
-    void parseHeader() {
+
+    void parseDocumentHeader() {
         if (ArrayHelper.contains(lineArray, 0, lineLen, SUFFIX_NAMESPACES_BYTES)) {
             // finish prefixes
             irrelevantPrefixesBytes = new byte[irrelevantPrefixes.size()][];
@@ -129,9 +150,9 @@ class WikiExtractorBase {
                     System.out.println("- " + ArrayHelper.toString(prefix));
                 }
             }
-            step = WikiParseStep.TITLE;
-        } else if (ArrayHelper.substringBetweenLast(lineArray, 0, lineLen, SUFFIX_XML_TAG_BYTES, SUFFIX_NAMESPACE_BYTES,
-                tmpBB) > 0) {
+            step = WikiParseStep.BEFORE_TITLE;
+        } else if (ArrayHelper.substringBetweenLast(lineArray, 0, lineLen, SUFFIX_XML_TAG_BYTES,
+                SUFFIX_NAMESPACE_BYTES, tmpBB) > 0) {
             // add prefix
             int limit = tmpBB.limit();
             tmpBB.limit(limit + 1);
@@ -191,6 +212,13 @@ class WikiExtractorBase {
         if (outCategories != null) {
             outCategories.close();
         }
+        if (outRedirects != null) {
+            outRedirects.close();
+        }
+        if (outAbstracts != null) {
+            outAbstracts.close();
+        }
+
         System.out.println("\n> 成功分析'" + new File(inFile).getName() + "'（"
                 + Helper.formatSpace(new File(inFile).length()) + "）文件，行数：" + lineCount + "，语言：" + fileLng + "，用时： "
                 + Helper.formatDuration(System.currentTimeMillis() - started));
@@ -207,8 +235,19 @@ class WikiExtractorBase {
             System.out.print("> 相关文件：'" + outFileRelated + "'（" + Helper.formatSpace(new File(outFileRelated).length())
                     + "）");
             System.out.println("，定义：" + statRelated);
-            System.out.println();
+
         }
+        if (outFileRedirects != null) {
+            System.out.print("> 重定向文件：'" + outFileRedirects + "'（"
+                    + Helper.formatSpace(new File(outFileRedirects).length()) + "）");
+            System.out.println("，重定向：" + statRedirects);
+        }
+        if (outFileAbstracts != null) {
+            System.out.print("> 概要文件：'" + outFileAbstracts + "'（"
+                    + Helper.formatSpace(new File(outFileAbstracts).length()) + "）");
+            System.out.println("，概要：" + statAbstracts);
+        }
+        System.out.println();
         in = null;
         out = null;
         outRelated = null;
@@ -241,6 +280,9 @@ class WikiExtractorBase {
                 }
             } else {
                 if (write()) {
+                    if (writeAbstract()) {
+                        statAbstracts++;
+                    }
                     if (writeRelated()) {
                         statRelated++;
                     }
@@ -253,7 +295,8 @@ class WikiExtractorBase {
     }
 
     void initialize(final String f, final String outDir, final String outPrefix, final String outPrefixCategories,
-            final String outPrefixRelated) throws IOException {
+            final String outPrefixRelated, final String outPrefixAbstracts, final String outPrefixRedirects)
+            throws IOException {
         started = System.currentTimeMillis();
 
         displayableLngs = new byte[LanguageConstants.KEYS_WIKI.length][];
@@ -283,6 +326,8 @@ class WikiExtractorBase {
         statOkCategory = 0;
         statSkippedCategory = 0;
         statRelated = 0;
+        statRedirects = 0;
+        statAbstracts = 0;
         lineCount = 0;
         catName = false;
         irrelevantPrefixes.clear();
@@ -318,6 +363,14 @@ class WikiExtractorBase {
             outFileRelated = outDir + File.separator + outPrefixRelated + fileLng;
             outRelated = new BufferedOutputStream(new FileOutputStream(outFileRelated), Helper.BUFFER_SIZE);
         }
+        if (outPrefixRedirects != null) {
+            outFileRedirects = outDir + File.separator + outPrefixRedirects + fileLng;
+            outRedirects = new BufferedOutputStream(new FileOutputStream(outFileRedirects), Helper.BUFFER_SIZE);
+        }
+        if (outPrefixAbstracts != null) {
+            outFileAbstracts = outDir + File.separator + outPrefixAbstracts + fileLng;
+            outAbstracts = new BufferedOutputStream(new FileOutputStream(outFileAbstracts), Helper.BUFFER_SIZE);
+        }
     }
 
     void handleContentTitle() throws IOException {
@@ -345,21 +398,47 @@ class WikiExtractorBase {
                     System.out.println("break");
                 }
             }
+            clearAttributes();
+            step = WikiParseStep.TITLE_FOUND;
         } else {
             invalidate();
             statSkipped++;
-        }
-        step = WikiParseStep.TITLE;
+        }        
     }
 
     protected void clearAttributes() {
         categories.clear();
         languages.clear();
         relatedWords.clear();
+        parseAbstract = outAbstracts != null;
+        if (parseAbstract) {
+            abstractBB.clear();
+        }
     }
 
     void invalidate() {
         name = null;
+    }
+
+    private boolean writeAbstract() throws IOException {
+        if (outAbstracts != null && !ArrayHelper.isEmpty(abstractBB)) {
+            if (DEBUG && TRACE) {
+                System.out.println(ArrayHelper.toString(name) + "的概要：" + ArrayHelper.toString(abstractBB));
+            }
+            if (chinese) {
+                // ChineseHelper.toSimplifiedChinese(abstractBB);
+            }
+            System.out.println(ArrayHelper.toString(name) + "的概要：" + ArrayHelper.toString(abstractBB));
+            outAbstracts.write(fileLngBytes);
+            outAbstracts.write(Helper.SEP_DEFINITION_BYTES);
+            outAbstracts.write(name);
+            outAbstracts.write(Helper.SEP_ATTRS_BYTES);
+            outAbstracts.write(Abstract.TYPE_ID_BYTES);
+            outAbstracts.write(abstractBB.array(), 0, abstractBB.limit());
+            outAbstracts.write(Helper.SEP_NEWLINE_CHAR);
+            return true;
+        }
+        return false;
     }
 
     private boolean writeRelated() throws IOException {
@@ -379,7 +458,7 @@ class WikiExtractorBase {
 
                 outRelated.write(w);
             }
-            outRelated.write('\n');
+            outRelated.write(Helper.SEP_NEWLINE_CHAR);
             return true;
         } else {
             return false;
@@ -432,7 +511,7 @@ class WikiExtractorBase {
             }
             out.write(Helper.SEP_LIST_BYTES);
         }
-        out.write('\n');
+        out.write(Helper.SEP_NEWLINE_CHAR);
         return true;
 
     }
@@ -465,7 +544,7 @@ class WikiExtractorBase {
             }
             outCategories.write(Helper.SEP_LIST_BYTES);
         }
-        outCategories.write('\n');
+        outCategories.write(Helper.SEP_NEWLINE_CHAR);
         return true;
     }
 
@@ -527,6 +606,95 @@ class WikiExtractorBase {
         categories.add(category);
         if (DEBUG) {
             System.out.println(">类别：" + ArrayHelper.toString(category));
+        }
+    }
+    protected void handleTextEndLine(int idx) {
+        lineBB.limit(idx);
+        lineLen = lineBB.limit();
+        step = WikiParseStep.BEFORE_TITLE;
+    }
+
+
+    protected void handleTextBeginLine(int idx) throws IOException {
+        final int offset = idx + TAG_TEXT_BEGIN_BYTES.length;
+        final int len = lineLen - offset;
+        boolean foundPageLayout = false;
+        if (len > 2 && lineArray[offset] == PAGE_LAYOUT_START_BYTES[0]
+                && lineArray[offset + 1] == PAGE_LAYOUT_START_BYTES[1]) {
+            foundPageLayout = true;
+        }
+        if (foundPageLayout) {
+            // content starting with layout
+            int stopPageLayoutIdx = ArrayHelper.indexOf(lineArray, offset, len, PAGE_LAYOUT_STOP_BYTES);
+            if (stopPageLayoutIdx == -1) {
+                // end tag not in same line
+                while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
+                    ArrayHelper.trimP(lineBB);
+                    if (ArrayHelper.equals(lineArray, lineBB.position(), PAGE_LAYOUT_STOP_BYTES)) {
+                        break;
+                    }
+                }
+                if (lineLen != -1) {
+                    int off = lineBB.position() + PAGE_LAYOUT_STOP_BYTES.length;
+                    lineLen = lineLen - off;
+                    System.arraycopy(lineArray, off, lineArray, 0, lineLen);
+                    lineBB.limit(lineLen);
+                }
+            } else {
+                int off = stopPageLayoutIdx + PAGE_LAYOUT_STOP_BYTES.length;
+                lineLen = lineLen - off;
+                System.arraycopy(lineArray, off, lineArray, 0, lineLen);
+                lineBB.limit(lineLen);
+            }
+        } else {
+            lineLen = len;
+            System.arraycopy(lineArray, offset, lineArray, 0, lineLen);
+            lineBB.limit(lineLen);
+        }
+        step = WikiParseStep.PAGE;
+    }
+
+    protected void handleRedirectLine() throws IOException {
+        if (outRedirects != null && tmpBB.hasRemaining()) {
+            outRedirects.write(fileLngBytes);
+            outRedirects.write(Helper.SEP_DEFINITION_BYTES);
+            outRedirects.write(name);
+            if (chinese) {
+                ChineseHelper.toSimplifiedChinese(tmpBB);
+            }
+            outRedirects.write(tmpArray, 0, tmpBB.limit());
+            outRedirects.write(Helper.SEP_NEWLINE_CHAR);
+            statRedirects++;
+        }
+        if (DEBUG) {
+            System.out.println("重定向：" + ArrayHelper.toString(tmpBB) + " -> " + ArrayHelper.toString(name));
+        }
+        invalidate();
+    }
+
+    protected void parseAbstract() {
+        /*
+         * if (-1 != ArrayHelper.indexOf(lineArray, 0, lineLen, "Abkhazia Gali map.svg".getBytes(Helper.CHARSET_UTF8)))
+         * { System.out.println("debug"); }
+         */
+        byte firstByte = lineArray[0];
+        final boolean hasContent = !ArrayHelper.isEmpty(abstractBB);
+        if (firstByte == '=' || (firstByte == '{' && lineArray[1] == '{')) {
+            parseAbstract = false;
+        } else if (hasContent && (firstByte == '{' || firstByte == '&')) {
+            parseAbstract = false;
+        }
+        if (parseAbstract && firstByte != '&') {
+            if (hasContent) {
+                abstractBB.position(abstractBB.limit()).limit(abstractBB.capacity());
+                if (abstractBB.remaining() > 10) {
+                    abstractBB.put((byte) ' ');
+                }
+                parseAbstract = false;
+            } else {
+                abstractBB.clear();
+            }
+            ArrayHelper.stripWikiLineP(lineBB, abstractBB, MAX_ABSTRACT_CHARS);
         }
     }
 }

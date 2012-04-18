@@ -337,13 +337,13 @@ public class LingoesLd2Reader {
         int end = 0;
         if ((open = xml.indexOf("<![CDATA[")) != -1) {
             if ((end = xml.indexOf("]]>", open)) != -1) {
-                return xml.substring(open + "<![CDATA[".length(), end).replace('\t', ' ').replace('\n', ' ')
+                return xml.substring(open + "<![CDATA[".length(), end).replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ')
                         .replace('\u001e', ' ').replace('\u001f', ' ');
             }
         } else if ((open = xml.indexOf("<Ô")) != -1) {
             if ((end = xml.indexOf("</Ô", open)) != -1) {
                 open = xml.indexOf(">", open + 1);
-                return xml.substring(open + 1, end).replace('\t', ' ').replace('\n', ' ').replace('\u001e', ' ')
+                return xml.substring(open + 1, end).replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ').replace('\u001e', ' ')
                         .replace('\u001f', ' ');
             }
         } else {
@@ -357,7 +357,7 @@ public class LingoesLd2Reader {
                 open = xml.indexOf('<', open + 1);
                 end = xml.indexOf('>', end + 1);
             } while (open != -1 && end != -1);
-            return sb.toString().replace('\t', ' ').replace('\n', ' ').replace('\u001e', ' ').replace('\u001f', ' ');
+            return sb.toString().replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ').replace('\u001e', ' ').replace('\u001f', ' ');
         }
         return "";
     }

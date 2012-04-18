@@ -34,8 +34,8 @@ public class FilesAppender {
                 lastChar = array[l - 1];
                 out.write(array, 0, l);
             }
-            if (lastChar != '\n') {
-                out.write('\n');
+            if (lastChar != Helper.SEP_NEWLINE_CHAR) {
+                out.write(Helper.SEP_NEWLINE_CHAR);
             }
             in.close();
         }

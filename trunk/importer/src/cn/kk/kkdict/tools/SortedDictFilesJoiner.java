@@ -148,7 +148,7 @@ public class SortedDictFilesJoiner {
             if (-1 == (mainIdx = mainRow.indexOfLanguage(lngBB))) {
                 // main file has no more sort key
                 out.write(mainRow.array(), 0, mainRow.limit());
-                out.write('\n');
+                out.write(Helper.SEP_NEWLINE_CHAR);
                 break;
             }
             mergeBB.clear();
@@ -157,7 +157,7 @@ public class SortedDictFilesJoiner {
                 mergeInFile(mergeBB, inFileBBs, inFilesIns, skippedOuts, i);
             }
             out.write(mergeBB.array(), 0, mergeBB.limit());
-            out.write('\n');
+            out.write(Helper.SEP_NEWLINE_CHAR);
         }
         ArrayHelper.giveBack(lineBB);
         int len;
@@ -169,7 +169,7 @@ public class SortedDictFilesJoiner {
             final ByteBuffer inBB = inFileBBs[i];
             if (inBB != null && inBB.hasRemaining()) {
                 out.write(inBB.array(), 0, inBB.limit());
-                out.write('\n');
+                out.write(Helper.SEP_NEWLINE_CHAR);
                 inFileBBs[i] = null;
                 ArrayHelper.giveBack(inBB);
             }
@@ -239,7 +239,7 @@ public class SortedDictFilesJoiner {
                                 // + " < " + Helper.toHexString(inFileBB.array(), 0, inFileBBStopPoint));
                                 if (skippedOuts[idx] != null) {
                                     skippedOuts[idx].write(otherRow.array(), otherRow.position(), otherRow.limit());
-                                    skippedOuts[idx].write('\n');
+                                    skippedOuts[idx].write(Helper.SEP_NEWLINE_CHAR);
                                 }
                             }
                             inBB.limit(0);

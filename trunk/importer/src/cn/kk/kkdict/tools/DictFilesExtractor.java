@@ -118,10 +118,10 @@ public class DictFilesExtractor {
             mainRow.parseFrom(bb);
             if (-1 != mainRow.indexOfLanguage(lngBB)) {
                 out.write(array, 0, limit);
-                out.write('\n');
+                out.write(Helper.SEP_NEWLINE_CHAR);
             } else if (skippedOut != null) {
                 skippedOut.write(array, 0, limit);
-                skippedOut.write('\n');
+                skippedOut.write(Helper.SEP_NEWLINE_CHAR);
             }
         }
         if (skippedOut != null) {
