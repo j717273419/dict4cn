@@ -485,22 +485,21 @@ public final class Helper {
         final int count = line.length();
         StringBuilder sb = new StringBuilder(count);
         int pairIdx = -1;
+        char close = 0;
         char[][] pairs = { { '(', ')' }, { '{', '}' }, { '[', ']' }, { '（', '）' }, { '《', '》' }, { '［', '］' } };
 
         for (int i = 0; i < count; i++) {
             char c = line.charAt(i);
-            if (i == count - 1 && c == ' ') {
-                break;
-            } else if (c == ' ' && (i + 1 < count && -1 != (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i + 1))))) {
-                i++;
-            } else if (-1 != (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i + 1)))) {
-            } else if (-1 != pairIdx && c == pairs[pairIdx][1]) {
-                pairIdx = -1;
-                if (i + 1 < count && line.charAt(i + 1) == ' ') {
-                    i++;
+            if (pairIdx != -1) {
+                if (c == close) {
+                    pairIdx = -1;
                 }
-            } else if (pairIdx == -1) {
-                sb.append(c);
+            } else {
+                if (-1 == (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i)))) {
+                    sb.append(c);
+                } else {
+                    close = pairs[pairIdx][1];
+                }
             }
         }
         return sb.toString();
