@@ -130,8 +130,9 @@ public final class Helper {
     public static final byte[] SEP_ETC_BYTES = Helper.SEP_ETC.getBytes(Helper.CHARSET_UTF8);
     public static final byte[] SEP_URI_POSTFIX_BYTES = { ':', '/', '/' };
     public static final byte[] SEP_SPACE_BYTES = SEP_SPACE.getBytes(CHARSET_UTF8);
-    public static final byte[] SEP_HTML_TAG_START_BYTES = { '&', 'l', 't', ';'};
-    public static final byte[] SEP_HTML_TAG_STOP_BYTES = { '&', 'g', 't', ';'};
+    public static final byte[] BYTES_XML_TAG_START = { '&', 'l', 't', ';' };
+    public static final byte[] BYTES_XML_TAG_STOP = { '&', 'g', 't', ';' };
+
     static {
         Arrays.sort(HTML_ENTITIES, new Comparator<String[]>() {
             @Override

@@ -82,7 +82,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
             signal();
             if (WikiParseStep.HEADER == step) {
                 parseDocumentHeader();
-            } else {
+            } else if (WikiParseStep.BEFORE_TITLE == step) {
                 if (lineLen > MIN_TITLE_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
                                 tmpBB) > 0) {
@@ -90,46 +90,49 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                     // write old definition
                     writeDefinition();
                     handleContentTitle();
-                } else if (isValid()) {
-                    if (step == WikiParseStep.TITLE_FOUND) {
-                        int idx;
-                        if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
-                            handleTextBeginLine(idx);
-                        } else if (lineLen > MIN_REDIRECT_LINE_BYTES
-                                && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
-                                        SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
-                            handleRedirectLine();
-                        }
+                }
+            } else if (step == WikiParseStep.TITLE_FOUND) {
+                int idx;
+                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
+                    handleTextBeginLine(idx);
+                    checkRedirectLine();
+                } else if (lineLen > MIN_REDIRECT_LINE_BYTES
+                        && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
+                                SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
+                    writeRedirectLine();
+                }
+            }
+            if (step == WikiParseStep.PAGE) {
+                int idx;
+                if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_END_BYTES))) {
+                    handleTextEndLine(idx);
+                }
+                // within content
+                if (lineLen > minCatBytes
+                        && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes, SUFFIX_WIKI_TAG_BYTES,
+                                tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes2,
+                                SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
+                    // new category found for current name
+                    addCategory();
+                } else if (ParserResult.NO_RESULT != (pr = parseSubTitle())) {
+                    if (chinese) {
+                        ChineseHelper.toSimplifiedChinese(tmpBB);
                     }
-                    if (step == WikiParseStep.PAGE) {
-                        if (parseAbstract) {
-                            parseAbstract();
-                        }                        
-                        // within content
-                        if (lineLen > minCatBytes
-                                && (ArrayHelper.substringBetween(lineArray, 0, lineLen, catKeyBytes,
-                                        SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0 || ArrayHelper.substringBetween(lineArray, 0,
-                                        lineLen, catKeyBytes2, SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0)) {
-                            // new category found for current name
-                            addCategory();
-                        } else if (ParserResult.NO_RESULT != (pr = parseSubTitle())) {
-                            if (chinese) {
-                                ChineseHelper.toSimplifiedChinese(tmpBB);
-                            }
-                            if (DEBUG && TRACE) {
-                                System.out.println(">标题（" + pr + "）：" + ArrayHelper.toString(tmpBB));
-                            }
-                            if (null != (tmp = parseSourceLanguage(pr))) {
-                                if (DEBUG) {
-                                    System.out.println(">语言：" + ArrayHelper.toString(tmp) + ", "
-                                            + ArrayHelper.toString(lineBB));
+                    if (DEBUG && TRACE) {
+                        System.out.println(">标题（" + pr + "）：" + ArrayHelper.toString(tmpBB));
+                    }
+                    if (null != (tmp = parseSourceLanguage(pr))) {
+                        if (DEBUG) {
+                            System.out
+                                    .println(">语言：" + ArrayHelper.toString(tmp) + ", " + ArrayHelper.toString(lineBB));
 
-                                }
-                                clearAttributes();
-                                this.sourceLng = tmp;
-                            }
                         }
+                        clearAttributes();
+                        this.sourceLng = tmp;
                     }
+                }
+                if (parseAbstract && lineLen > 0) {
+                    // parseAbstract();
                 }
             }
         }

@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public final class ChineseHelper {
+    private static final boolean DEBUG = false;
     private static int[] CODEPOINTS_ST_SIMPLE;
     private static int[] CODEPOINTS_ST_TRADITIONAL;
     private static int[] CODEPOINTS_TS_SIMPLE;
@@ -65,7 +66,7 @@ public final class ChineseHelper {
 
     public static void main(String[] args) {
         Charset cs = Helper.CHARSET_UTF8;
-        ByteBuffer bb = ArrayHelper.borrowByteBufferNormal();
+        ByteBuffer bb = ArrayHelper.borrowByteBufferSmall();
         byte[] array = cs.encode("丟並乾亂亙亞丢并干乱亘亚").array();
         System.out.println(ArrayHelper.toHexString(array));
         System.arraycopy(array, 0, bb.array(), 0, array.length);
@@ -108,32 +109,34 @@ public final class ChineseHelper {
     }
 
     private static final int decode(ByteBuffer bb, int[] from, int[] to) {
-        final int oldPosition = bb.position();
+        // ByteBuffer tmpBB = ArrayHelper.borrowByteBuffer(bb.remaining());
+        // ArrayHelper.copyP(bb, tmpBB);
         int mark = bb.position();
-        int limit = bb.limit();
+        final int limit = bb.limit();
         int idx;
         int i1, i2, i3;
         byte b1, b2, b3;
         while (mark < limit) {
-            b1 = bb.get();
+            b1 = bb.get(mark);
             i1 = b1;
             if (i1 >= 0) {
-                // 1 byte
+                // 1 byte, 0XXXXXXX
                 mark++;
-            } else if ((i1 >> 5) == -2 || (i1 >> 5) == -3) {
-                // 2 bytes
+            } else if ((i1 >> 5) == -2) {
+                // 2 bytes, 110XXXXX 10XXXXXX
                 if (limit - mark < 2) {
                     return -1;
                 }
                 mark += 2;
             } else if ((i1 >> 4) == -2) {
-                // 3 bytes, chinese characters in convertion map are all of 3 bytes length, replace the bytes here
+                // 3 bytes, 1110XXXX 10XXXXXX 10XXXXXX
+                // chinese characters in convertion map are all of 3 bytes length, replace the bytes here
                 if (limit - mark < 3) {
                     return -1;
                 }
-                b2 = bb.get();
+                b2 = bb.get(mark + 1);
                 i2 = b2;
-                b3 = bb.get();
+                b3 = bb.get(mark + 2);
                 i3 = b3;
                 int uc = (i1 << 12) ^ (i2 << 6)
                         ^ (i3 ^ (((byte) 0xE0 << 12) ^ ((byte) 0x80 << 6) ^ ((byte) 0x80 << 0)));
@@ -147,18 +150,21 @@ public final class ChineseHelper {
                     mark += 3;
                 }
             } else if ((i1 >> 3) == -2) {
+                // 4 bytes, 11110XXX 10XXXXXX 10XXXXXX 10XXXXXX
                 if (limit - mark < 4) {
                     return -1;
                 }
                 mark += 4;
             } else {
-                System.err.println("err: " + mark + "(0x" + Integer.toHexString(mark) + ") -> " + (char) i1 + ", " + i1
-                        + " (0x" + Integer.toHexString(i1) + ")");
+                if (DEBUG) {
+                    System.err.println("err: " + mark + "(0x" + Integer.toHexString(mark) + ") -> " + (char) i1 + ", "
+                            + i1 + " (0x" + Integer.toHexString(i1) + "):\n" + ArrayHelper.toString(bb));
+                }
+                mark++;
             }
         }
-        mark = bb.position();
-        bb.position(oldPosition);
-        return mark;
+        // ArrayHelper.giveBack(tmpBB);
+        return limit;
     }
 
     public static char lowSurrogate(int codePoint) {

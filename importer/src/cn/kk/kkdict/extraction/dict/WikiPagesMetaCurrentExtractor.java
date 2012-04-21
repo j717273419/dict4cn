@@ -67,19 +67,17 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                 int idx;
                 if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
                     handleTextBeginLine(idx);
+                    checkRedirectLine();
                 } else if (lineLen > MIN_REDIRECT_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
                                 SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
-                    handleRedirectLine();
+                    writeRedirectLine();
                 }
             }
             if (step == WikiParseStep.PAGE) {
                 int idx;
                 if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_END_BYTES))) {
                     handleTextEndLine(idx);
-                }
-                if (parseAbstract && lineLen > 6) {
-                    parseAbstract();
                 }
                 // within content
                 if (lineLen > minCatBytes
@@ -104,6 +102,9 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                         }
                     }
                 }
+                if (parseAbstract && lineLen > 0) {
+                    parseAbstract();
+                }
             }
         }
 
@@ -112,5 +113,4 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
         cleanup();
         return statOk;
     }
-
 }
