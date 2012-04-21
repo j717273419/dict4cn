@@ -4,7 +4,14 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -17,6 +24,8 @@ public final class ArrayHelper {
 
     private static final List<ByteBuffer> byteBuffersPoolNormal = new ArrayList<ByteBuffer>();
 
+    private static final List<ByteBuffer> byteBuffersPoolSmall = new ArrayList<ByteBuffer>();
+
     private static final List<ByteBuffer> byteBuffersPoolVeryLarge = new ArrayList<ByteBuffer>();
 
     public static final Comparator<byte[]> COMPARATOR_BYTE_ARRAY = new Comparator<byte[]>() {
@@ -28,8 +37,10 @@ public final class ArrayHelper {
 
     private static final int MAX_BUFFER_SIZE = 10;
     public static final int MAX_LINE_BYTES_LARGE = 1024 * 64;
+    // public static final int MAX_LINE_BYTES_MEDIUM = 1024 * 32;
     public static final int MAX_LINE_BYTES_MEDIUM = 1024 * 32;
-    public static final int MAX_LINE_BYTES_NORMAL = 1024;
+    public static final int MAX_LINE_BYTES_NORMAL = 1024 * 4;
+    public static final int MAX_LINE_BYTES_SMALL = 1024;
     public static final int MAX_LINE_BYTES_VERY_LARGE = 1024 * 280;
 
     public static boolean WARN = true;
@@ -344,8 +355,10 @@ public final class ArrayHelper {
             return borrowByteBufferLarge();
         } else if (capacity >= MAX_LINE_BYTES_NORMAL) {
             return borrowByteBufferMedium();
-        } else {
+        } else if (capacity >= MAX_LINE_BYTES_SMALL) {
             return borrowByteBufferNormal();
+        } else {
+            return borrowByteBufferSmall();
         }
     }
 
@@ -362,6 +375,14 @@ public final class ArrayHelper {
             return ByteBuffer.allocate(MAX_LINE_BYTES_MEDIUM);
         } else {
             return byteBuffersPoolMedium.remove(0);
+        }
+    }
+
+    public final static ByteBuffer borrowByteBufferSmall() {
+        if (byteBuffersPoolSmall.isEmpty()) {
+            return ByteBuffer.allocate(MAX_LINE_BYTES_SMALL);
+        } else {
+            return byteBuffersPoolSmall.remove(0);
         }
     }
 
@@ -384,13 +405,17 @@ public final class ArrayHelper {
     public final static void giveBack(ByteBuffer bb) {
         if (bb != null) {
             final int capacity = bb.capacity();
-            if (capacity == MAX_LINE_BYTES_NORMAL) {
-                if (!byteBuffersPoolNormal.contains(bb) && byteBuffersPoolNormal.size() < MAX_BUFFER_SIZE) {
-                    byteBuffersPoolNormal.add(bb);
+            if (capacity == MAX_LINE_BYTES_SMALL) {
+                if (!byteBuffersPoolSmall.contains(bb) && byteBuffersPoolSmall.size() < MAX_BUFFER_SIZE) {
+                    byteBuffersPoolSmall.add(bb);
                 }
             } else if (capacity == MAX_LINE_BYTES_MEDIUM) {
                 if (!byteBuffersPoolMedium.contains(bb) && byteBuffersPoolMedium.size() < MAX_BUFFER_SIZE) {
                     byteBuffersPoolMedium.add(bb);
+                }
+            } else if (capacity == MAX_LINE_BYTES_NORMAL) {
+                if (!byteBuffersPoolNormal.contains(bb) && byteBuffersPoolNormal.size() < MAX_BUFFER_SIZE) {
+                    byteBuffersPoolNormal.add(bb);
                 }
             } else if (capacity == MAX_LINE_BYTES_LARGE) {
                 if (!byteBuffersPoolLarge.contains(bb) && byteBuffersPoolLarge.size() < MAX_BUFFER_SIZE) {
@@ -558,7 +583,7 @@ public final class ArrayHelper {
         System.out.println(contains(text, 0, text.length, "</namespace>".getBytes(Helper.CHARSET_UTF8)));
         System.out.println(substringBetween(text, 0, text.length, "\">".getBytes(Helper.CHARSET_UTF8),
                 "</namespace>".getBytes(Helper.CHARSET_UTF8)));
-        ByteBuffer bbBuffer = ByteBuffer.allocate(MAX_LINE_BYTES_NORMAL);
+        ByteBuffer bbBuffer = ByteBuffer.allocate(MAX_LINE_BYTES_SMALL);
         substringBetween(text, 0, text.length, "\">".getBytes(Helper.CHARSET_UTF8),
                 "</namespace>".getBytes(Helper.CHARSET_UTF8), bbBuffer);
         System.out.println(toString(bbBuffer));
@@ -722,13 +747,24 @@ public final class ArrayHelper {
     public static final boolean startsWith(byte[] array, byte[] prefix) {
         final int l1 = array.length;
         final int l2 = prefix.length;
-        return startsWith(array, l1, prefix, l2);
+        return startsWith(array, 0, l1, prefix, 0, l2);
     }
 
-    public static final boolean startsWith(final byte[] array, final int l1, final byte[] prefix, int l2) {
-        if (l1 >= l2) {
-            while (l2-- != 0) {
-                if (array[l2] != prefix[l2]) {
+    /**
+     * 
+     * @param array
+     * @param limit1
+     * @param prefix
+     * @param limit2
+     * @return
+     */
+    public static final boolean startsWith(final byte[] array, final int offset1, final int limit1,
+            final byte[] prefix, final int offset2, final int limit2) {
+        final int len1 = limit1 - offset1;
+        final int len2 = limit2 - offset2;
+        if (len1 >= len2) {
+            for (int i = 0; i < len2; i++) {
+                if (array[offset1 + i] != prefix[offset2 + i]) {
                     return false;
                 }
             }
@@ -738,6 +774,7 @@ public final class ArrayHelper {
     }
 
     /**
+     * Stores substring in bb
      * 
      * @param bb
      * @param startIdx
@@ -749,12 +786,12 @@ public final class ArrayHelper {
             bb.limit(0);
             return 0;
         } else {
-            byte[] array = bb.array();
+            final byte[] array = bb.array();
             int i = 0;
-            int s = startIdx;
-            while (s < limit) {
-                array[i] = array[s];
-                s++;
+            int j = startIdx;
+            while (j < limit) {
+                array[i] = array[j];
+                j++;
                 i++;
             }
             bb.limit(limit - startIdx);
@@ -992,9 +1029,54 @@ public final class ArrayHelper {
         return result;
     }
 
-    public static final String toString(final byte[] bb) {
-        return new String(bb, 0, bb.length, Helper.CHARSET_UTF8);
+    public static final String toString(final byte[] array) {
+        return toString(array, 0, array.length);
     }
+
+    private static class IgnoringStringDecoder {
+        private final CharsetDecoder cd;
+
+        private IgnoringStringDecoder(Charset cs) {
+            this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.IGNORE)
+                    .onUnmappableCharacter(CodingErrorAction.IGNORE);
+        }
+
+        char[] decode(byte[] ba, int off, int len) {
+            int en = (int) (len * (double) cd.maxCharsPerByte());
+            char[] ca = new char[en];
+            if (len == 0)
+                return ca;
+            cd.reset();
+            ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+            CharBuffer cb = CharBuffer.wrap(ca);
+            try {
+                CoderResult cr = cd.decode(bb, cb, true);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+                cr = cd.flush(cb);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+            } catch (CharacterCodingException x) {
+                // Substitution is always enabled,
+                // so this shouldn't happen
+                throw new Error(x);
+            }
+            return safeTrim(ca, cb.position());
+        }
+
+    }
+
+    public static char[] safeTrim(char[] ca, int len) {
+        if (len == ca.length) {
+            return ca;
+        } else {
+            return Arrays.copyOf(ca, len);
+        }
+    }
+
+    private static final IgnoringStringDecoder STRING_DECODER = new IgnoringStringDecoder(Helper.CHARSET_UTF8);
 
     /**
      * 
@@ -1005,7 +1087,7 @@ public final class ArrayHelper {
      * @return
      */
     public static final String toString(final byte[] array, int offset, int len) {
-        return new String(array, offset, len, Helper.CHARSET_UTF8);
+        return new String(STRING_DECODER.decode(array, offset, len));
     }
 
     public static final String toString(final ByteBuffer bb) {
@@ -1038,192 +1120,26 @@ public final class ArrayHelper {
         return bb.remaining();
     }
 
-    public final static int stripWikiLine(final ByteBuffer inBB, final ByteBuffer outBB, final int maxChars) {
-        final byte[] array = inBB.array();
-        final int limit = inBB.limit();
-        outBB.clear();
-        return stripWikiLine(array, 0, limit, outBB, maxChars);
-    }
-
-    public final static int stripWikiLineP(final ByteBuffer inBB, final ByteBuffer outBB, final int maxChars) {
-        final byte[] array = inBB.array();
-        final int offset = inBB.position();
-        final int limit = inBB.limit();
-        return stripWikiLine(array, offset, limit, outBB, maxChars);
-    }
-
-    protected static int stripWikiLine(final byte[] array, final int offset, final int limit, final ByteBuffer outBB,
-            final int maxChars) {
-        byte b;
-        int countEquals = 0;
-        int countQuos = 0;
-        int countSpaces = 0;
-        int linkOpened = -1;
-        boolean externalOpened = false;
-        byte lastByte = -1;
-        final int startPos = outBB.position();
-        for (int i = offset; i < limit; i++) {
-            if (outBB.position() > maxChars) {
-                break;
-            }
-            b = array[i];
-            if (b != ' ' && countSpaces > 0) {
-                if (lastByte != ' ' && lastByte != '(' && lastByte != -1) {
-                    outBB.put((byte) ' ');
-                    lastByte = ' ';
-                }
-                countSpaces = 0;
-            }
-            if (b != '\'' && countQuos == 1) {
-                outBB.put((byte) '\'');
-                lastByte = '\'';
-                countQuos = 0;
-            }
-            if (b != '=' && countEquals == 1) {
-                outBB.put((byte) '=');
-                lastByte = '=';
-                countEquals = 0;
-            }
-            switch (b) {
-            case ' ':
-                if (externalOpened && linkOpened != -1) {
-                    linkOpened = -1;
-                }
-                countSpaces++;
-                continue;
-            case '&':
-                if (i + 8 < limit && ArrayHelper.equals(array, i, Helper.SEP_HTML_TAG_START_BYTES)) {
-                    i += Helper.SEP_HTML_TAG_START_BYTES.length - 1;
-                    final int stop = ArrayHelper.indexOf(array, i, limit - i, Helper.SEP_HTML_TAG_STOP_BYTES);
-                    if (stop != -1) {
-                        i = stop + Helper.SEP_HTML_TAG_STOP_BYTES.length - 1;
-                    }
-                } else if (i + 3 < limit) {
-                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) ';');
-                    if (stop != -1) {
-                        i = stop;
-                    }
-                }
-                continue;
-            case '{':
-                if (i + 4 < limit && array[i + 1] == '{') {
-                    final int start = i + 2;
-                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) '}');
-                    final int valueIdx  = ArrayHelper.indexOf(array, i, limit, (byte) '=');
-                    if (-1 != stop && valueIdx == -1) {
-                        final int[] wallsIdx = ArrayHelper.countArray(array, i, stop, (byte) '|');
-                        if (wallsIdx.length > 0 && wallsIdx.length < 3) {
-                            final int end1;
-                            final int len1 = wallsIdx[0] - start;
-                            final int end2;
-                            final int len2;
-                            if (wallsIdx.length > 1) {
-                                end1 = wallsIdx[1];
-                                len2 = wallsIdx[1] - wallsIdx[0] - 1;
-                                if (wallsIdx.length > 2) {
-                                    end2 = wallsIdx[2];
-                                } else {
-                                    end2 = stop;
-                                }
-                            } else {
-                                end1 = stop;
-                                len2 = -1;
-                                end2 = stop;
-                            }
-                            
-                            // main word
-                            if (len1 > len2) {
-                                write(array, wallsIdx[0] + 1, end1, outBB);
-                            } else {
-                                write(array, wallsIdx[1] + 1, end2, outBB);
-                            }
-                            outBB.put((byte) ' ').put((byte) '(');
-                            // first word
-                            write(array, start, wallsIdx[0], outBB);
-                            // further words
-                            if (wallsIdx.length > 1) {
-                                outBB.put((byte) ',').put((byte) ' ');
-                                if (len1 > len2) {
-                                    write(array, wallsIdx[1] + 1, stop, outBB);
-                                } else if (wallsIdx.length > 2) {
-                                    write(array, wallsIdx[2] + 1, stop, outBB);
-                                }
-                            }
-                            outBB.put((byte) ')');
-                            lastByte = ')';
-
-                            i = stop + 1;
-                        } else {
-                            i = stop + 1;
-                        }
-                    }
-                }
-                continue;
-            case '}':
-                continue;
-            case '[':
-                linkOpened = i;
-                if (i + 4 < limit && array[i + 1] == '[') {
-                    final int stop = ArrayHelper.indexOf(array, i, limit, (byte) ']');
-                    final int[] wallsIdx = ArrayHelper.countArray(array, i, stop, (byte) '|');
-                    if (wallsIdx.length > 1) {
-                        linkOpened = -1;
-                        i = stop + 1;
-                    }
-                } else if (i + 7 < limit
-                        && (-1 != ArrayHelper.indexOf(array, i + 4, i + 8, Helper.SEP_URI_POSTFIX_BYTES))) {
-                    externalOpened = true;
-                }
-                continue;
-            case '|':
-                if (linkOpened != -1) {
-                    if (i - 4 >= 0 && array[i - 4] == '.' || array[i - 3] == '.') {
-                        externalOpened = true;
-                    }
-                    linkOpened = -1;
-                }
-                continue;
-            case ']':
-                if (!externalOpened && linkOpened != -1) {
-                    i = linkOpened;
-                }
-                linkOpened = -1;
-                externalOpened = false;
-                continue;
-            case '\'':
-                countQuos++;
-                continue;
-            case '=':
-                countEquals++;
-                continue;
-            case '*':
-                continue;
-            case '#':
-                continue;
-            }
-            if (linkOpened == -1) {
-                outBB.put(b);
-                lastByte = b;
+    /**
+     * 
+     * @param array
+     * @param offset
+     *            absolute
+     * @param limit
+     *            absolute
+     * @param b
+     * @return absolute
+     */
+    public final static int lastIndexOf(final byte[] array, final int offset, final int limit, final byte b) {
+        for (int i = limit - 1; i >= offset; i--) {
+            if (array[i] == b) {
+                return i;
             }
         }
-        if (outBB.position() > maxChars) {
-            int idx = lastIndexOf(outBB.array(), startPos, outBB.position(), "，".getBytes(Helper.CHARSET_UTF8));
-            if (idx == -1) {
-                idx = lastIndexOf(outBB.array(), startPos, outBB.position(), "。".getBytes(Helper.CHARSET_UTF8));
-                if (idx == -1) {
-                    idx = lastIndexOf(outBB.array(), startPos, outBB.position(), Helper.SEP_SPACE_BYTES);
-                }
-            }
-            if (idx != -1) {
-                outBB.position(idx);
-            }
-            outBB.put((byte) ' ').put(Helper.SEP_ETC_BYTES);
-        }
-        outBB.limit(outBB.position()).rewind();
-        return outBB.limit();
+        return -1;
     }
 
-    private final static void write(final byte[] array, final int offset, final int end, final ByteBuffer outBB) {
+    public final static void write(final byte[] array, final int offset, final int end, final ByteBuffer outBB) {
         byte b;
         for (int i = offset; i < end; i++) {
             b = array[i];
@@ -1290,6 +1206,29 @@ public final class ArrayHelper {
      */
     public final static boolean isEmpty(final ByteBuffer bb) {
         return (bb.position() == 0 && bb.limit() == bb.capacity()) || bb.limit() == 0;
+    }
+
+    public static final int substringBetween(final byte[] array, final int offset, final int limit,
+            final byte startByte, final byte endByte, final ByteBuffer tmpBB, boolean narrow) {
+        int start = -1;
+        byte b;
+        tmpBB.clear();
+        for (int i = offset; i < limit; i++) {
+            b = array[i];
+            if ((narrow || start == -1) && b == startByte) {
+                start = i;
+            } else if (start != -1 && b == endByte) {
+                final int len = i - start - 1;
+                System.arraycopy(array, start + 1, tmpBB.array(), 0, len);
+                tmpBB.limit(len);
+                return start;
+            }
+        }
+        return -1;
+    }
+
+    public static boolean startsWith(ByteBuffer bb, byte[] prefix) {
+        return startsWith(bb.array(), 0, bb.limit(), prefix, 0, prefix.length);
     }
 
 }

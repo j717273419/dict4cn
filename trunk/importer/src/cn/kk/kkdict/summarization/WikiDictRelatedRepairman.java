@@ -24,6 +24,9 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * 建立相关单词的双向连接。计算出现次数。
+ */
 public class WikiDictRelatedRepairman {
     public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
     public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
