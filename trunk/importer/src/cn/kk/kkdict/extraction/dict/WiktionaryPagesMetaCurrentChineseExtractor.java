@@ -75,7 +75,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     }
 
     private int extractWiktionaryPagesMetaCurrent(String f) throws FileNotFoundException, IOException {
-        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_");
+        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_", null, null);
         ParserResult pr;
         byte[] tmp;
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
@@ -285,9 +285,10 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     @Override
     protected void initialize(final String f, final String outDir, final String outPrefix,
             final String outPrefixCategories, final String outPrefixRelated, final String outPrefixAbstracts,
-            final String outPrefixRedirects) throws IOException {
+            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates)
+            throws IOException {
         super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated, outPrefixAbstracts,
-                outPrefixRedirects);
+                outPrefixRedirects, outPrefixImages, outPrefixCoordinates);
         final String lngName = Helper.toConstantName(fileLng);
         this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(lngName));
         categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_"

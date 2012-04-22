@@ -48,7 +48,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
     private int extractWikipediaPagesMetaCurrent(final File file) throws FileNotFoundException, IOException {
         String f = file.getAbsolutePath();
         initialize(f, OUT_DIR, "output-dict.wiki_", "output-dict_categories.wiki_", "output-dict_related.wiki_",
-                "output-dict_abstracts.wiki_", "output-dict_redirects.wiki_");
+                "output-dict_abstracts.wiki_", "output-dict_redirects.wiki_", "output-dict_images.wiki_", "output-dict_coords.wiki_");
 
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
             signal();
