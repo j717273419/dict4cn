@@ -19,9 +19,10 @@ import java.util.Set;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 
-import cn.kk.kkdict.beans.ByteArray;
 import cn.kk.kkdict.beans.WikiParseStep;
 import cn.kk.kkdict.types.Abstract;
+import cn.kk.kkdict.types.GeoLocation;
+import cn.kk.kkdict.types.ImageLocation;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
 import cn.kk.kkdict.types.TranslationSource;
@@ -36,6 +37,63 @@ import cn.kk.kkdict.utils.Helper;
  * 
  */
 class WikiExtractorBase {
+    private static final byte[][] IMAGE_SUFFIX_BYTES_UPPER = { ".jpg".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            ".jpeg".toUpperCase().getBytes(Helper.CHARSET_UTF8), ".png".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            ".gif".toUpperCase().getBytes(Helper.CHARSET_UTF8), ".svg".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            ".bmp".toUpperCase().getBytes(Helper.CHARSET_UTF8), ".tif".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
+
+    private static final byte[][] IMAGE_SUFFIX_BYTES_LOWER = { ".jpg".getBytes(Helper.CHARSET_UTF8),
+            ".jpeg".getBytes(Helper.CHARSET_UTF8), ".png".getBytes(Helper.CHARSET_UTF8),
+            ".gif".getBytes(Helper.CHARSET_UTF8), ".svg".getBytes(Helper.CHARSET_UTF8),
+            ".bmp".getBytes(Helper.CHARSET_UTF8), ".tif".getBytes(Helper.CHARSET_UTF8) };
+
+    private static final byte[][] COORD_TAG_BYTES_LOWER = { "{{coor".getBytes(Helper.CHARSET_UTF8),
+            "{{geolinks".getBytes(Helper.CHARSET_UTF8), "{{mapit".getBytes(Helper.CHARSET_UTF8),
+            "{{koordinate".getBytes(Helper.CHARSET_UTF8), "{{좌표".getBytes(Helper.CHARSET_UTF8) };
+
+    private static final byte[][] COORD_TAG_BYTES_UPPER = { "{{coor".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "{{geolinks".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "{{mapit".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "{{koordinate".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "{{좌표".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
+
+    private static final byte[][] INFOBOX_GEO_BYTES = { "lat_deg".getBytes(Helper.CHARSET_UTF8),
+            "lat_min".getBytes(Helper.CHARSET_UTF8), "lat_sec".getBytes(Helper.CHARSET_UTF8),
+            "lat_NS".getBytes(Helper.CHARSET_UTF8), "lon_deg".getBytes(Helper.CHARSET_UTF8),
+            "lon_min".getBytes(Helper.CHARSET_UTF8), "lon_sec".getBytes(Helper.CHARSET_UTF8),
+            "long_EW".getBytes(Helper.CHARSET_UTF8), "lat_d".getBytes(Helper.CHARSET_UTF8),
+            "lat_m".getBytes(Helper.CHARSET_UTF8), "lat_s".getBytes(Helper.CHARSET_UTF8),
+            "lat_NS".getBytes(Helper.CHARSET_UTF8), "long_d".getBytes(Helper.CHARSET_UTF8),
+            "long_m".getBytes(Helper.CHARSET_UTF8), "long_s".getBytes(Helper.CHARSET_UTF8),
+            "lon_EW".getBytes(Helper.CHARSET_UTF8), "lat-deg".getBytes(Helper.CHARSET_UTF8),
+            "lat-min".getBytes(Helper.CHARSET_UTF8), "lat-sec".getBytes(Helper.CHARSET_UTF8),
+            "lat".getBytes(Helper.CHARSET_UTF8), "long".getBytes(Helper.CHARSET_UTF8),
+            "lon-deg".getBytes(Helper.CHARSET_UTF8), "lon-min".getBytes(Helper.CHARSET_UTF8),
+            "lon-sec".getBytes(Helper.CHARSET_UTF8), "lon".getBytes(Helper.CHARSET_UTF8),
+            "latd".getBytes(Helper.CHARSET_UTF8), "latm".getBytes(Helper.CHARSET_UTF8),
+            "lats".getBytes(Helper.CHARSET_UTF8), "latNS".getBytes(Helper.CHARSET_UTF8),
+            "longd".getBytes(Helper.CHARSET_UTF8), "longm".getBytes(Helper.CHARSET_UTF8),
+            "longs".getBytes(Helper.CHARSET_UTF8), "longEW".getBytes(Helper.CHARSET_UTF8),
+            "lat_hem".getBytes(Helper.CHARSET_UTF8), "lon_d".getBytes(Helper.CHARSET_UTF8),
+            "lon_m".getBytes(Helper.CHARSET_UTF8), "lon_s".getBytes(Helper.CHARSET_UTF8),
+            "lon_hem".getBytes(Helper.CHARSET_UTF8), "lat_degrees".getBytes(Helper.CHARSET_UTF8),
+            "lat_minutes".getBytes(Helper.CHARSET_UTF8), "lat_seconds".getBytes(Helper.CHARSET_UTF8),
+            "lat_direction".getBytes(Helper.CHARSET_UTF8), "long_degrees".getBytes(Helper.CHARSET_UTF8),
+            "long_minutes".getBytes(Helper.CHARSET_UTF8), "long_seconds".getBytes(Helper.CHARSET_UTF8),
+            "long_direction".getBytes(Helper.CHARSET_UTF8), "Koordinate_Breitengrad".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_Breitenminute".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_Breitensekunde".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_Breite".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_L%C3%A4ngengrad".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_L%C3%A4ngenminute".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_L%C3%A4ngensekunde".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_L%C3%A4nge".getBytes(Helper.CHARSET_UTF8), "N".getBytes(Helper.CHARSET_UTF8),
+            "E".getBytes(Helper.CHARSET_UTF8), "LatDeg".getBytes(Helper.CHARSET_UTF8),
+            "LatMin".getBytes(Helper.CHARSET_UTF8), "LatSec".getBytes(Helper.CHARSET_UTF8),
+            "north coord".getBytes(Helper.CHARSET_UTF8), "west coord".getBytes(Helper.CHARSET_UTF8),
+            "N".getBytes(Helper.CHARSET_UTF8), "W".getBytes(Helper.CHARSET_UTF8),
+            "latitude".getBytes(Helper.CHARSET_UTF8), "longitude".getBytes(Helper.CHARSET_UTF8) };
+
     private static final int MIN_ABSTRACT_CHARS = 250;
 
     private static final byte[] TAG_IMAGEMAP_NAME_BYTES = "imagemap".getBytes(Helper.CHARSET_UTF8);
@@ -176,20 +234,20 @@ class WikiExtractorBase {
     static final byte[] PREFIX_CATEGORY_KEY_EN2_BYTES = "[[:Category:".getBytes(Helper.CHARSET_UTF8);
     static final byte[] CATEGORY_KEY_BYTES = "Category:".getBytes(Helper.CHARSET_UTF8);
 
-    static final byte[][] ABSTRACT_SKIP_VARS_BYTES_LOWER = { "portal".getBytes(Helper.CHARSET_UTF8),
-            "soft".getBytes(Helper.CHARSET_UTF8), "month".getBytes(Helper.CHARSET_UTF8),
-            "day".getBytes(Helper.CHARSET_UTF8), "redirect".getBytes(Helper.CHARSET_UTF8),
-            "info".getBytes(Helper.CHARSET_UTF8), "not".getBytes(Helper.CHARSET_UTF8),
+    static final byte[][] ABSTRACT_SKIP_VARS_BYTES_LOWER = { "infobox".getBytes(Helper.CHARSET_UTF8),
+            "portal".getBytes(Helper.CHARSET_UTF8), "soft".getBytes(Helper.CHARSET_UTF8),
+            "month".getBytes(Helper.CHARSET_UTF8), "day".getBytes(Helper.CHARSET_UTF8),
+            "redirect".getBytes(Helper.CHARSET_UTF8), "not".getBytes(Helper.CHARSET_UTF8),
             "path".getBytes(Helper.CHARSET_UTF8), "dablink".getBytes(Helper.CHARSET_UTF8),
             "dis".getBytes(Helper.CHARSET_UTF8), "merge".getBytes(Helper.CHARSET_UTF8),
             "year".getBytes(Helper.CHARSET_UTF8), "century".getBytes(Helper.CHARSET_UTF8),
             "c20".getBytes(Helper.CHARSET_UTF8), "other".getBytes(Helper.CHARSET_UTF8),
             "audio".getBytes(Helper.CHARSET_UTF8) };
 
-    static final byte[][] ABSTRACT_SKIP_VARS_BYTES_UPPER = { "portal".toUpperCase().getBytes(Helper.CHARSET_UTF8),
-            "soft".toUpperCase().getBytes(Helper.CHARSET_UTF8), "month".toUpperCase().getBytes(Helper.CHARSET_UTF8),
-            "day".toUpperCase().getBytes(Helper.CHARSET_UTF8), "redirect".toUpperCase().getBytes(Helper.CHARSET_UTF8),
-            "info".toUpperCase().getBytes(Helper.CHARSET_UTF8), "not".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+    static final byte[][] ABSTRACT_SKIP_VARS_BYTES_UPPER = { "infobox".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "portal".toUpperCase().getBytes(Helper.CHARSET_UTF8), "soft".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "month".toUpperCase().getBytes(Helper.CHARSET_UTF8), "day".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "redirect".toUpperCase().getBytes(Helper.CHARSET_UTF8), "not".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "path".toUpperCase().getBytes(Helper.CHARSET_UTF8), "dablink".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "dis".toUpperCase().getBytes(Helper.CHARSET_UTF8), "merge".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "year".toUpperCase().getBytes(Helper.CHARSET_UTF8), "century".toUpperCase().getBytes(Helper.CHARSET_UTF8),
@@ -202,12 +260,18 @@ class WikiExtractorBase {
     static final byte[][] ABSTRACT_SIMPLE_VARS_BYTES_UPPER = { "lang".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "notetag".toUpperCase().getBytes(Helper.CHARSET_UTF8), "bd".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
 
+    boolean insideInfobox;
+    static final byte[] INFOBOX_BYTES_LOWER = "infobox".getBytes(Helper.CHARSET_UTF8);
+    static final byte[] INFOBOX_BYTES_UPPER = "infobox".getBytes(Helper.CHARSET_UTF8);
+
     static final int OK_NOTICE = 100000;
     public String inFile;
     public String outFile;
     public String outFileCategories;
     public String outFileRelated;
     public String outFileRedirects;
+    public String outFileImageLocations;
+    public String outFileGeoLocations;
 
     public String outFileAbstracts;
     long started;
@@ -222,6 +286,7 @@ class WikiExtractorBase {
     int lineOffset;
     ByteBuffer name = ArrayHelper.borrowByteBufferSmall();
     ByteBuffer geoLocation = ArrayHelper.borrowByteBufferSmall();
+    ByteBuffer geoLocationInfobox = ArrayHelper.borrowByteBufferSmall();
     ByteBuffer imgLocation = ArrayHelper.borrowByteBufferSmall();
     final Set<byte[]> categories = new HashSet<byte[]>();
     final Map<byte[], byte[]> languages = new HashMap<byte[], byte[]>();
@@ -233,6 +298,8 @@ class WikiExtractorBase {
     int statRelated;
     int statRedirects;
     int statAbstracts;
+    int statImageLocations;
+    int statGeoLocations;
     boolean parseAbstract = true;
     long lineCount;
     boolean catName = false;
@@ -251,6 +318,8 @@ class WikiExtractorBase {
     BufferedOutputStream outRelated;
     BufferedOutputStream outAbstracts;
     BufferedOutputStream outRedirects;
+    BufferedOutputStream outImageLocations;
+    BufferedOutputStream outGeoLocations;
 
     ByteBuffer abstractBB = ArrayHelper.borrowByteBufferMedium();
 
@@ -354,6 +423,12 @@ class WikiExtractorBase {
         if (outAbstracts != null) {
             outAbstracts.close();
         }
+        if (outImageLocations != null) {
+            outImageLocations.close();
+        }
+        if (outGeoLocations != null) {
+            outGeoLocations.close();
+        }
 
         System.out.println("\n> 成功分析'" + new File(inFile).getName() + "'（"
                 + Helper.formatSpace(new File(inFile).length()) + "）文件，行数：" + lineCount + "，语言：" + fileLng + "，用时： "
@@ -383,6 +458,16 @@ class WikiExtractorBase {
                     + Helper.formatSpace(new File(outFileAbstracts).length()) + "）");
             System.out.println("，概要：" + statAbstracts);
         }
+        if (outFileGeoLocations != null) {
+            System.out.print("> 坐标文件：'" + outFileGeoLocations + "'（"
+                    + Helper.formatSpace(new File(outFileGeoLocations).length()) + "）");
+            System.out.println("，坐标：" + statGeoLocations);
+        }
+        if (outFileImageLocations != null) {
+            System.out.print("> 图像文件：'" + outFileImageLocations + "'（"
+                    + Helper.formatSpace(new File(outFileImageLocations).length()) + "）");
+            System.out.println("，图像：" + statImageLocations);
+        }
         System.out.println();
         in = null;
         out = null;
@@ -396,9 +481,12 @@ class WikiExtractorBase {
         relatedWords.clear();
         parseAbstract = outAbstracts != null;
         opened = 0;
-        geoLocation = null;
+        insideInfobox = false;
         if (parseAbstract) {
             abstractBB.clear();
+            geoLocation.clear();
+            geoLocationInfobox.clear();
+            imgLocation.clear();
         }
     }
 
@@ -515,8 +603,8 @@ class WikiExtractorBase {
     }
 
     void initialize(final String f, final String outDir, final String outPrefix, final String outPrefixCategories,
-            final String outPrefixRelated, final String outPrefixAbstracts, final String outPrefixRedirects)
-            throws IOException {
+            final String outPrefixRelated, final String outPrefixAbstracts, final String outPrefixRedirects,
+            final String outPrefixImages, final String outPrefixCoordinates) throws IOException {
         started = System.currentTimeMillis();
 
         displayableLngs = new byte[LanguageConstants.KEYS_WIKI.length][];
@@ -548,6 +636,8 @@ class WikiExtractorBase {
         statRelated = 0;
         statRedirects = 0;
         statAbstracts = 0;
+        statGeoLocations = 0;
+        statImageLocations = 0;
         lineCount = 0;
         catName = false;
         irrelevantPrefixes.clear();
@@ -590,6 +680,15 @@ class WikiExtractorBase {
         if (outPrefixAbstracts != null) {
             outFileAbstracts = outDir + File.separator + outPrefixAbstracts + fileLng;
             outAbstracts = new BufferedOutputStream(new FileOutputStream(outFileAbstracts), Helper.BUFFER_SIZE);
+        }
+        if (outPrefixImages != null) {
+            outFileImageLocations = outDir + File.separator + outPrefixImages + fileLng;
+            outImageLocations = new BufferedOutputStream(new FileOutputStream(outFileImageLocations),
+                    Helper.BUFFER_SIZE);
+        }
+        if (outPrefixCoordinates != null) {
+            outFileGeoLocations = outDir + File.separator + outPrefixCoordinates + fileLng;
+            outGeoLocations = new BufferedOutputStream(new FileOutputStream(outFileGeoLocations), Helper.BUFFER_SIZE);
         }
     }
 
@@ -645,6 +744,11 @@ class WikiExtractorBase {
                         }
                     }
                 }
+                if (opened == 0) {
+                    insideInfobox = false;
+                } else if (insideInfobox) {
+                    parseInfobox();
+                }
             }
             if (opened == 0 && lineBB.hasRemaining()) {
                 if (hasContent) {
@@ -664,6 +768,9 @@ class WikiExtractorBase {
             // System.out.println(ArrayHelper.toString(lineBB));
             // System.out.println(ArrayHelper.toString(abstractBB) + ", opened: " + opened);
             // }
+            parseImageLocation();
+            parseGeoLocation();
+
         }
     }
 
@@ -724,32 +831,69 @@ class WikiExtractorBase {
     }
 
     protected void parseGeoLocation() {
-        // TODO
         // http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/dbpedia/file/945c24bdc54c/extraction/extractors/GeoExtractor.php
-        // static $knownTemplates = array(
-        //
-        // '/\{\{coor [^|}]*(?:d|dm|dms)\|([^}]+)\}\}/i',
-        //
-        // '/\{\{coord\|([^}]+)\}\}/i',
-        //
-        // '/\{\{Geolinks[^|}]*\|([^}]*)\}\}/i',
-        //
-        // '/\{\{Mapit[^|}]*\|([^}]+)\}\}/i', /* redirect to Geolinks, always create titles */
-        //
-        // '/\{\{Koordinate[^|}]*\|([^}]+)\}\}/i',
-        //
-        // '/\{\{Coordinate[^|}]*\|([^}]+)\}\}/i',
-        //
-        // '/\{\{좌표[^|}]*\|([^}]+)\}\}/i',
-        //
-        // );
+        if (ArrayHelper.isEmpty(geoLocation) && ArrayHelper.isEmpty(geoLocationInfobox)) {
+            int idx;
+            if (-1 != (idx = ArrayHelper.indexOfP(lineBB, COORD_TAG_BYTES_LOWER, COORD_TAG_BYTES_UPPER))) {
+                final int start = idx;
+                int end = -1;
+                int brackets = 2;
+                byte b;
+                for (int i = idx + 5; i < lineBB.limit(); i++) {
+                    b = lineArray[i];
+                    if (b == '}') {
+                        brackets--;
+                    } else if (b == '{') {
+                        break;
+                    }
+                    if (brackets == 0) {
+                        end = i + 1;
+                        break;
+                    }
+                }
+                if (end != -1) {
+                    final int len = end - start;
+                    ArrayHelper.copy(lineBB, start, geoLocation, 0, len);
+                    geoLocation.limit(len);
+                    // System.out.println(ArrayHelper.toString(geoLocation));
+                }
+            }
+        }
+
     }
 
     protected void parseImageLocation() {
-        // TODO
-        // http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/dbpedia/file/945c24bdc54c/extraction/extractors/ImageExtractor.php
-        // if (preg_match_all("~\[\[[a-zA-Z0-9-]+:([^]|]*\.(?:jpe?g|png|gif|svg))(\|[^]]*)?\]\]~i", $text, $match,
-        // PREG_OFFSET_CAPTURE)) {
+        if (ArrayHelper.isEmpty(imgLocation)) {
+            // http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/dbpedia/file/945c24bdc54c/extraction/extractors/ImageExtractor.php
+            // (check non-free)
+            int idx;
+            if (-1 != (idx = ArrayHelper.indexOfP(lineBB, IMAGE_SUFFIX_BYTES_LOWER, IMAGE_SUFFIX_BYTES_UPPER))) {
+                int start = lineBB.position();
+                int end = lineBB.limit();
+                byte b;
+                for (int i = idx; i < lineBB.limit(); i++) {
+                    b = lineArray[i];
+                    if (b == '|' || b == ']' || b == '&' || b == ' ') {
+                        end = i;
+                        break;
+                    }
+                }
+                for (int i = idx; i >= lineBB.position(); i--) {
+                    b = lineArray[i];
+                    if (b == ':' && lineArray[i + 1] != '/') {
+                        break;
+                    } else if (b == '=' || b == '[') {
+                        break;
+                    } else if (b != ' ') {
+                        start = i;
+                    }
+                }
+                final int len = end - start;
+                ArrayHelper.copy(lineBB, start, imgLocation, 0, len);
+                imgLocation.limit(len);
+                // System.out.println(ArrayHelper.toString(imgLocation));
+            }
+        }
     }
 
     void signal() {
@@ -870,6 +1014,7 @@ class WikiExtractorBase {
                                     if (idx + 1 < varKeyLower.length) {
                                         skipIdx[j] = idx + 1;
                                     } else {
+                                        skipIdx[j] = -1;
                                         writeValue = false;
                                         break;
                                     }
@@ -883,10 +1028,18 @@ class WikiExtractorBase {
                         }
                     }
                     i = stop;
+                    if (skipIdx[0] == -1) {
+                        // found infobox
+                        insideInfobox = true;
+                    }
+                    if (insideInfobox) {
+                        parseInfobox();
+                    }
                     if (opened != 0) {
                         openIdx = 1;
                         break STRIP;
                     } else {
+                        insideInfobox = false;
                         if (writeValue && walls < wallsIdx.length && walls > 0) {
                             // write e.g. 100km²
                             // System.out.println(ArrayHelper.toString(outBB.array(), 0, outBB.position()));
@@ -903,7 +1056,6 @@ class WikiExtractorBase {
                     opened = 1;
                     boolean writeValue = true;
                     boolean link = false;
-                    boolean linkTitle = false;
 
                     final int start = i + 1;
                     int stop;
@@ -927,7 +1079,6 @@ class WikiExtractorBase {
                         } else if (link && b == ' ') {
                             // link title
                             i = stop;
-                            linkTitle = true;
                             link = false;
                         }
                         if (walls == 0) {
@@ -1017,6 +1168,69 @@ class WikiExtractorBase {
         }
         outBB.limit(outBB.position()).rewind();
         return outBB.limit();
+    }
+
+    protected void parseInfobox() {
+        if (ArrayHelper.isEmpty(geoLocation)) {
+            // http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/dbpedia/file/945c24bdc54c/extraction/extractors/GeoExtractor.php
+            // (check bounds)
+            byte b;
+            int start = -1;
+            for (int i = lineBB.position(); i < lineBB.limit(); i++) {
+                b = lineArray[i];
+                if (b == '|') {
+                    start = i + 1;
+                } else if (start != -1 && b != ' ') {
+                    start = i;
+                    break;
+                }
+            }
+
+            int end = -1;
+            if (start != -1) {
+                for (int i = start + 1; i < lineBB.limit(); i++) {
+                    b = lineArray[i];
+                    if (b == ' ' || b == '=') {
+                        end = i;
+                        break;
+                    } else if (b == '|') {
+                        break;
+                    }
+                }
+            }
+
+            if (start != -1 && end != -1) {
+                final int len = end - start;
+                // System.out.println(ArrayHelper.toString(lineBB) + ", s=" + start + ", e=" + end + ", l=" + len);
+                boolean found = false;
+                for (int i = 0; i < INFOBOX_GEO_BYTES.length; i++) {
+                    byte[] text = INFOBOX_GEO_BYTES[i];
+                    if (text.length == len && ArrayHelper.equals(lineArray, start, text)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    int eod = lineBB.limit();
+                    // for (int i = end; i < lineBB.limit(); i++) {
+                    // b = lineArray[i];
+                    // if (b == '|') {
+                    // eod = i;
+                    // break;
+                    // }
+                    // }
+                    final int lod = eod - start;
+                    if (!ArrayHelper.isEmpty(geoLocationInfobox)) {
+                        geoLocationInfobox.position(geoLocationInfobox.limit()).limit(geoLocationInfobox.capacity());
+                        geoLocationInfobox.put((byte) '|');
+                    }
+                    ArrayHelper.copy(lineBB, start, geoLocationInfobox, geoLocationInfobox.position(), lod);
+                    geoLocationInfobox.limit(geoLocationInfobox.position() + lod);
+                    // System.out.println(ArrayHelper.toString(geoLocationInfobox));
+                }
+            }
+        }
     }
 
     public int stripWikiLine(final ByteBuffer inBB, final ByteBuffer outBB, final int maxChars) {
@@ -1158,6 +1372,12 @@ class WikiExtractorBase {
                     if (writeAbstract()) {
                         statAbstracts++;
                     }
+                    if (writeImageLocation()) {
+                        statImageLocations++;
+                    }
+                    if (writeGeoLocation()) {
+                        statGeoLocations++;
+                    }
                     if (writeRelated()) {
                         statRelated++;
                     }
@@ -1169,8 +1389,50 @@ class WikiExtractorBase {
         }
     }
 
+    private boolean writeGeoLocation() throws IOException {
+        if (outGeoLocations != null) {
+            ByteBuffer geocode = null;
+            if (!ArrayHelper.isEmpty(geoLocation)) {
+                geocode = geoLocation;
+            } else if (!ArrayHelper.isEmpty(geoLocationInfobox)) {
+                geocode = geoLocationInfobox;
+            }
+            if (geocode != null) {
+                if (DEBUG) {
+                    System.out.println(ArrayHelper.toString(name) + "的坐标：" + ArrayHelper.toString(geocode));
+                }
+                outGeoLocations.write(fileLngBytes);
+                outGeoLocations.write(Helper.SEP_DEFINITION_BYTES);
+                outGeoLocations.write(name.array(), 0, name.limit());
+                outGeoLocations.write(Helper.SEP_ATTRS_BYTES);
+                outGeoLocations.write(GeoLocation.TYPE_ID_BYTES);
+                outGeoLocations.write(geocode.array(), 0, geocode.limit());
+                outGeoLocations.write(Helper.SEP_NEWLINE_CHAR);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean writeImageLocation() throws IOException {
+        if (outImageLocations != null && !ArrayHelper.isEmpty(imgLocation)) {
+            if (DEBUG) {
+                System.out.println(ArrayHelper.toString(name) + "的图像：" + ArrayHelper.toString(imgLocation));
+            }
+            outImageLocations.write(fileLngBytes);
+            outImageLocations.write(Helper.SEP_DEFINITION_BYTES);
+            outImageLocations.write(name.array(), 0, name.limit());
+            outImageLocations.write(Helper.SEP_ATTRS_BYTES);
+            outImageLocations.write(ImageLocation.TYPE_ID_BYTES);
+            outImageLocations.write(imgLocation.array(), 0, imgLocation.limit());
+            outImageLocations.write(Helper.SEP_NEWLINE_CHAR);
+            return true;
+        }
+        return false;
+    }
+
     private boolean writeRelated() throws IOException {
-        if (!relatedWords.isEmpty()) {
+        if (outRelated != null && !relatedWords.isEmpty()) {
             if (DEBUG) {
                 System.out.println(ArrayHelper.toString(name) + "：写出" + relatedWords.size() + "个相关词汇。");
             }

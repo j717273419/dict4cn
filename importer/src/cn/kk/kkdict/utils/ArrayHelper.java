@@ -1227,8 +1227,36 @@ public final class ArrayHelper {
         return -1;
     }
 
-    public static boolean startsWith(ByteBuffer bb, byte[] prefix) {
+    public static final boolean startsWith(final ByteBuffer bb, final byte[] prefix) {
         return startsWith(bb.array(), 0, bb.limit(), prefix, 0, prefix.length);
+    }
+
+    public static final int indexOfP(final ByteBuffer lineBB, final byte[][] textsLower, final byte[][] textsUpper) {
+        return indexOf(lineBB.array(), lineBB.position(), lineBB.limit(), textsLower, textsUpper);
+    }
+
+    public static final int indexOf(final byte[] array, final int position, final int limit,
+            final byte[][] textsLower, final byte[][] textsUpper) {
+        byte b;
+        int[] idx = new int[textsLower.length];
+        for (int i = position; i < limit; i++) {
+            b = array[i];
+            for (int j = 0; j < idx.length; j++) {
+                final int textIdx = idx[j];
+                final byte[] textLower = textsLower[j];
+                final byte[] textUpper = textsUpper[j];
+                if (b == textLower[textIdx] || b == textUpper[textIdx]) {
+                    if (textIdx + 1 < textLower.length) {
+                        idx[j] = textIdx + 1;
+                    } else {
+                        return i - textLower.length + 1;
+                    }
+                } else {
+                    idx[j] = 0;
+                }
+            }
+        }
+        return -1;
     }
 
 }
