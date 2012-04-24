@@ -31,14 +31,19 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-
-import cn.kk.kkdict.utils.Helper;
 
 /**
  * Lingoes LD2/LDF File Reader
@@ -74,12 +79,17 @@ import cn.kk.kkdict.utils.Helper;
  * 
  */
 public class LingoesLd2Reader {
-    private static final String[] AVAIL_ENCODINGS = { "UTF-8", "UTF-16LE", "UTF-16BE" };
+    private static final SensitiveStringDecoder[] AVAIL_ENCODINGS = {
+            new SensitiveStringDecoder(Charset.forName("UTF-8")),
+            new SensitiveStringDecoder(Charset.forName("UTF-16LE")),
+            new SensitiveStringDecoder(Charset.forName("UTF-16BE")),
+            new SensitiveStringDecoder(Charset.forName("EUC-JP")) };
 
     public static void main(String[] args) throws IOException {
         // download from
         // https://skydrive.live.com/?cid=a10100d37adc7ad3&sc=documents&id=A10100D37ADC7AD3%211172#cid=A10100D37ADC7AD3&sc=documents
-        String ld2File = Helper.DIR_IN_DICTS+"\\lingoes\\Prodic English-Vietnamese Business.ld2";
+        // String ld2File = Helper.DIR_IN_DICTS+"\\lingoes\\Prodic English-Vietnamese Business.ld2";
+        String ld2File = "D:\\test.ld2";
 
         // read lingoes ld2 into byte array
         FileChannel fChannel = new RandomAccessFile(ld2File, "r").getChannel();
@@ -127,32 +137,26 @@ public class LingoesLd2Reader {
         return bytesRead;
     }
 
-    private static final String[] detectEncodings(final ByteBuffer inflatedBytes, final int offsetWords,
-            final int offsetXml, final int defTotal, final int dataLen, final int[] idxData, final String[] defData)
-            throws UnsupportedEncodingException {
-        final int tests = Math.min(defTotal, 10);
-        int defEnc = 0;
-        int xmlEnc = 0;
+    private static final SensitiveStringDecoder[] detectEncodings(final ByteBuffer inflatedBytes,
+            final int offsetWords, final int offsetXml, final int defTotal, final int dataLen, final int[] idxData,
+            final String[] defData) throws UnsupportedEncodingException {
+        final int test = Math.min(defTotal, 10);
         Pattern p = Pattern.compile("^.*[\\x00-\\x1f].*$");
-        for (int i = 0; i < tests; i++) {
-            readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[defEnc],
-                    AVAIL_ENCODINGS[xmlEnc], idxData, defData, i);
-            if (p.matcher(defData[0]).matches()) {
-                if (defEnc < AVAIL_ENCODINGS.length - 1) {
-                    defEnc++;
+        for (int j = 0; j < AVAIL_ENCODINGS.length; j++) {
+            for (int k = 0; k < AVAIL_ENCODINGS.length; k++) {
+                try {
+                    readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
+                            AVAIL_ENCODINGS[k], idxData, defData, test);
+                    System.out.println("词组编码：" + AVAIL_ENCODINGS[j]);
+                    System.out.println("XML编码：" + AVAIL_ENCODINGS[k]);
+                    return new SensitiveStringDecoder[] { AVAIL_ENCODINGS[j], AVAIL_ENCODINGS[k] };
+                } catch (Throwable e) {
+                    // ignore
                 }
-                i = 0;
-            }
-            if (p.matcher(defData[1]).matches()) {
-                if (xmlEnc < AVAIL_ENCODINGS.length - 1) {
-                    xmlEnc++;
-                }
-                i = 0;
             }
         }
-        System.out.println("词组编码：" + AVAIL_ENCODINGS[defEnc]);
-        System.out.println("XML编码：" + AVAIL_ENCODINGS[xmlEnc]);
-        return new String[] { AVAIL_ENCODINGS[defEnc], AVAIL_ENCODINGS[xmlEnc] };
+        System.err.println("自动识别编码失败！选择UTF-16LE继续。");
+        return new SensitiveStringDecoder[] { AVAIL_ENCODINGS[1], AVAIL_ENCODINGS[1] };
     }
 
     private static final void extract(final String inflatedFile, final String indexFile,
@@ -180,15 +184,13 @@ public class LingoesLd2Reader {
         int[] idxData = new int[6];
         String[] defData = new String[2];
 
-        final String[] encodings = detectEncodings(dataRawBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData,
-                defData);
+        final SensitiveStringDecoder[] encodings = detectEncodings(dataRawBytes, offsetDefs, offsetXml, defTotal,
+                dataLen, idxData, defData);
 
         dataRawBytes.position(8);
         int counter = 0;
-        final String defEncoding = encodings[0];
-        final String xmlEncoding = encodings[1];
         for (int i = 0; i < defTotal; i++) {
-            readDefinitionData(dataRawBytes, offsetDefs, offsetXml, dataLen, defEncoding, xmlEncoding, idxData,
+            readDefinitionData(dataRawBytes, offsetDefs, offsetXml, dataLen, encodings[0], encodings[1], idxData,
                     defData, i);
 
             words[i] = defData[0];
@@ -251,8 +253,9 @@ public class LingoesLd2Reader {
     }
 
     private static final void readDefinitionData(final ByteBuffer inflatedBytes, final int offsetWords,
-            final int offsetXml, final int dataLen, final String wordEncoding, final String xmlEncoding,
-            final int[] idxData, final String[] defData, final int i) throws UnsupportedEncodingException {
+            final int offsetXml, final int dataLen, final SensitiveStringDecoder wordStringDecoder,
+            final SensitiveStringDecoder xmlStringDecoder, final int[] idxData, final String[] defData, final int i)
+            throws UnsupportedEncodingException {
         getIdxData(inflatedBytes, dataLen * i, idxData);
         int lastWordPos = idxData[0];
         int lastXmlPos = idxData[1];
@@ -260,26 +263,27 @@ public class LingoesLd2Reader {
         int refs = idxData[3];
         int currentWordOffset = idxData[4];
         int currenXmlOffset = idxData[5];
-        String xml = strip(new String(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos,
-                xmlEncoding));
+
+        String xml = strip(new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos,
+                currenXmlOffset - lastXmlPos)));
         while (refs-- > 0) {
             int ref = inflatedBytes.getInt(offsetWords + lastWordPos);
             getIdxData(inflatedBytes, dataLen * ref, idxData);
             lastXmlPos = idxData[1];
             currenXmlOffset = idxData[5];
             if (xml.isEmpty()) {
-                xml = strip(new String(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos,
-                        xmlEncoding));
+                xml = strip(new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos,
+                        currenXmlOffset - lastXmlPos)));
             } else {
-                xml = strip(new String(inflatedBytes.array(), offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos,
-                        xmlEncoding)) + ", " + xml;
+                xml = strip(new String(xmlStringDecoder.decode(inflatedBytes.array(), offsetXml + lastXmlPos,
+                        currenXmlOffset - lastXmlPos))) + ", " + xml;
             }
             lastWordPos += 4;
         }
         defData[1] = xml;
 
-        String word = new String(inflatedBytes.array(), offsetWords + lastWordPos, currentWordOffset - lastWordPos,
-                wordEncoding);
+        String word = new String(wordStringDecoder.decode(inflatedBytes.array(), offsetWords + lastWordPos,
+                currentWordOffset - lastWordPos));
         defData[0] = word;
     }
 
@@ -337,13 +341,13 @@ public class LingoesLd2Reader {
         int end = 0;
         if ((open = xml.indexOf("<![CDATA[")) != -1) {
             if ((end = xml.indexOf("]]>", open)) != -1) {
-                return xml.substring(open + "<![CDATA[".length(), end).replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ')
+                return xml.substring(open + "<![CDATA[".length(), end).replace('\t', ' ').replace('\n', ' ')
                         .replace('\u001e', ' ').replace('\u001f', ' ');
             }
         } else if ((open = xml.indexOf("<Ô")) != -1) {
             if ((end = xml.indexOf("</Ô", open)) != -1) {
                 open = xml.indexOf(">", open + 1);
-                return xml.substring(open + 1, end).replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ').replace('\u001e', ' ')
+                return xml.substring(open + 1, end).replace('\t', ' ').replace('\n', ' ').replace('\u001e', ' ')
                         .replace('\u001f', ' ');
             }
         } else {
@@ -357,7 +361,7 @@ public class LingoesLd2Reader {
                 open = xml.indexOf('<', open + 1);
                 end = xml.indexOf('>', end + 1);
             } while (open != -1 && end != -1);
-            return sb.toString().replace('\t', ' ').replace(Helper.SEP_NEWLINE_CHAR, ' ').replace('\u001e', ' ').replace('\u001f', ' ');
+            return sb.toString().replace('\t', ' ').replace('\n', ' ').replace('\u001e', ' ').replace('\u001f', ' ');
         }
         return "";
     }
@@ -370,4 +374,45 @@ public class LingoesLd2Reader {
         }
     }
 
+    private static class SensitiveStringDecoder {
+        private final CharsetDecoder cd;
+
+        private SensitiveStringDecoder(Charset cs) {
+            this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+        }
+
+        char[] decode(byte[] ba, int off, int len) {
+            int en = (int) (len * (double) cd.maxCharsPerByte());
+            char[] ca = new char[en];
+            if (len == 0)
+                return ca;
+            cd.reset();
+            ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+            CharBuffer cb = CharBuffer.wrap(ca);
+            try {
+                CoderResult cr = cd.decode(bb, cb, true);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+                cr = cd.flush(cb);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+            } catch (CharacterCodingException x) {
+                // Substitution is always enabled,
+                // so this shouldn't happen
+                throw new Error(x);
+            }
+            return safeTrim(ca, cb.position());
+        }
+
+        private char[] safeTrim(char[] ca, int len) {
+            if (len == ca.length) {
+                return ca;
+            } else {
+                return Arrays.copyOf(ca, len);
+            }
+        }
+    }
 }

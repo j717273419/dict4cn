@@ -369,7 +369,7 @@ public final class DictHelper {
         int idx;
         mergeBB.rewind();
         while (-1 != (idx = ArrayHelper.indexOf(mergeBB.array(), mergeBB.position(),
-                mergeBB.limit() - mergeBB.position(), DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
+                mergeBB.remaining(), DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
             int stopIdx = DictHelper.getNextStopPoint(mergeBB.array(), idx
                     + DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES.length, mergeBB.limit(), DictHelper.ORDER_ATTRIBUTE);
             if (mergeBB.limit() > stopIdx) {

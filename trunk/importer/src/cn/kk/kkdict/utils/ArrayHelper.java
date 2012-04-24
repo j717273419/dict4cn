@@ -10,6 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -479,10 +481,17 @@ public final class ArrayHelper {
     public final static int indexOf(final byte[] text, final int offset, final int len1, final byte[] s,
             final int offset2, final int len2) {
         if (len1 >= len2) {
-            final int size = len1 - len2 + 1 + offset;
-            for (int i = offset; i < size; i++) {
-                if (equals(text, i, s, offset2, len2)) {
-                    return i;
+            final int limit = offset + len1;
+            int idx = 0;
+            byte b;
+            for (int i = offset; i < limit; i++) {
+                b = text[i];
+                if (b == s[offset2 + idx]) {
+                    if (++idx == len2) {
+                        return i - len2 + 1;
+                    }
+                } else {
+                    idx = 0;
                 }
             }
         }
@@ -806,8 +815,9 @@ public final class ArrayHelper {
 
     public final static String substringBetween(final byte[] text, final int offset, final int limit,
             final byte[] start, final byte[] end, final boolean trim) {
-        int nStart = indexOf(text, offset, limit, start);
-        final int nEnd = indexOf(text, nStart + start.length + 1, limit, end);
+        int nStart = indexOf(text, offset, limit - offset, start);
+        final int s = nStart + start.length + 1;
+        final int nEnd = indexOf(text, s, limit - s, end);
         if (nStart != -1 && nEnd > nStart) {
             nStart += start.length;
             String str = new String(text, nStart, nEnd - nStart, Helper.CHARSET_UTF8);
@@ -834,30 +844,37 @@ public final class ArrayHelper {
      */
     public final static int substringBetween(final byte[] text, final int offset, final int limit, final byte[] start,
             final byte[] end, final boolean trim, ByteBuffer bb) {
-        int nStart = indexOf(text, offset, limit, start);
-        int nEnd = indexOf(text, nStart + start.length + 1, limit, end);
+        int nStart = indexOf(text, offset, limit - offset, start);
+        final int s = nStart + start.length;
+        int nEnd = indexOf(text, s, limit - s, end);
         if (nStart != -1 && nEnd > nStart) {
             nStart += start.length;
             if (trim) {
+                boolean empty = true;
                 byte c;
                 int i;
                 for (i = nStart; i < nEnd; i++) {
                     c = text[i];
-                    if (c != ' ' && c != '\t' && c != '\r') {
+                    if (c != ' ' && c != '\t') {
+                        nStart = i;
+                        empty = false;
                         break;
                     }
                 }
-                nStart = i;
-                for (i = nEnd; i >= nStart; i--) {
-                    c = text[i];
-                    if (c != ' ' && c != '\t' && c != '\r') {
-                        break;
+                if (empty) {
+                    nEnd = -1;
+                } else {
+                    for (i = nEnd; i >= nStart; i--) {
+                        c = text[i];
+                        if (c != ' ' && c != '\t') {
+                            break;
+                        }
                     }
+                    nEnd = i;
                 }
-                nEnd = i;
             }
             if (nEnd > nStart) {
-                int len = nEnd - nStart;
+                final int len = nEnd - nStart;
                 System.arraycopy(text, nStart, bb.array(), 0, len);
                 bb.limit(len);
             } else {
@@ -1033,22 +1050,22 @@ public final class ArrayHelper {
         return toString(array, 0, array.length);
     }
 
-    private static class IgnoringStringDecoder {
+    public final static class SilentStringDecoder {
         private final CharsetDecoder cd;
 
-        private IgnoringStringDecoder(Charset cs) {
+        public SilentStringDecoder(Charset cs) {
             this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.IGNORE)
                     .onUnmappableCharacter(CodingErrorAction.IGNORE);
         }
 
-        char[] decode(byte[] ba, int off, int len) {
-            int en = (int) (len * (double) cd.maxCharsPerByte());
-            char[] ca = new char[en];
+        public final char[] decode(final byte[] ba, final int off, final int len) {
+            final int en = (int) (len * (double) cd.maxCharsPerByte());
+            final char[] ca = new char[en];
             if (len == 0)
                 return ca;
             cd.reset();
-            ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
-            CharBuffer cb = CharBuffer.wrap(ca);
+            final ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+            final CharBuffer cb = CharBuffer.wrap(ca);
             try {
                 CoderResult cr = cd.decode(bb, cb, true);
                 if (!cr.isUnderflow()) {
@@ -1068,7 +1085,7 @@ public final class ArrayHelper {
 
     }
 
-    public static char[] safeTrim(char[] ca, int len) {
+    public final static char[] safeTrim(final char[] ca, final int len) {
         if (len == ca.length) {
             return ca;
         } else {
@@ -1076,7 +1093,7 @@ public final class ArrayHelper {
         }
     }
 
-    private static final IgnoringStringDecoder STRING_DECODER = new IgnoringStringDecoder(Helper.CHARSET_UTF8);
+    private static final SilentStringDecoder STRING_DECODER_SILENT = new SilentStringDecoder(Helper.CHARSET_UTF8);
 
     /**
      * 
@@ -1087,7 +1104,7 @@ public final class ArrayHelper {
      * @return
      */
     public static final String toString(final byte[] array, int offset, int len) {
-        return new String(STRING_DECODER.decode(array, offset, len));
+        return new String(STRING_DECODER_SILENT.decode(array, offset, len));
     }
 
     public static final String toString(final ByteBuffer bb) {
@@ -1235,8 +1252,8 @@ public final class ArrayHelper {
         return indexOf(lineBB.array(), lineBB.position(), lineBB.limit(), textsLower, textsUpper);
     }
 
-    public static final int indexOf(final byte[] array, final int position, final int limit,
-            final byte[][] textsLower, final byte[][] textsUpper) {
+    public static final int indexOf(final byte[] array, final int position, final int limit, final byte[][] textsLower,
+            final byte[][] textsUpper) {
         byte b;
         int[] idx = new int[textsLower.length];
         for (int i = position; i < limit; i++) {
@@ -1259,4 +1276,108 @@ public final class ArrayHelper {
         return -1;
     }
 
+    /**
+     * continue writing to bb starting from its current limit.
+     * 
+     * @param bb
+     */
+    public static void extend(ByteBuffer bb) {
+        bb.position(bb.limit()).limit(bb.capacity());
+    }
+
+    public static int positionP(ByteBuffer bb, int relPos) {
+        return bb.position(bb.position() + relPos).position();
+    }
+
+    public final static void replaceP(final ByteBuffer lineBB, final byte from, final byte to) {
+        final byte[] array = lineBB.array();
+        final int offset = lineBB.position();
+        final int limit = lineBB.limit();
+        replace(array, offset, limit, from, to);
+    }
+
+    private final static void replace(final byte[] array, final int offset, final int limit, final byte from,
+            final byte to) {
+        for (int i = offset; i < limit; i++) {
+            if (array[i] == from) {
+                {
+                    array[i] = to;
+                }
+
+            }
+        }
+    }
+
+    public final static void replace(final byte[] text, final byte from, final byte to) {
+        replace(text, 0, text.length, from, to);
+    }
+
+    private static MessageDigest MD5;
+    static {
+        try {
+            MD5 = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static final byte[] md5P(final ByteBuffer bb) {
+        final byte[] array = bb.array();
+        final int position = bb.position();
+        final int len = bb.remaining();
+        return md5(array, position, len);
+    }
+
+    private static byte[] md5(final byte[] array, final int position, final int len) {
+        MD5.reset();
+        MD5.update(array, position, len);
+        return MD5.digest();
+    }
+
+    public static final byte toHexChar(final int b) {
+        if (b < 10) {
+            return (byte) (b + 0x30);
+        } else {
+            return (byte) (b + 0x57);
+        }
+    }
+
+    public final static int limitP(final ByteBuffer bb, final int i) {
+        return bb.limit(bb.limit() + i).limit();
+
+    }
+
+    public static class SensitiveStringDecoder {
+        private final CharsetDecoder cd;
+
+        public SensitiveStringDecoder(Charset cs) {
+            this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+        }
+
+        public final char[] decode(final byte[] ba, final int off, final int len) {
+            final int en = (int) (len * (double) cd.maxCharsPerByte());
+            final char[] ca = new char[en];
+            if (len == 0)
+                return ca;
+            cd.reset();
+            final ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+            final CharBuffer cb = CharBuffer.wrap(ca);
+            try {
+                CoderResult cr = cd.decode(bb, cb, true);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+                cr = cd.flush(cb);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+            } catch (CharacterCodingException x) {
+                // Substitution is always enabled,
+                // so this shouldn't happen
+                throw new Error(x);
+            }
+            return safeTrim(ca, cb.position());
+        }
+    }
 }

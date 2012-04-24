@@ -75,11 +75,13 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     }
 
     private int extractWiktionaryPagesMetaCurrent(String f) throws FileNotFoundException, IOException {
-        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_", null, null);
+        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_", null, null, "output-dict_src.wikt_", null);
         ParserResult pr;
         byte[] tmp;
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
-            signal();
+            if (++lineCount % OK_NOTICE == 0) {
+                signal();
+            }
             if (WikiParseStep.HEADER == step) {
                 parseDocumentHeader();
             } else if (WikiParseStep.BEFORE_TITLE == step) {
@@ -95,7 +97,9 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                 int idx;
                 if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
                     handleTextBeginLine(idx);
-                    checkRedirectLine();
+                    if (step == WikiParseStep.PAGE && lineLen > 14 && lineArray[0] == '#') {
+                        checkRedirectLine();
+                    }
                 } else if (lineLen > MIN_REDIRECT_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
                                 SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
@@ -103,6 +107,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                 }
             }
             if (step == WikiParseStep.PAGE) {
+                // System.out.println(ArrayHelper.toString(lineBB));
                 int idx;
                 if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_END_BYTES))) {
                     handleTextEndLine(idx);
@@ -119,21 +124,21 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                         ChineseHelper.toSimplifiedChinese(tmpBB);
                     }
                     if (DEBUG && TRACE) {
-                        System.out.println(">标题（" + pr + "）：" + ArrayHelper.toString(tmpBB));
+                        System.out.println(ArrayHelper.toString(nameBB)+"，标题（" + pr + "）：" + ArrayHelper.toString(tmpBB));
                     }
                     if (null != (tmp = parseSourceLanguage(pr))) {
                         if (DEBUG) {
                             System.out
-                                    .println(">语言：" + ArrayHelper.toString(tmp) + ", " + ArrayHelper.toString(lineBB));
+                                    .println(ArrayHelper.toString(nameBB)+"，语言：" + ArrayHelper.toString(tmp) + ", " + ArrayHelper.toString(lineBB));
 
                         }
                         clearAttributes();
                         this.sourceLng = tmp;
                     }
                 }
-                if (parseAbstract && lineLen > 0) {
-                    // parseAbstract();
-                }
+                // if (parseAbstract) {
+                // parseAbstract();
+                // }
             }
         }
         // write last definition
@@ -224,7 +229,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                             return ParserResult.ABBR;
                         }
                     }
-                } else if (-1 != (idx = ArrayHelper.indexOf(lineArray, 5, lineLen, LNG_FCT_KEY_BYTES))) {
+                } else if (-1 != (idx = ArrayHelper.indexOf(lineArray, 5, lineLen - 5, LNG_FCT_KEY_BYTES))) {
                     // {{also|-faction}}{{-en-}}
                     final int offset = idx + LNG_FCT_KEY_BYTES.length;
                     for (int i = offset; i < lineLen; i++) {
@@ -285,10 +290,11 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     @Override
     protected void initialize(final String f, final String outDir, final String outPrefix,
             final String outPrefixCategories, final String outPrefixRelated, final String outPrefixAbstracts,
-            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates)
+            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates, final String outPrefixSource,
+            final String outPrefixAttributes)
             throws IOException {
         super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated, outPrefixAbstracts,
-                outPrefixRedirects, outPrefixImages, outPrefixCoordinates);
+                outPrefixRedirects, outPrefixImages, outPrefixCoordinates, outPrefixSource, outPrefixAttributes);
         final String lngName = Helper.toConstantName(fileLng);
         this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(lngName));
         categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_"
@@ -305,7 +311,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                     if (sourceLng == null) {
                         sourceLng = tmp;
                     } else if (!Arrays.equals(sourceLng, tmp)) {
-                        System.err.println("找到多种语言：" + ArrayHelper.toString(name));
+                        System.err.println("找到多种语言：" + ArrayHelper.toString(nameBB));
                         sourceLng = null;
                         break;
                     }
@@ -314,7 +320,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
         }
         // if (DEBUG) {
         if (isValid()) {
-            String n = ArrayHelper.toString(name);
+            String n = ArrayHelper.toString(nameBB);
             if (!ChineseHelper.containsChinese(n) && sourceLng == null) {
                 System.err.println("=> 没找到源语言：" + n);
             }

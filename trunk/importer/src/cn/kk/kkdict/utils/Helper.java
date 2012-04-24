@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -191,27 +192,20 @@ public final class Helper {
         return download(url, File.createTempFile("kkdl", null).getAbsolutePath(), true);
     }
 
-    public static String download(String url, String file, boolean overwrite) throws IOException {
+    public static String download(String url, String to, boolean overwrite) throws IOException {
         if (DEBUG) {
-            System.out.println("下载'" + url + "'到'" + file + "'。。。");
+            System.out.println("下载'" + url + "'到'" + to + "'。。。");
         }
-        if (!overwrite && new File(file).exists()) {
-            System.err.println("文件'" + file + "'已存在。跳过下载程序。");
+        if (!overwrite && new File(to).exists()) {
+            System.err.println("文件'" + to + "'已存在。跳过下载程序。");
             return null;
         } else {
             long start = System.currentTimeMillis();
-            URL urlObj = new URL(url);
-            URLConnection conn = urlObj.openConnection();
-            conn.addRequestProperty("User-Agent",
-                    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
-            conn.addRequestProperty("Cache-Control", "no-cache");
-            conn.addRequestProperty("Pragma", "no-cache");
-            conn.setUseCaches(false);
             OutputStream out = null;
             InputStream in = null;
             try {
-                out = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-                in = new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
+                out = new BufferedOutputStream(new FileOutputStream(to), BUFFER_SIZE);
+                in = new BufferedInputStream(openUrlInputStream(url), BUFFER_SIZE);
                 writeInputStream(in, out);
             } catch (IOException e) {
                 System.err.println("下载失败：" + e.toString());
@@ -224,14 +218,25 @@ public final class Helper {
 
                     long duration = System.currentTimeMillis() - start;
                     if (INFO) {
-                        System.out.println("下载文件'" + url + "'（" + formatSpace(new File(file).length()) + "），用时"
+                        System.out.println("下载文件'" + url + "'（" + formatSpace(new File(to).length()) + "），用时"
                                 + Helper.formatDuration(duration) + "（"
-                                + Math.round(new File(file).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
+                                + Math.round(new File(to).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
                     }
                 }
             }
-            return file;
+            return to;
         }
+    }
+
+    public final static InputStream openUrlInputStream(final String url) throws MalformedURLException, IOException {
+        URL urlObj = new URL(url);
+        URLConnection conn = urlObj.openConnection();
+        conn.addRequestProperty("User-Agent",
+                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
+        conn.addRequestProperty("Cache-Control", "no-cache");
+        conn.addRequestProperty("Pragma", "no-cache");
+        conn.setUseCaches(false);
+        return conn.getInputStream();
     }
 
     public static ByteBuffer compressFile(String rawFile, int level) throws IOException {
@@ -831,4 +836,5 @@ public final class Helper {
         }
         return null;
     }
+
 }

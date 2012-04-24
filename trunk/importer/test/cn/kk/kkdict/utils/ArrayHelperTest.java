@@ -373,6 +373,45 @@ public class ArrayHelperTest {
         bb = ByteBuffer.allocate(20);
         assertEquals(12, ArrayHelper.substringBetween(test1, 0, test1.length, (byte) 1, (byte) 5, bb, true));
         assertArrayEquals(new byte[] { -1 }, ArrayHelper.toBytes(bb));
+    }
 
+    @Test
+    public void testSubstringBetweenArray() {
+        byte[] test1 = { 1, 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, 1, -1, 5, -8, -22, 46, 8, 1, 0 };
+        ByteBuffer bb = ByteBuffer.allocate(10);
+        assertTrue(0 < ArrayHelper.substringBetween(test1, 0, test1.length, new byte[] { 8, 6 }, new byte[] { 0, 6 },
+                bb));
+        assertArrayEquals(new byte[] { 2, 3, 6, 9 }, ArrayHelper.toBytes(bb));
+
+        assertTrue(0 < ArrayHelper.substringBetween(test1, 5, test1.length, new byte[] { 0, 6, 3 }, new byte[] { -1 },
+                bb));
+        assertArrayEquals(new byte[] { 1 }, ArrayHelper.toBytes(bb));
+
+        assertTrue(0 == ArrayHelper.substringBetween(test1, 5, test1.length, new byte[] { 6 }, new byte[] { 9 }, bb));
+
+        byte[] test2 = "<title> TEST</title>".getBytes(Helper.CHARSET_UTF8);
+        bb.clear();
+        assertEquals(4, ArrayHelper.substringBetween(test2, 0, test2.length, "<title>".getBytes(Helper.CHARSET_UTF8),
+                "</title>".getBytes(Helper.CHARSET_UTF8), bb));
+        assertArrayEquals("TEST".getBytes(Helper.CHARSET_UTF8), ArrayHelper.toBytes(bb));
+    }
+
+    @Test
+    public void testIndexOf() {
+        byte[] test1 = { 1, 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, 1, -1, 5, -8, -22, 46, 8, 1, 0 };
+        assertEquals(4, ArrayHelper.indexOf(test1, 0, test1.length, new byte[] { 6, 2, 3, 6 }));
+        assertEquals(4, ArrayHelper.indexOf(test1, 2, test1.length - 2, new byte[] { 6, 2, 3, 6 }));
+        assertEquals(0, ArrayHelper.indexOf(test1, 0, test1.length, new byte[] { 1 }));
+        assertEquals(12, ArrayHelper.indexOf(test1, 2, test1.length - 2, new byte[] { 1 }));
+    }
+
+    @Test
+    public void testMd5() {
+        System.out.println(ArrayHelper.toHexString(ArrayHelper.md5P(ByteBuffer.wrap("Wang_Bo.jpg"
+                .getBytes(Helper.CHARSET_UTF8)))));
+        assertArrayEquals(new byte[] { (byte) 0x8e, (byte) 0xf9, (byte) 0x3b, (byte) 0x78, (byte) 0xdc, (byte) 0x67,
+                (byte) 0x01, (byte) 0x9c, (byte) 0xd2, (byte) 0x63, (byte) 0xd1, (byte) 0x01, (byte) 0x16, (byte) 0xaa,
+                (byte) 0x50, (byte) 0x05 },
+                ArrayHelper.md5P(ByteBuffer.wrap("Wang_Bo.jpg".getBytes(Helper.CHARSET_UTF8))));
     }
 }

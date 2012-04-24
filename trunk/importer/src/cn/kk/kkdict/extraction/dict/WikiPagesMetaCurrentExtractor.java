@@ -9,6 +9,11 @@ import cn.kk.kkdict.beans.WikiParseStep;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * 
+ * 用时：中文~10分钟（全），8分钟（无图片链接，坐标）
+ * 
+ */
 public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
 
     public static final String IN_DIR = Helper.DIR_IN_DICTS + "\\wiki\\test";
@@ -31,6 +36,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
             });
             System.out.println(files.length);
 
+            long start = System.currentTimeMillis();
             ArrayHelper.WARN = false;
             long total = 0;
             for (File f : files) {
@@ -39,8 +45,9 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
             ArrayHelper.WARN = true;
 
             System.out.println("=====================================");
-            System.out.println("总共读取了" + files.length + "个wiki文件");
-            System.out.println("有效词组：" + total);
+            System.out.println("总共读取了" + files.length + "个wiki文件，用时："
+                    + Helper.formatDuration(System.currentTimeMillis() - start));
+            System.out.println("总共有效词组：" + total);
             System.out.println("=====================================\n");
         }
     }
@@ -48,13 +55,21 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
     private int extractWikipediaPagesMetaCurrent(final File file) throws FileNotFoundException, IOException {
         String f = file.getAbsolutePath();
         initialize(f, OUT_DIR, "output-dict.wiki_", "output-dict_categories.wiki_", "output-dict_related.wiki_",
-                "output-dict_abstracts.wiki_", "output-dict_redirects.wiki_", "output-dict_images.wiki_", "output-dict_coords.wiki_");
+                "output-dict_abstracts.wiki_", "output-dict_redirects.wiki_", "output-dict_images.wiki_",
+                "output-dict_coords.wiki_", "output-dict_src.wiki_", "output-dict_attrs.wiki_");
+        // initialize(f, OUT_DIR, "output-dict.wiki_", null, "output-dict_related.wiki_", "output-dict_abstracts.wiki_",
+        // "output-dict_redirects.wiki_", "output-dict_images.wiki_", "output-dict_coords.wiki_",
+        // "output-dict_src.wiki_", null);
+        // initialize(f, OUT_DIR, "output-dict.wiki_", null, null, null, null, null, null);
 
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
-            signal();
+            if (++lineCount % OK_NOTICE == 0) {
+                signal();
+            }
             if (WikiParseStep.HEADER == step) {
                 parseDocumentHeader();
             } else if (WikiParseStep.BEFORE_TITLE == step) {
+                // System.out.println(ArrayHelper.toString(lineBB));
                 if (lineLen > MIN_TITLE_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_TITLE_BYTES, SUFFIX_TITLE_BYTES,
                                 tmpBB) > 0) {
@@ -67,7 +82,9 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                 int idx;
                 if (-1 != (idx = ArrayHelper.indexOf(lineArray, 0, lineLen, TAG_TEXT_BEGIN_BYTES))) {
                     handleTextBeginLine(idx);
-                    checkRedirectLine();
+                    if (step == WikiParseStep.PAGE && lineLen > 14 && lineArray[0] == '#') {
+                        checkRedirectLine();
+                    }
                 } else if (lineLen > MIN_REDIRECT_LINE_BYTES
                         && ArrayHelper.substringBetween(lineArray, 0, lineLen, TAG_REDIRECT_BEGIN_BYTES,
                                 SUFFIX_REDIRECT_BYTES, tmpBB) > 0) {
@@ -88,7 +105,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                     addCategory();
                 } else if (ArrayHelper.substringBetween(lineArray, 0, lineLen, PREFIX_WIKI_TAG_BYTES,
                         SUFFIX_WIKI_TAG_BYTES, tmpBB) > 0) {
-                    // found wiki tag
+                    // found wiki tag [[...]]
                     idx = ArrayHelper.indexOf(tmpBB, (byte) ':');
                     if (idx > 0 && idx < 13) {
                         // has : in tag, perhaps translation
@@ -102,7 +119,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                         }
                     }
                 }
-                if (parseAbstract && lineLen > 0) {
+                if (parseAbstract) {
                     parseAbstract();
                 }
             }

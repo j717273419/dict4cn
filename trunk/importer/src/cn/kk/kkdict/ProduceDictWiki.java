@@ -2,7 +2,7 @@ package cn.kk.kkdict;
 
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.summarization.WikiDictCategoriesMerger;
-import cn.kk.kkdict.summarization.WikiDictRelatedRepairman;
+import cn.kk.kkdict.summarization.WikiDictRelatedCorrector;
 import cn.kk.kkdict.summarization.WikiDictsMerger;
 import cn.kk.kkdict.tools.WikipediaDumpPagesMetaCurrentXmlDownloader;
 import cn.kk.kkdict.utils.Helper;
@@ -20,7 +20,7 @@ public class ProduceDictWiki {
         runJob(WikipediaDumpPagesMetaCurrentXmlDownloader.class);        
         runJob(WikiPagesMetaCurrentExtractor.class);
         runJob(WikiDictCategoriesMerger.class);
-        runJob(WikiDictRelatedRepairman.class);
+        runJob(WikiDictRelatedCorrector.class);
         runJob(WikiDictsMerger.class);
 
         System.out.println("\n\n======================================\n总共用时："
