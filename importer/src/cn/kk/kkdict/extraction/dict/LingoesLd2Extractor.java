@@ -204,8 +204,8 @@ public class LingoesLd2Extractor {
                 try {
                     readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
                             AVAIL_ENCODINGS[k], idxData, defData, test);
-                    System.out.println("词组编码：" + AVAIL_ENCODINGS[j]);
-                    System.out.println("XML编码：" + AVAIL_ENCODINGS[k]);
+                    System.out.println("词组编码：" + AVAIL_ENCODINGS[j].name);
+                    System.out.println("XML编码：" + AVAIL_ENCODINGS[k].name);
                     return new ArrayHelper.SensitiveStringDecoder[] { AVAIL_ENCODINGS[j], AVAIL_ENCODINGS[k] };
                 } catch (Throwable e) {
                     // ignore

@@ -1051,11 +1051,13 @@ public final class ArrayHelper {
     }
 
     public final static class SilentStringDecoder {
+        public final String name;
         private final CharsetDecoder cd;
 
         public SilentStringDecoder(Charset cs) {
             this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.IGNORE)
                     .onUnmappableCharacter(CodingErrorAction.IGNORE);
+            this.name = cs.name();
         }
 
         public final char[] decode(final byte[] ba, final int off, final int len) {
@@ -1348,11 +1350,13 @@ public final class ArrayHelper {
     }
 
     public static class SensitiveStringDecoder {
+        public final String name;
         private final CharsetDecoder cd;
 
         public SensitiveStringDecoder(Charset cs) {
             this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT);
+            this.name = cs.name();
         }
 
         public final char[] decode(final byte[] ba, final int off, final int len) {
