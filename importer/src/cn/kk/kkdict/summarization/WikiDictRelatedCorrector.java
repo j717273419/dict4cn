@@ -27,10 +27,10 @@ import cn.kk.kkdict.utils.Helper;
 /**
  * 建立相关单词的双向连接。计算出现次数。
  */
-public class WikiDictRelatedRepairman {
+public class WikiDictRelatedCorrector {
     public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
     public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
-    public static final String SUFFIX_WEIGHTED = "_repaired";
+    public static final String SUFFIX_CORRECTED = "_corrected";
     private static final boolean DEBUG = false;
     private static final boolean TRACE = false;
     private static boolean writeAttributes = true;
@@ -68,7 +68,7 @@ public class WikiDictRelatedRepairman {
             IndexedByteArray tester = new IndexedByteArray();
             for (String f : filePaths) {
                 String outFile = OUT_DIR + File.separator
-                        + Helper.appendFileName(new File(f).getName(), SUFFIX_WEIGHTED);
+                        + Helper.appendFileName(new File(f).getName(), SUFFIX_CORRECTED);
                 Language lng = DictHelper.getWikiLanguage(f);
                 if (lng != null) {
                     defDict.clear();
@@ -172,6 +172,7 @@ public class WikiDictRelatedRepairman {
                         }
                     }
                     out.close();
+                    in.close();
                     System.out.println("完成'" + outFile + "'（" + Helper.formatSpace(new File(outFile).length())
                             + "），用时：" + Helper.formatDuration(System.currentTimeMillis() - startFile));
                 }

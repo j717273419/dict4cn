@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.Set;
 
 import cn.kk.kkdict.beans.FormattedTreeSet;
+import cn.kk.kkdict.utils.Helper;
 
 public enum Category {
-    PEOPLE("人"),
-    NAME("名"), // 地名， 山， 河， 桥， 路， 街 学校 单位
+    PEOPLE("人"), NAME("名"), // 地名， 山， 河， 桥， 路， 街 学校 单位
     BIOLOGY("生"),
     GEOGRAPHY("地"), // 天文， 地理，地质，航海
     COSMETICS("美"), // 美容， 化妆, 护肤
@@ -42,9 +42,9 @@ public enum Category {
     GAME("玩"),
     MEDIA("视"),
     DIALECT("方"),
-    SOCIETY("社"),
-    ;
+    SOCIETY("社"), ;
     public static final String TYPE_ID = "类";
+    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public static final String[] KEYS;
     static {
         Category[] values = Category.values();
