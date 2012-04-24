@@ -147,8 +147,8 @@ public class LingoesLd2Reader {
                 try {
                     readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
                             AVAIL_ENCODINGS[k], idxData, defData, test);
-                    System.out.println("词组编码：" + AVAIL_ENCODINGS[j]);
-                    System.out.println("XML编码：" + AVAIL_ENCODINGS[k]);
+                    System.out.println("词组编码：" + AVAIL_ENCODINGS[j].name);
+                    System.out.println("XML编码：" + AVAIL_ENCODINGS[k].name);
                     return new SensitiveStringDecoder[] { AVAIL_ENCODINGS[j], AVAIL_ENCODINGS[k] };
                 } catch (Throwable e) {
                     // ignore
@@ -375,11 +375,13 @@ public class LingoesLd2Reader {
     }
 
     private static class SensitiveStringDecoder {
+        public final String name;
         private final CharsetDecoder cd;
 
         private SensitiveStringDecoder(Charset cs) {
             this.cd = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT);
+            this.name = cs.name();
         }
 
         char[] decode(byte[] ba, int off, int len) {
