@@ -1,5 +1,3 @@
-package cn.kk.kkdict.tools;
-
 /*  Copyright (c) 2010 Xiaoyun Zhu
  * 
  *  Permission is hereby granted, free of charge, to any person obtaining a copy  
@@ -20,6 +18,9 @@ package cn.kk.kkdict.tools;
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
  *  THE SOFTWARE.  
  */
+
+package cn.kk.kkdict.tools;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;

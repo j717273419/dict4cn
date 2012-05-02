@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.tools;
 
 import java.io.File;
@@ -6,9 +26,19 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.Helper;
 
+/**
+ * refactor
+ * 
+ * 渐进式的排序词典文件
+ * 
+ * @author x_kez
+ *
+ */
 public class DividedDictFilesSorter {
     private final Language sortLng;
     private final String outDir;
@@ -20,9 +50,9 @@ public class DividedDictFilesSorter {
     public static void main(String[] args) throws IOException, InterruptedException {
         String[] files = new String[21];
         for (int i = 0; i <= 20; i++) {
-            files[i] = Helper.DIR_OUT_DICTS + "\\wiki\\work\\output-dict_xtr-result_ddfes-" + i + ".wiki";
+            files[i] = Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getFile(Source.DICT_WIKIPEDIA, "output-dict_xtr-result_ddfes-" + i + ".wiki");
         }
-        DividedDictFilesSorter sorter = new DividedDictFilesSorter(Language.ZH, Helper.DIR_OUT_DICTS + "\\wiki\\work",
+        DividedDictFilesSorter sorter = new DividedDictFilesSorter(Language.ZH, Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getPath(Source.DICT_WIKIPEDIA),
                 "output-dict_ddfs.wiki", files);
         sorter.sort();
     }
@@ -62,7 +92,7 @@ public class DividedDictFilesSorter {
             } else {
                 working.add(this.outFile);
             }
-            DictFilesSorter sorter = new DictFilesSorter(sortLng, this.outDir, new File(tmpOutFile).getName(), true, false,
+            DictFilesMergedSorter sorter = new DictFilesMergedSorter(sortLng, this.outDir, new File(tmpOutFile).getName(), true, false,
                     working.toArray(new String[working.size()]));
             sorter.sort();
             new File(this.outFile).delete();

@@ -1,44 +1,70 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.summarization;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import cn.kk.kkdict.tools.WordFilesSorter;
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
+import cn.kk.kkdict.tools.WordFilesMergedSorter;
 import cn.kk.kkdict.utils.Helper;
 
 public class WordsMerger {
-    private static final String IN_DIR = Helper.DIR_OUT_WORDS;
-    private static final String OUT_DIR = Helper.DIR_OUT_WORDS + File.separator + "output";
-    private static final String OUT_FILE = OUT_DIR + File.separator + "output-words-merged.words";
+    private static final Configuration IN_DIR_PARENT = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS;
+    private static final Configuration OUT_DIR_PARENT = Configuration.IMPORTER_FOLDER_MERGED_WORDS;
 
     /**
      * @param args
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        File directory = new File(IN_DIR);
-        if (directory.isDirectory()) {
-            new File(OUT_DIR).mkdirs();
-            System.out.print("搜索词组文件'" + IN_DIR + "' ... ");
+        File parent = new File(IN_DIR_PARENT.getPath(Source.NULL));
+        if (parent.isDirectory()) {
+            for (Source src : Source.WORDS) {
+                File directory = new File(IN_DIR_PARENT.getPath(src));
+                if (directory.isDirectory()) {
+                    System.out.print("搜索词组文件'" + directory.getAbsolutePath() + "' ... ");
+                    File[] files = directory.listFiles(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return name.startsWith("output-words.");
+                        }
+                    });
+                    System.out.println(files.length);
+                    if (files.length > 0) {
+                        String[] filePaths = Helper.getFileNames(files);
+                        File f = new File(Helper.appendFileName(filePaths[0], "_merged"));
+                        WordFilesMergedSorter sorter = new WordFilesMergedSorter(f.getPath(), f.getName(), false, false, filePaths);
+                        sorter.sort();
 
-            File[] files = directory.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.startsWith("output-words.");
+                        System.out.println("总共读取词语文件：" + files.length + "，" + "词语数目：" + sorter.getTotalSorted());
+                    } else {
+                        System.err.println("没有找到单词文件：" + directory.getAbsolutePath());
+                    }
+                } else {
+                    System.err.println("文件夹不可读：" + directory.getAbsolutePath());
                 }
-            });
-
-            System.out.println(files.length);
-
-            String[] filePaths = Helper.getFileNames(files);
-            WordFilesSorter sorter = new WordFilesSorter(OUT_DIR, new File(OUT_FILE).getName(), false, false, filePaths);
-            sorter.sort();
-
-            System.out.println("\n=====================================");
-            System.out.println("总共读取词语文件：" + files.length);
-            System.out.println("词语数目：" + sorter.getTotalSorted());
-            System.out.println("=====================================");
+            }
         }
     }
 }

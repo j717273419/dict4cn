@@ -1,4 +1,5 @@
 #lng2name_EN
+Persian\ Dari=prs
 Berber=ber
 Hawaiian\ Pidgin=hwc
 Sesotho=st
@@ -58,7 +59,8 @@ Luwian=hlu
 Old\ Prussian=prg
 Ancient\ Greek=grc
 Amuzgo=azg
-Mauritian\ Creole=lsy
+Mauritian\ Sign\ Language=lsy
+Mauritian\ Sign=mfe
 Ambonese\ Malay=abs
 Romani=rmn
 \!Kung=kfl
@@ -4607,7 +4609,7 @@ Kopkaka=opk
 Sidetic=xsd
 Cree\ (Swampy)=csw
 Meroitic=xmr
-Dari\ (Persian)=prd
+Dari\ (Persian)=prs
 Popoloca,\ Santa\ Inés\ Ahuatempan=pca
 Kasiguranin=ksn
 Urubú-Kaapor\ Sign\ Language=uks

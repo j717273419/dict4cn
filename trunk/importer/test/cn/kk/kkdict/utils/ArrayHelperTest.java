@@ -1,6 +1,9 @@
 package cn.kk.kkdict.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
@@ -413,5 +416,13 @@ public class ArrayHelperTest {
                 (byte) 0x01, (byte) 0x9c, (byte) 0xd2, (byte) 0x63, (byte) 0xd1, (byte) 0x01, (byte) 0x16, (byte) 0xaa,
                 (byte) 0x50, (byte) 0x05 },
                 ArrayHelper.md5P(ByteBuffer.wrap("Wang_Bo.jpg".getBytes(Helper.CHARSET_UTF8))));
+    }
+
+    @Test
+    public void testCrimp() {
+        byte[] test1 = { 1, 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, 1, -1, 5, -8, -22, 46, 8, 1 };
+        ByteBuffer bb = ByteBuffer.wrap(test1);
+        ArrayHelper.stripP(bb, (byte) 1);
+        assertArrayEquals(new byte[] { 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, -1, 5, -8, -22, 46, 8 }, ArrayHelper.toBytesP(bb));
     }
 }

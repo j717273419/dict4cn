@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.extraction.word;
 
 import java.io.BufferedWriter;
@@ -12,15 +32,18 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Set;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class SogouScelPinyinExtractor {
-    private static final String IN_DIR = Helper.DIR_IN_WORDS+"\\sogou";
-    private static final String OUT_DIR = Helper.DIR_OUT_WORDS;
-    private static final String OUT_FILE = OUT_DIR + "\\output-words." + WordSource.SOGOU_SCEL.key;
+    public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_SOGOU);
+    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_SOGOU,
+            "output-words." + WordSource.SOGOU_SCEL.key);
 
     public static void main(String args[]) throws IOException {
         byte[] buf = new byte[1024];
@@ -28,7 +51,6 @@ public class SogouScelPinyinExtractor {
         File directory = new File(IN_DIR);
         int total = 0;
         if (directory.isDirectory()) {
-            new File(OUT_DIR).mkdirs();
             System.out.print("搜索搜狗SCEL文件'" + IN_DIR + "' ... ");
 
             File[] files = directory.listFiles(new FilenameFilter() {
@@ -54,7 +76,7 @@ public class SogouScelPinyinExtractor {
                 fChannel.close();
                 fBuf.order(ByteOrder.LITTLE_ENDIAN);
                 fBuf.rewind();
-                
+
                 int totalWords = fBuf.getInt(0x120);
 
                 // pinyin offset
@@ -91,6 +113,8 @@ public class SogouScelPinyinExtractor {
                         word.append(new String(buf, 0, len, "UTF-16LE"));
                         fBuf.get(buf, 0, fBuf.getShort());
                         String wordStr = word.toString();
+                        writer.write(Language.ZH.key);
+                        writer.write(Helper.SEP_DEFINITION);
                         writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(wordStr), categories));
                         writer.write(Helper.SEP_ATTRIBUTE);
                         writer.write(WordSource.TYPE_ID);

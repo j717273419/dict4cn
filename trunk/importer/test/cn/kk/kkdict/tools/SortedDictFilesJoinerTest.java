@@ -1,6 +1,7 @@
 package cn.kk.kkdict.tools;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +35,9 @@ public class SortedDictFilesJoinerTest {
                         + "hi═नेपियर‹源wiki_ang▫zh═内皮尔 (纽西兰)‹源wiki_ang▫nl═Napier (Nieuw-Zeeland)‹源wiki_ang▫ru═Нейпир‹源wiki_ang▫af═Napier, Nieu-Seeland‹源wiki_ang\n"
                         + "br═Rinkin‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫zh═外层空间").getBytes(Helper.CHARSET_UTF8), testFile3);
 
-        new DictFilesSorter(Language.ZH, TMP_DIR, "test1_srt.txt", true, false, testFile1).sort();
-        new DictFilesSorter(Language.ZH, TMP_DIR, "test2_srt.txt", true, false, testFile2).sort();
-        new DictFilesSorter(Language.ZH, TMP_DIR, "test3_srt.txt", true, false, testFile3).sort();
+        new DictFilesMergedSorter(Language.ZH, TMP_DIR, "test1_srt.txt", true, false, testFile1).sort();
+        new DictFilesMergedSorter(Language.ZH, TMP_DIR, "test2_srt.txt", true, false, testFile2).sort();
+        new DictFilesMergedSorter(Language.ZH, TMP_DIR, "test3_srt.txt", true, false, testFile3).sort();
     }
 
     @Test

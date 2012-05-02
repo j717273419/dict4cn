@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.summarization;
 
 import java.io.File;
@@ -9,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.tools.DictFilesExtractor;
-import cn.kk.kkdict.tools.DictFilesSorter;
+import cn.kk.kkdict.tools.DictFilesMergedSorter;
 import cn.kk.kkdict.tools.DividedDictFilesExtractSorter;
 import cn.kk.kkdict.tools.SortedDictFilesJoiner;
 import cn.kk.kkdict.types.Language;
@@ -153,7 +173,7 @@ public class WikiDictsMerger {
             if (new File(lngOutFile).length() > Helper.SEP_LIST_BYTES.length) {
                 System.out.println("。。。【" + step + "。" + (++step2) + "。排序文件：'" + mainFile + "'，语言：'" + task + "'】");
                 // sort main file in lng
-                DictFilesSorter sorter = new DictFilesSorter(lng, WORK_DIR, false, false, mainFile);
+                DictFilesMergedSorter sorter = new DictFilesMergedSorter(lng, WORK_DIR, false, false, mainFile);
                 sorter.sort();
                 String mainSortedFile = sorter.outFile;
                 new File(mainFile).delete();
