@@ -20,15 +20,18 @@
  */
 package cn.kk.kkdict;
 
-import cn.kk.kkdict.extraction.word.BaiduBcdExtractor;
-import cn.kk.kkdict.extraction.word.QQPinyinQpydExtractor;
-import cn.kk.kkdict.extraction.word.SogouScelPinyinExtractor;
-import cn.kk.kkdict.summarization.PinyinIndexGenerator;
-import cn.kk.kkdict.summarization.PinyinOccurrenceCounter;
-import cn.kk.kkdict.summarization.WordsMerger;
+import cn.kk.kkdict.extraction.dict.TermWikiExtractor;
+import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
+import cn.kk.kkdict.generators.TermWikiParser;
+import cn.kk.kkdict.summarization.WikiDictCategoriesMerger;
+import cn.kk.kkdict.summarization.WikiDictGeoLocationCorrector;
+import cn.kk.kkdict.summarization.WikiDictImageLocationCorrector;
+import cn.kk.kkdict.summarization.WikiDictRelatedCorrector;
+import cn.kk.kkdict.summarization.WikiDictsMerger;
+import cn.kk.kkdict.tools.WikipediaDumpPagesMetaCurrentXmlDownloader;
 import cn.kk.kkdict.utils.Helper;
 
-public class ProduceAll {
+public class ProduceTermWiki {
     public static final Object[] DEFAULT_ARGS = new Object[] { null };
 
     /**
@@ -38,19 +41,10 @@ public class ProduceAll {
     public static void main(String[] args) throws Exception {
         long timeStarted = System.currentTimeMillis();
 
-        runJob(QQPinyinQpydExtractor.class);
-        runJob(SogouScelPinyinExtractor.class);
-        runJob(BaiduBcdExtractor.class);
-        runJob(PinyinOccurrenceCounter.class);
-        runJob(PinyinIndexGenerator.class);
-        runJob(WordsMerger.class);
+        runJob(TermWikiParser.class);
+        runJob(TermWikiExtractor.class);
 
-        // runJob(EdictZhDeExtractor.class);
-        // WikiPagesMetaCurrentChineseExtractor.main(DEFAULT_ARGS);
-        // WikiPagesMetaCurrentGermanExtractor.main(DEFAULT_ARGS);
-        // WikiPagesMetaCurrentEnglishExtractor.main(DEFAULT_ARGS);
-
-        System.out.println("\n\n======================================\nTotal Producing Time: "
+        System.out.println("\n\n======================================\n总共用时："
                 + Helper.formatDuration(System.currentTimeMillis() - timeStarted));
         System.out.println("======================================\n");
     }

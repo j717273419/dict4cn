@@ -1,5 +1,6 @@
 package cn.kk.kkdict.utils;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -28,5 +29,29 @@ public class HelperTest {
         System.out
                 .println(Helper
                         .stripWikiText("'''Итерзен''' ({{lang-de|Uetersen}}; [ˈyːtɐzən]){{—}} [[Алмантәыла]] а'қалақь. Атерриториа{{—}} {{км²|11.43}}; иаланхо{{—}} {{иаланхо|17865|2006}}."));
+    }
+
+    @Test
+    public void testToFixed() {
+        assertEquals(54321.12345, Helper.toFixed(54321.1234467890, 5), 0d);
+        assertEquals(54321.0, Helper.toFixed(54321.1234467890, 0), 0d);
+    }
+
+    @Test
+    public void testSubstringAfter() {
+        assertEquals("sdfs", Helper.substringAfter("asdf>sdfs", ">"));
+        assertEquals("sdf>s", Helper.substringAfter("asdf>sdf>s", ">"));
+    }
+
+    @Test
+    public void testSubstringAfterLast() {
+        assertEquals("sdfs", Helper.substringAfterLast("asdf>sdfs", ">"));
+        assertEquals("s", Helper.substringAfterLast("asdf>sdf>s", ">"));
+    }
+
+    @Test
+    public void testFindResource() {
+        assertTrue(Helper.findResource("simple2traditional.txt") != null);
+        assertTrue(Helper.findResource("config.properties") != null);
     }
 }

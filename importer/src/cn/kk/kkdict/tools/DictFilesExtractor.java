@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.tools;
 
 import java.io.BufferedInputStream;
@@ -8,6 +28,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.DictByteBufferRow;
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.types.Language;
@@ -15,8 +37,7 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * 
- * 
+ * 输出所有含有某个语言的行
  */
 public class DictFilesExtractor {
     private final String[] inFiles;
@@ -32,7 +53,7 @@ public class DictFilesExtractor {
     private DictByteBufferRow mainRow = new DictByteBufferRow();
     
     public static void main(String[] args) throws IOException {
-        String outDir = Helper.DIR_OUT_DICTS + File.separator + "wiki" + File.separator + "test";
+        String outDir = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
         String inFileTest = outDir + File.separator + "output-dict.wiki_ang";
         // String inFileTest = "O:\\kkdict\\out\\dicts\\wiki\\test\\test.txt";
         String inFile0 = "O:\\kkdict\\out\\dicts\\wiki\\test\\output-dict_ar.wiki_ar";

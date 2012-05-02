@@ -1,9 +1,10 @@
 package cn.kk.kkdict.tools;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class DictFilesSorterTest {
 
     @Test
     public void testSortWriteSkipped() {
-        DictFilesSorter sorter = new DictFilesSorter(Language.ZH, TMP_DIR, "result.txt", false, true, testFile1,
+        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", false, true, testFile1,
                 testFile2, testFile3);
         sorter.setFilterAttributes(false);
 
@@ -54,7 +55,7 @@ public class DictFilesSorterTest {
                             + "de═Bombe‹源wiki_ang▫hi═बम‹源wiki_ang▫ar═قنبلة‹源wiki_ang▫th═ระเบิด‹源wiki_angzh═炸弹‹源wiki_ang\n"
                             + "de═Fenster‹源wiki_ang▫nrm═F'nêt'‹源wiki_ang▫tr═Pencere‹源wiki_ang\n",
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator
-                            + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED))));
+                            + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED))));
         } catch (Throwable t) {
             t.printStackTrace();
             fail(t.toString());
@@ -63,13 +64,13 @@ public class DictFilesSorterTest {
 
     @Test
     public void testSortWithoutSkipped() {
-        DictFilesSorter sorter = new DictFilesSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
+        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
                 testFile2, testFile3);
         sorter.setFilterAttributes(false);
 
         try {
             new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).delete();
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
 
             sorter.sort();
             // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
@@ -81,7 +82,7 @@ public class DictFilesSorterTest {
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
 
             assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).isFile());
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
         } catch (Throwable t) {
             t.printStackTrace();
             fail(t.toString());
@@ -90,13 +91,13 @@ public class DictFilesSorterTest {
 
     @Test
     public void testSortWithSkipped() {
-        DictFilesSorter sorter = new DictFilesSorter(Language.ZH, TMP_DIR, "result.txt", false, false, testFile1,
+        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", false, false, testFile1,
                 testFile2, testFile3);
         sorter.setFilterAttributes(false);
 
         try {
             new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).delete();
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
 
             sorter.sort();
             // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
@@ -111,7 +112,7 @@ public class DictFilesSorterTest {
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
 
             assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).isFile());
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
         } catch (Throwable t) {
             t.printStackTrace();
             fail(t.toString());
@@ -120,13 +121,13 @@ public class DictFilesSorterTest {
 
     @Test
     public void testFilterAttributes() {
-        DictFilesSorter sorter = new DictFilesSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
+        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
                 testFile2, testFile3);
         sorter.setFilterAttributes(true);
 
         try {
             new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).delete();
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
 
             sorter.sort();
             // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
@@ -136,7 +137,7 @@ public class DictFilesSorterTest {
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
 
             assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesSorter.SUFFIX_SKIPPED)).isFile());
+                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
         } catch (Throwable t) {
             t.printStackTrace();
             fail(t.toString());

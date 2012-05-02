@@ -1,4 +1,7 @@
 #lng2name_ZH
+毛里求斯克里奥耳语=mfe
+毛克语=mfe
+道本语=toki
 柏柏尔语=ber
 教会斯拉夫语=cu
 挪=no
@@ -122,6 +125,7 @@
 菲律宾语=fil
 古爱尔兰语=sga
 古英语=ang
+上古英语=ang
 朝鲜语=ko
 罗曼什语=rm
 藏语=bo

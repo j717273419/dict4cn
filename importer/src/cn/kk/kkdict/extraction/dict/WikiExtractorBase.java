@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.extraction.dict;
 
 import java.io.BufferedInputStream;
@@ -37,7 +57,7 @@ import cn.kk.kkdict.utils.Helper;
  * remove ''', {}, [], [|(text)]
  * 
  */
-class WikiExtractorBase {
+public class WikiExtractorBase {
     private static final byte[][] IMAGE_SUFFIX_BYTES_UPPER = { ".jpg".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             ".jpeg".toUpperCase().getBytes(Helper.CHARSET_UTF8), ".png".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             ".gif".toUpperCase().getBytes(Helper.CHARSET_UTF8), ".svg".toUpperCase().getBytes(Helper.CHARSET_UTF8),
@@ -50,13 +70,15 @@ class WikiExtractorBase {
 
     private static final byte[][] COORD_TAG_BYTES_LOWER = { "{{coor".getBytes(Helper.CHARSET_UTF8),
             "{{geolinks".getBytes(Helper.CHARSET_UTF8), "{{mapit".getBytes(Helper.CHARSET_UTF8),
-            "{{koordinate".getBytes(Helper.CHARSET_UTF8), "{{??".getBytes(Helper.CHARSET_UTF8) };
+            "{{koordinate".getBytes(Helper.CHARSET_UTF8), "{{좌표".getBytes(Helper.CHARSET_UTF8),
+            "{{location".getBytes(Helper.CHARSET_UTF8) };
 
     private static final byte[][] COORD_TAG_BYTES_UPPER = { "{{coor".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "{{geolinks".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "{{mapit".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "{{koordinate".toUpperCase().getBytes(Helper.CHARSET_UTF8),
-            "{{??".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
+            "{{좌표".toUpperCase().getBytes(Helper.CHARSET_UTF8),
+            "{{location".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
 
     private static final byte[][] INFOBOX_GEO_BYTES = { "lat_deg".getBytes(Helper.CHARSET_UTF8),
             "lat_min".getBytes(Helper.CHARSET_UTF8), "lat_sec".getBytes(Helper.CHARSET_UTF8),
@@ -84,16 +106,15 @@ class WikiExtractorBase {
             "long_direction".getBytes(Helper.CHARSET_UTF8), "Koordinate_Breitengrad".getBytes(Helper.CHARSET_UTF8),
             "Koordinate_Breitenminute".getBytes(Helper.CHARSET_UTF8),
             "Koordinate_Breitensekunde".getBytes(Helper.CHARSET_UTF8),
-            "Koordinate_Breite".getBytes(Helper.CHARSET_UTF8),
-            "Koordinate_L%C3%A4ngengrad".getBytes(Helper.CHARSET_UTF8),
-            "Koordinate_L%C3%A4ngenminute".getBytes(Helper.CHARSET_UTF8),
-            "Koordinate_L%C3%A4ngensekunde".getBytes(Helper.CHARSET_UTF8),
-            "Koordinate_L%C3%A4nge".getBytes(Helper.CHARSET_UTF8), "N".getBytes(Helper.CHARSET_UTF8),
-            "E".getBytes(Helper.CHARSET_UTF8), "LatDeg".getBytes(Helper.CHARSET_UTF8),
-            "LatMin".getBytes(Helper.CHARSET_UTF8), "LatSec".getBytes(Helper.CHARSET_UTF8),
-            "north coord".getBytes(Helper.CHARSET_UTF8), "west coord".getBytes(Helper.CHARSET_UTF8),
-            "N".getBytes(Helper.CHARSET_UTF8), "W".getBytes(Helper.CHARSET_UTF8),
-            "latitude".getBytes(Helper.CHARSET_UTF8), "longitude".getBytes(Helper.CHARSET_UTF8) };
+            "Koordinate_Breite".getBytes(Helper.CHARSET_UTF8), "Koordinate_Längengrad".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_Längenminute".getBytes(Helper.CHARSET_UTF8),
+            "Koordinate_Längensekunde".getBytes(Helper.CHARSET_UTF8), "Koordinate_Länge".getBytes(Helper.CHARSET_UTF8),
+            "N".getBytes(Helper.CHARSET_UTF8), "E".getBytes(Helper.CHARSET_UTF8),
+            "LatDeg".getBytes(Helper.CHARSET_UTF8), "LatMin".getBytes(Helper.CHARSET_UTF8),
+            "LatSec".getBytes(Helper.CHARSET_UTF8), "north coord".getBytes(Helper.CHARSET_UTF8),
+            "west coord".getBytes(Helper.CHARSET_UTF8), "N".getBytes(Helper.CHARSET_UTF8),
+            "W".getBytes(Helper.CHARSET_UTF8), "latitude".getBytes(Helper.CHARSET_UTF8),
+            "longitude".getBytes(Helper.CHARSET_UTF8) };
 
     private static final int MIN_ABSTRACT_CHARS = 250;
 
@@ -201,9 +222,11 @@ class WikiExtractorBase {
 
     private static final int MAX_ABSTRACT_CHARS = 500;
 
-    static final boolean DEBUG = false;
+    protected static final boolean INFO = true;
 
-    static final boolean TRACE = false;
+    protected static final boolean DEBUG = false;
+
+    protected static final boolean TRACE = false;
 
     static final byte[] TAG_TEXT_BEGIN_BYTES = "space=\"preserve\">".getBytes(Helper.CHARSET_UTF8);
 
@@ -217,21 +240,21 @@ class WikiExtractorBase {
 
     static final byte[] SUFFIX_WIKI_TAG_BYTES = "]]".getBytes(Helper.CHARSET_UTF8);
 
-    static final byte[] SUFFIX_TITLE_BYTES = "</title>".getBytes(Helper.CHARSET_UTF8);
-    static final byte[] PREFIX_TITLE_BYTES = "<title>".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] SUFFIX_TITLE_BYTES = "</title>".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] PREFIX_TITLE_BYTES = "<title>".getBytes(Helper.CHARSET_UTF8);
 
     static final byte[] SUFFIX_REDIRECT_BYTES = "\"".getBytes(Helper.CHARSET_UTF8);
 
-    static final int MIN_TITLE_LINE_BYTES = SUFFIX_TITLE_BYTES.length + PREFIX_TITLE_BYTES.length;
+    protected static final int MIN_TITLE_LINE_BYTES = SUFFIX_TITLE_BYTES.length + PREFIX_TITLE_BYTES.length;
 
     static final int MIN_REDIRECT_LINE_BYTES = TAG_REDIRECT_BEGIN_BYTES.length + SUFFIX_REDIRECT_BYTES.length;
 
-    static final byte[] SUFFIX_XML_TAG_BYTES = ">".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] SUFFIX_XML_TAG_BYTES = ">".getBytes(Helper.CHARSET_UTF8);
 
     static final byte[] ATTR_CATEGORY_KEY_BYTES = "key=\"14\"".getBytes(Helper.CHARSET_UTF8);
-    static final byte[] SUFFIX_NAMESPACE_BYTES = "</namespace>".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] SUFFIX_NAMESPACE_BYTES = "</namespace>".getBytes(Helper.CHARSET_UTF8);
 
-    static final byte[] SUFFIX_NAMESPACES_BYTES = "</namespaces>".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] SUFFIX_NAMESPACES_BYTES = "</namespaces>".getBytes(Helper.CHARSET_UTF8);
     static final byte[] PREFIX_CATEGORY_KEY_EN_BYTES = "[[Category:".getBytes(Helper.CHARSET_UTF8);
     static final byte[] PREFIX_CATEGORY_KEY_EN2_BYTES = "[[:Category:".getBytes(Helper.CHARSET_UTF8);
     static final byte[] CATEGORY_KEY_BYTES = "Category:".getBytes(Helper.CHARSET_UTF8);
@@ -262,11 +285,11 @@ class WikiExtractorBase {
     static final byte[][] ABSTRACT_SIMPLE_VARS_BYTES_UPPER = { "lang".toUpperCase().getBytes(Helper.CHARSET_UTF8),
             "notetag".toUpperCase().getBytes(Helper.CHARSET_UTF8), "bd".toUpperCase().getBytes(Helper.CHARSET_UTF8) };
 
-    boolean insideInfobox;
-    static final byte[] INFOBOX_BYTES_LOWER = "infobox".getBytes(Helper.CHARSET_UTF8);
-    static final byte[] INFOBOX_BYTES_UPPER = "infobox".getBytes(Helper.CHARSET_UTF8);
+    protected boolean insideInfobox;
+    protected static final byte[] INFOBOX_BYTES_LOWER = "infobox".getBytes(Helper.CHARSET_UTF8);
+    protected static final byte[] INFOBOX_BYTES_UPPER = "infobox".getBytes(Helper.CHARSET_UTF8);
 
-    static final int OK_NOTICE = 100000;
+    protected static final int OK_NOTICE = 100000;
     public String inFile;
     public String outFile;
     public String outFileSource;
@@ -278,58 +301,58 @@ class WikiExtractorBase {
     public String outFileGeoLocations;
 
     public String outFileAbstracts;
-    long started;
-    byte[][] displayableLngs;
-    byte[][] irrelevantPrefixesBytes;
-    byte[] catKeyBytes;
-    byte[] catKeyBytes2;
-    byte[] catNameBytes;
-    int minCatBytes = 0;
-    WikiParseStep step = WikiParseStep.HEADER;
-    int lineLen;
-    int lineOffset;
-    ByteBuffer nameBB = ArrayHelper.borrowByteBufferSmall();
-    ByteBuffer geoLocationBB = ArrayHelper.borrowByteBufferSmall();
-    ByteBuffer geoLocationInfoboxBB = ArrayHelper.borrowByteBufferSmall();
-    ByteBuffer imgLocationBB = ArrayHelper.borrowByteBufferSmall();
-    final Set<byte[]> categories = new HashSet<byte[]>();
-    final Map<byte[], byte[]> languages = new HashMap<byte[], byte[]>();
-    final List<byte[]> relatedWords = new ArrayList<byte[]>();
-    int statSkipped;
-    int statOk;
-    int statOkSource;
-    int statOkAttributes;
-    int statOkCategory;
-    int statSkippedCategory;
-    int statRelated;
-    int statRedirects;
-    int statAbstracts;
-    int statImageLocations;
-    int statGeoLocations;
-    boolean parseAbstract;
-    long lineCount;
-    boolean catName = false;
-    final Set<byte[]> irrelevantPrefixes = new HashSet<byte[]>();
-    ByteBuffer tmpBB;
-    byte[] tmpArray;
-    ByteBuffer lineBB;
-    byte[] lineArray;
-    boolean chinese = false;
-    String fileLng;
-    byte[] fileLngBytes;
-    TranslationSource translationSource;
-    BufferedInputStream in;
-    BufferedOutputStream out;
-    BufferedOutputStream outSource;
-    BufferedOutputStream outAttributes;
-    BufferedOutputStream outCategories;
-    BufferedOutputStream outRelated;
-    BufferedOutputStream outAbstracts;
-    BufferedOutputStream outRedirects;
-    BufferedOutputStream outImageLocations;
-    BufferedOutputStream outGeoLocations;
+    protected long started;
+    protected byte[][] displayableLngs;
+    protected byte[][] irrelevantPrefixesBytes;
+    protected byte[] catKeyBytes;
+    protected byte[] catKeyBytes2;
+    protected byte[] catNameBytes;
+    protected int minCatBytes = 0;
+    protected WikiParseStep step = WikiParseStep.HEADER;
+    protected int lineLen;
+    protected int lineOffset;
+    protected ByteBuffer nameBB = ArrayHelper.borrowByteBufferSmall();
+    protected ByteBuffer geoLocationBB = ArrayHelper.borrowByteBufferSmall();
+    protected ByteBuffer geoLocationInfoboxBB = ArrayHelper.borrowByteBufferSmall();
+    protected ByteBuffer imgLocationBB = ArrayHelper.borrowByteBufferSmall();
+    protected final Set<byte[]> categories = new HashSet<byte[]>();
+    protected final Map<byte[], byte[]> languages = new HashMap<byte[], byte[]>();
+    protected final List<byte[]> relatedWords = new ArrayList<byte[]>();
+    protected int statSkipped;
+    protected int statOk;
+    protected int statOkSource;
+    protected int statOkAttributes;
+    protected int statOkCategory;
+    protected int statSkippedCategory;
+    protected int statRelated;
+    protected int statRedirects;
+    protected int statAbstracts;
+    protected int statImageLocations;
+    protected int statGeoLocations;
+    protected boolean parseAbstract;
+    protected long lineCount;
+    protected boolean catName = false;
+    protected final Set<byte[]> irrelevantPrefixes = new HashSet<byte[]>();
+    protected ByteBuffer tmpBB;
+    protected byte[] tmpArray;
+    protected ByteBuffer lineBB;
+    protected byte[] lineArray;
+    protected boolean chinese = false;
+    protected String fileLng;
+    protected byte[] fileLngBytes;
+    protected TranslationSource translationSource;
+    protected BufferedInputStream in;
+    protected BufferedOutputStream out;
+    protected BufferedOutputStream outSource;
+    protected BufferedOutputStream outAttributes;
+    protected BufferedOutputStream outCategories;
+    protected BufferedOutputStream outRelated;
+    protected BufferedOutputStream outAbstracts;
+    protected BufferedOutputStream outRedirects;
+    protected BufferedOutputStream outImageLocations;
+    protected BufferedOutputStream outGeoLocations;
 
-    ByteBuffer abstractBB = ArrayHelper.borrowByteBufferMedium();
+    protected ByteBuffer abstractBB = ArrayHelper.borrowByteBufferMedium();
 
     void addCategory() {
         int wildcardIdx = ArrayHelper.indexOf(tmpBB, (byte) '|');
@@ -381,10 +404,6 @@ class WikiExtractorBase {
                                     + ArrayHelper.toString(tmpLngBytes) + "，翻译：" + ArrayHelper.toString(tmpBB));
                         }
                     }
-                    // TODO check if needed
-                    // if (chinese) {
-                    // lineLen = ChineseHelper.toSimplifiedChinese(tmpBB);
-                    // }
                     languages.put(l, ArrayHelper.toBytes(tmpBB));
                 }
                 break;
@@ -408,11 +427,13 @@ class WikiExtractorBase {
         }
     }
 
-    void cleanup() throws IOException {
+    protected void cleanup() throws IOException {
         ArrayHelper.giveBack(tmpBB);
         ArrayHelper.giveBack(lineBB);
         in.close();
-        out.close();
+        if (out != null) {
+            out.close();
+        }
         if (outSource != null) {
             outRelated.close();
         }
@@ -438,12 +459,16 @@ class WikiExtractorBase {
             outGeoLocations.close();
         }
 
-        System.out.println("\n> 成功分析'" + new File(inFile).getName() + "'（"
-                + Helper.formatSpace(new File(inFile).length()) + "）文件，行数：" + lineCount + "，语言：" + fileLng + "，用时： "
-                + Helper.formatDuration(System.currentTimeMillis() - started));
-        System.out.print("> 字典文件：'" + outFile + "'（" + Helper.formatSpace(new File(outFile).length()) + "）");
-        System.out.print("，定义：" + statOk);
-        System.out.println("，跳过：" + statSkipped);
+        if (INFO) {
+            System.out.println("\n> 成功分析'" + new File(inFile).getName() + "'（"
+                    + Helper.formatSpace(new File(inFile).length()) + "）文件，行数：" + lineCount + "，语言：" + fileLng
+                    + "，用时： " + Helper.formatDuration(System.currentTimeMillis() - started));
+        }
+        if (outFile != null) {
+            System.out.print("> 字典文件：'" + outFile + "'（" + Helper.formatSpace(new File(outFile).length()) + "）");
+            System.out.print("，定义：" + statOk);
+            System.out.println("，跳过：" + statSkipped);
+        }
         if (outFileSource != null) {
             System.out.print("> 来源文件：'" + outFileSource + "'（" + Helper.formatSpace(new File(outFileSource).length())
                     + "）");
@@ -598,10 +623,10 @@ class WikiExtractorBase {
         step = WikiParseStep.BEFORE_TITLE;
     }
 
-    void initialize(final String f, final String outDir, final String outPrefix, final String outPrefixCategories,
-            final String outPrefixRelated, final String outPrefixAbstracts, final String outPrefixRedirects,
-            final String outPrefixImages, final String outPrefixCoordinates, final String outPrefixSource,
-            final String outPrefixAttributes) throws IOException {
+    protected void initialize(final String f, final String outDir, final String outPrefix,
+            final String outPrefixCategories, final String outPrefixRelated, final String outPrefixAbstracts,
+            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates,
+            final String outPrefixSource, final String outPrefixAttributes) throws IOException {
         started = System.currentTimeMillis();
 
         displayableLngs = new byte[LanguageConstants.KEYS_WIKI.length][];
@@ -649,8 +674,9 @@ class WikiExtractorBase {
         chinese = false;
 
         inFile = f;
-        System.out.println("< 分析'" + f + "' （" + Helper.formatSpace(new File(f).length()) + "）。。。");
-        Helper.precheck(f, outDir);
+        if (INFO) {
+            System.out.println("< 分析'" + f + "' （" + Helper.formatSpace(new File(f).length()) + "）。。。");
+        }
         fileLng = DictHelper.getWikiLanguage(f).key;
         fileLngBytes = fileLng.getBytes(Helper.CHARSET_UTF8);
         chinese = Language.ZH.key.equalsIgnoreCase(fileLng);
@@ -661,11 +687,13 @@ class WikiExtractorBase {
         } else {
             in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);
         }
-        outFile = outDir + File.separator + outPrefix + fileLng;
-        if (DEBUG) {
-            System.out.println("写出：" + outFile + " 。。。");
+        if (outPrefix != null) {
+            outFile = outDir + File.separator + outPrefix + fileLng;
+            if (DEBUG) {
+                System.out.println("写出：" + outFile + " 。。。");
+            }
+            out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
         }
-        out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
         if (outPrefixCategories != null) {
             outFileCategories = outDir + File.separator + outPrefixCategories + fileLng;
             outCategories = new BufferedOutputStream(new FileOutputStream(outFileCategories), Helper.BUFFER_SIZE);
@@ -784,7 +812,7 @@ class WikiExtractorBase {
 
     }
 
-    void parseDocumentHeader() {
+    protected void parseDocumentHeader() {
         if (ArrayHelper.contains(lineArray, 0, lineLen, SUFFIX_NAMESPACES_BYTES)) {
             // finish prefixes
             irrelevantPrefixesBytes = new byte[irrelevantPrefixes.size()][];
@@ -863,8 +891,10 @@ class WikiExtractorBase {
                 }
                 if (end != -1) {
                     final int len = end - start;
-                    ArrayHelper.copy(lineBB, start, geoLocationBB, 0, len);
-                    geoLocationBB.limit(len);
+                    if (len > 0 && len < geoLocationBB.remaining()) {
+                        ArrayHelper.copy(lineBB, start, geoLocationBB, 0, len);
+                        geoLocationBB.limit(len);
+                    }
                     // System.out.println(ArrayHelper.toString(geoLocation));
                 }
 
@@ -883,7 +913,7 @@ class WikiExtractorBase {
                 byte b;
                 for (int i = idx; i < lineBB.limit(); i++) {
                     b = lineArray[i];
-                    if (b == '|' || b == ']' || b == '&' || b == ' ') {
+                    if (b == '|' || b == ']' || b == '&' || b == ' ' || b == '}') {
                         end = i;
                         break;
                     }
@@ -892,15 +922,20 @@ class WikiExtractorBase {
                     b = lineArray[i];
                     if (b == ':' && lineArray[i + 1] != '/') {
                         break;
-                    } else if (b == '=' || b == '[') {
+                    } else if (b == '=' || b == '[' || b == '|' || b == '{') {
                         break;
                     } else if (b != ' ') {
                         start = i;
                     }
                 }
                 final int len = end - start;
-                ArrayHelper.copy(lineBB, start, imgLocationBB, 0, len);
-                imgLocationBB.limit(len);
+                if (len < imgLocationBB.remaining()) {
+                    // System.out.println(idx + " - " + ArrayHelper.toString(lineBB.array(), start, end) + " - "
+                    // + ArrayHelper.toString(lineBB));
+                    // System.out.println(ArrayHelper.toString(imgLocationBB));
+                    ArrayHelper.copy(lineBB, start, imgLocationBB, 0, len);
+                    imgLocationBB.limit(len);
+                }
                 // System.out.println(ArrayHelper.toString(imgLocation));
             }
         }
@@ -915,67 +950,94 @@ class WikiExtractorBase {
         if (outGeoLocations != null && ArrayHelper.isEmpty(geoLocationBB)) {
             // http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/dbpedia/file/945c24bdc54c/extraction/extractors/GeoExtractor.php
             // (check bounds)
-            byte b;
+            boolean found = false;
             int start = -1;
-            for (int i = lineBB.position(); i < lineBB.limit(); i++) {
-                b = lineArray[i];
-                if (b == '|') {
-                    start = i + 1;
-                } else if (start != -1 && b != ' ') {
-                    start = i;
+            int end = -1;
+            byte b;
+            while (!found) {
+                final int startPos = Math.max(end + 1, lineBB.position());
+                start = -1;
+                end = -1;
+                for (int i = startPos; i < lineBB.limit(); i++) {
+                    b = lineArray[i];
+                    if (b == '|') {
+                        start = i + 1;
+                    } else if (start != -1 && b != ' ') {
+                        start = i;
+                        break;
+                    } else if (start == -1 && b == '=') {
+                        // include lines not starting with |
+                        for (int j = startPos; j < i; j++) {
+                            if (b != ' ') {
+                                start = j;
+                                for (int k = i - 1; k > start; k--) {
+                                    if (b != ' ') {
+                                        end = k + 1;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (start != -1 && end == -1) {
+                    for (int i = start + 1; i < lineBB.limit(); i++) {
+                        b = lineArray[i];
+                        if (b == ' ' || b == '=') {
+                            end = i;
+                            break;
+                        } else if (b == '|') {
+                            break;
+                        }
+                    }
+                }
+
+                if (start != -1 && end != -1) {
+                    final int len = end - start;
+                    // System.out.println(ArrayHelper.toString(lineBB) + ", s=" + start + ", e=" + end + ", l=" + len);
+                    for (int i = 0; i < INFOBOX_GEO_BYTES.length; i++) {
+                        byte[] text = INFOBOX_GEO_BYTES[i];
+                        if (text.length == len && ArrayHelper.equals(lineArray, start, text)) {
+                            if (!(text.length == 1 && lineLen > 3 && lineArray[3] == '{')) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
                     break;
                 }
             }
-
-            int end = -1;
-            if (start != -1) {
-                for (int i = start + 1; i < lineBB.limit(); i++) {
-                    b = lineArray[i];
-                    if (b == ' ' || b == '=') {
-                        end = i;
-                        break;
-                    } else if (b == '|') {
-                        break;
-                    }
-                }
-            }
-
-            if (start != -1 && end != -1) {
-                final int len = end - start;
-                // System.out.println(ArrayHelper.toString(lineBB) + ", s=" + start + ", e=" + end + ", l=" + len);
-                boolean found = false;
-                for (int i = 0; i < INFOBOX_GEO_BYTES.length; i++) {
-                    byte[] text = INFOBOX_GEO_BYTES[i];
-                    if (text.length == len && ArrayHelper.equals(lineArray, start, text)) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found) {
-                    int eod = lineBB.limit();
-                    // for (int i = end; i < lineBB.limit(); i++) {
-                    // b = lineArray[i];
-                    // if (b == '|') {
-                    // eod = i;
-                    // break;
-                    // }
-                    // }
-                    final int lod = eod - start;
-                    if (!ArrayHelper.isEmpty(geoLocationInfoboxBB)) {
-                        geoLocationInfoboxBB.position(geoLocationInfoboxBB.limit()).limit(
-                                geoLocationInfoboxBB.capacity());
+            if (found) {
+                final int lod = lineBB.limit() - start;
+                if (!ArrayHelper.isEmpty(geoLocationInfoboxBB)) {
+                    final int remains = geoLocationInfoboxBB.capacity() - geoLocationInfoboxBB.limit();                    
+                    if (remains > lod + 1) {
+                        geoLocationInfoboxBB.position(geoLocationInfoboxBB.limit()).limit(geoLocationInfoboxBB.capacity());
                         geoLocationInfoboxBB.put((byte) '|');
+                        ArrayHelper.copy(lineBB, start, geoLocationInfoboxBB, geoLocationInfoboxBB.position(), lod);
+                        geoLocationInfoboxBB.limit(geoLocationInfoboxBB.position() + lod);
+                    } else {
+                        System.err.println("geoLocationInfoboxBB过长（" + lod + "，" + geoLocationInfoboxBB.position()
+                                + "，" + geoLocationInfoboxBB.limit() + "）："
+                                + ArrayHelper.toString(geoLocationInfoboxBB) + " --- " + ArrayHelper.toString(lineBB));
                     }
-                    ArrayHelper.copy(lineBB, start, geoLocationInfoboxBB, geoLocationInfoboxBB.position(), lod);
-                    geoLocationInfoboxBB.limit(geoLocationInfoboxBB.position() + lod);
-                    // System.out.println(ArrayHelper.toString(geoLocationInfobox));
+                } else {
+                    if (geoLocationInfoboxBB.remaining() > lod) {
+                        ArrayHelper.copy(lineBB, start, geoLocationInfoboxBB, geoLocationInfoboxBB.position(), lod);
+                        geoLocationInfoboxBB.limit(geoLocationInfoboxBB.position() + lod);
+                    } else {
+                        System.err.println("geoLocationInfoboxBB-n过长：" + ArrayHelper.toString(geoLocationInfoboxBB)
+                                + " --- " + ArrayHelper.toString(lineBB));
+                    }
                 }
+                // System.out.println(ArrayHelper.toString(geoLocationInfobox));
             }
         }
     }
 
-    final void signal() {
+    protected final void signal() {
         if (lineCount % (OK_NOTICE * 100) == 0 && lineCount != 0) {
             System.out.println(".");
         } else {
@@ -1052,11 +1114,12 @@ class WikiExtractorBase {
                 }
                 continue;
             case '{':
-                if (hasNext && array[i + 1] == '{' || array[i + 1] == '|') {
+                boolean infobox = false;
+                if (hasNext && ((infobox = array[i + 1] == '{') || array[i + 1] == '|')) {
                     // begins with {{ or {|
                     opened = 1;
                     boolean writeValue = false;
-                    if (array[i + 1] == '{') {
+                    if (infobox) {
                         opened = 2;
                         writeValue = true;
                     }
@@ -1105,7 +1168,7 @@ class WikiExtractorBase {
                         }
                     }
                     i = stop;
-                    if (skipIdx[0] == -1) {
+                    if (skipIdx[0] == -1 || (infobox && opened == 2)) {
                         // found infobox
                         insideInfobox = true;
                     }
@@ -1283,52 +1346,49 @@ class WikiExtractorBase {
     }
 
     private boolean writeCategory() throws IOException {
-        languages.put(fileLngBytes, nameBB.array());
-        Set<byte[]> lngs = languages.keySet();
-        // byte[] sourceStringBytes = (Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key)
-        // .getBytes(Helper.CHARSET_UTF8);
-        ByteBuffer bb = ArrayHelper.borrowByteBufferMedium();
-        for (byte[] l : lngs) {
-            bb.clear();
-            // bb.put(languages.get(l)).put(sourceStringBytes);
-            bb.put(languages.get(l));
-            bb.limit(bb.position());
-            languages.put(l, ArrayHelper.toBytes(bb));
-        }
-        ArrayHelper.giveBack(bb);
+        outCategories.write(fileLngBytes);
+        outCategories.write(Helper.SEP_DEFINITION_BYTES);
+        outCategories.write(nameBB.array(), ArrayHelper.indexOf(nameBB.array(), 0, nameBB.limit(), (byte) ':') + 1,
+                nameBB.limit());
 
-        Iterator<Entry<byte[], byte[]>> i = languages.entrySet().iterator();
-        for (;;) {
-            Entry<byte[], byte[]> e = i.next();
-            byte[] key = e.getKey();
-            byte[] value = e.getValue();
-            int offset = ArrayHelper.indexOf(value, 0, value.length, (byte) ':') + 1;
-            outCategories.write(key);
-            outCategories.write(Helper.SEP_DEFINITION_BYTES);
-            outCategories.write(value, offset, value.length - offset);
-            if (!i.hasNext()) {
-                break;
+        if (!languages.isEmpty()) {
+            Iterator<Entry<byte[], byte[]>> i = languages.entrySet().iterator();
+            for (;;) {
+                outCategories.write(Helper.SEP_LIST_BYTES);
+                Entry<byte[], byte[]> e = i.next();
+                byte[] key = e.getKey();
+                byte[] value = e.getValue();
+                int offset = ArrayHelper.indexOf(value, 0, value.length, (byte) ':') + 1;
+                outCategories.write(key);
+                outCategories.write(Helper.SEP_DEFINITION_BYTES);
+                outCategories.write(value, offset, value.length - offset);
+                if (!i.hasNext()) {
+                    break;
+                }
             }
-            outCategories.write(Helper.SEP_LIST_BYTES);
+            outCategories.write(Helper.SEP_NEWLINE_CHAR);
         }
-        outCategories.write(Helper.SEP_NEWLINE_CHAR);
         return true;
     }
 
     private final boolean writeDef() throws IOException {
-        languages.put(fileLngBytes, nameBB.array());
-        Iterator<Entry<byte[], byte[]>> i = languages.entrySet().iterator();
-        for (;;) {
-            Entry<byte[], byte[]> e = i.next();
-            byte[] key = e.getKey();
-            byte[] value = e.getValue();
-            out.write(key);
-            out.write(Helper.SEP_DEFINITION_BYTES);
-            out.write(value);
-            if (!i.hasNext()) {
-                break;
+        out.write(fileLngBytes);
+        out.write(Helper.SEP_DEFINITION_BYTES);
+        out.write(nameBB.array(), 0, nameBB.limit());
+        if (!languages.isEmpty()) {
+            Iterator<Entry<byte[], byte[]>> i = languages.entrySet().iterator();
+            for (;;) {
+                out.write(Helper.SEP_LIST_BYTES);
+                Entry<byte[], byte[]> e = i.next();
+                byte[] key = e.getKey();
+                byte[] value = e.getValue();
+                out.write(key);
+                out.write(Helper.SEP_DEFINITION_BYTES);
+                out.write(value);
+                if (!i.hasNext()) {
+                    break;
+                }
             }
-            out.write(Helper.SEP_LIST_BYTES);
         }
         out.write(Helper.SEP_NEWLINE_CHAR);
         return true;
@@ -1400,7 +1460,7 @@ class WikiExtractorBase {
                 }
                 statSkippedCategory++;
             } else if (!languages.isEmpty()) {
-                if (writeDef()) {
+                if (out != null && writeDef()) {
                     if (writeSource()) {
                         statOkSource++;
                     }

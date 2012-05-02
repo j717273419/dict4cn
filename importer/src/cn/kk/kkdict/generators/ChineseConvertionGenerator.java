@@ -1,4 +1,4 @@
-package cn.kk.kkdict.summarization;
+package cn.kk.kkdict.generators;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,12 +26,16 @@ public class ChineseConvertionGenerator {
             while (null != (line = reader.readLine())) {
                 String[] parts = line.split(Helper.SEP_PARTS);
                 if (parts.length == 2) {
-                    String map = parts[1];
-                    int length = map.length();
+                    final String map = parts[1];
+                    final int length = map.length();
                     if (parts[0].equals("simple")) {
                         simple = new int[length];
                         for (int i = 0; i < length; i++) {
                             simple[i] = map.codePointAt(i);
+                            if (map.substring(i, i ).equals(new String(Character.toChars(simple[i])))) {
+                                System.err.println(map.substring(i, i + 1) + "->"
+                                        + new String(Character.toChars(simple[i])));
+                            }
                         }
                     } else if (parts[0].equals("traditional")) {
                         traditional = new int[length];

@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.beans;
 
 import java.nio.ByteBuffer;
@@ -88,11 +108,13 @@ public class DictByteBufferRow {
         for (int defIdx2 = 0; defIdx2 < size; defIdx2++) {
             defIdx = indexOfLanguage(other.getLanguage(defIdx2));
             if (defIdx == -1) {
+                // lng not found
                 return false;
             } else {
                 final int valSize = getValueSize(defIdx);
                 final int valSize2 = other.getValueSize(defIdx2);
                 if (valSize != valSize2) {
+                    // val size not equal
                     return false;
                 }
                 if (valuesSorted && other.valuesSorted) {
@@ -102,12 +124,17 @@ public class DictByteBufferRow {
                     if (bb.hasRemaining() && other.bb.hasRemaining() && ArrayHelper.equalsP(bb, other.bb)) {
                         continue;
                     } else {
+                        // val not equal
                         return false;
                     }
                 } else {
                     // compare value by value
                     for (int valIdx2 = 0; valIdx2 < valSize2; valIdx2++) {
                         final int valIdx = indexOfValue(defIdx, other.getValue(defIdx2, valIdx2));
+                        if (valIdx == -1) {
+                            // val not found
+                            return false;
+                        }
                         getValueWithAttributes(defIdx, valIdx);
                         other.getValueWithAttributes(defIdx2, valIdx2);
                         if (bb.hasRemaining() && other.bb.hasRemaining() && ArrayHelper.equalsP(bb, other.bb)) {
@@ -165,10 +192,15 @@ public class DictByteBufferRow {
             if (!attrsAnalyzed) {
                 parseAttributes();
             }
-            final int asSize = attrsSize.get(defIdx).get(valIdx);
+            final int asSize = getAttributesSize(defIdx, valIdx);
             if (valIdx < asSize) {
-                final int aStartIdx = attrStartIdx.get(defIdx).get(valIdx).get(attrIdx);
-                final int aStopIdx = attrStopIdx.get(defIdx).get(valIdx).get(attrIdx);
+                // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", attrIdx: " + attrIdx + "; size: "
+                // + size + ", asSize: " + asSize);
+                final IntList aStartList = attrStartIdx.get(defIdx).get(valIdx);
+                final IntList aStopList = attrStopIdx.get(defIdx).get(valIdx);
+
+                final int aStartIdx = aStartList.get(attrIdx);
+                final int aStopIdx = aStopList.get(attrIdx);
                 bb.limit(aStopIdx);
                 bb.position(aStartIdx);
             } else {
@@ -547,16 +579,19 @@ public class DictByteBufferRow {
                 final ArrayList<IntList> attrStopDefIdx = attrStopIdx.get(defIdx);
                 attrStartDefIdx.ensureCapacity(valSize);
                 attrStopDefIdx.ensureCapacity(valSize);
-                for (int i = attrStartDefIdx.size(); i < size; i++) {
+                for (int i = attrStartDefIdx.size(); i < valSize; i++) {
                     attrStartDefIdx.add(new IntList(INITIAL_ATTRS_SIZE).size(INITIAL_ATTRS_SIZE));
                     attrStopDefIdx.add(new IntList(INITIAL_ATTRS_SIZE).size(INITIAL_ATTRS_SIZE));
                 }
 
                 for (int valIdx = 0; valIdx < valSize; valIdx++) {
+                    // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", valSize: " + valSize
+                    // + ", attrStart: " + attrStartDefIdx.size() + ", attrStop: " + attrStopDefIdx.size());
                     getAttributes(defIdx, valIdx);
                     final IntList attrStartValIdx = attrStartDefIdx.get(valIdx);
                     final IntList attrStopValIdx = attrStopDefIdx.get(valIdx);
                     if (bb.limit() == 0) {
+                        attrsSize.get(defIdx).set(valIdx, 0);
                         attrStartValIdx.clear();
                         attrStopValIdx.clear();
                     } else {
@@ -707,7 +742,7 @@ public class DictByteBufferRow {
                 tmpBB.put((byte) ',').put((byte) ' ');
             }
             tmpBB.put(getValue(defIdx, valIdx));
-            
+
             final int asSize = getAttributesSize(defIdx, valIdx);
             if (asSize > 0) {
                 tmpBB.put((byte) ' ').put((byte) '(');
@@ -722,10 +757,10 @@ public class DictByteBufferRow {
                 }
                 tmpBB.put((byte) ')');
             }
-            
+
         }
         tmpBB.limit(tmpBB.position()).rewind();
-        String result = ArrayHelper.toStringP(tmpBB); 
+        String result = ArrayHelper.toStringP(tmpBB);
         ArrayHelper.giveBack(tmpBB);
         return result;
     }

@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.summarization;
 
 import java.io.BufferedInputStream;
@@ -16,8 +36,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.IndexedByteArray;
-import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.Score;
 import cn.kk.kkdict.utils.ArrayHelper;
@@ -28,8 +49,8 @@ import cn.kk.kkdict.utils.Helper;
  * 建立相关单词的双向连接。计算出现次数。
  */
 public class WikiDictRelatedCorrector {
-    public static final String IN_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR;
-    public static final String OUT_DIR = WikiPagesMetaCurrentExtractor.OUT_DIR + File.separator + "output";
+    public static final String IN_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
+    public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_MERGED_DICTS.getPath(Source.DICT_WIKIPEDIA);
     public static final String SUFFIX_CORRECTED = "_corrected";
     private static final boolean DEBUG = false;
     private static final boolean TRACE = false;

@@ -1,3 +1,24 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
+
 package cn.kk.kkdict.tools;
 
 import java.io.BufferedOutputStream;
@@ -15,7 +36,7 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
-public class WordFilesSorter {
+public class WordFilesMergedSorter {
     public static final String SUFFIX_SKIPPED = "_srt-skipped";
     private final static boolean CHECK = false;
     protected final static boolean DEBUG = false;
@@ -24,25 +45,6 @@ public class WordFilesSorter {
     protected final static int CACHE_SIZE = 10;
     public static final String OUTFILE = "output-words_srt-result.words";
     private final boolean skipIrrelevant;
-
-    /**
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        String inFile0 = Helper.DIR_OUT_WORDS + "/output-words.test";
-        String inFile1 = Helper.DIR_OUT_WORDS + "/output-words.baidu_bcd";
-        String inFile2 = Helper.DIR_OUT_WORDS + "/output-words.qq_qpyd";
-        String inFile3 = Helper.DIR_OUT_WORDS + "/output-words.sogou_scel";
-        String outDir = Helper.DIR_OUT_WORDS;
-        // String inFile1 = "D:\\test1.txt";
-        // String inFile2 = "D:\\test2.txt";
-        // String inFile3 = "D:\\test3.txt";
-        // String outFile = "D:\\test_sorted.txt";
-
-        // new WordFilesSorter(outFile, false, inFile0).sort();
-        new WordFilesSorter(outDir, false, true, inFile0).sort();
-    }
 
     private static final void swap(final int[] sortedPosArray, final int a, final int b) {
         final int t = sortedPosArray[a];
@@ -79,11 +81,11 @@ public class WordFilesSorter {
 
     protected int totalSorted;
 
-    public WordFilesSorter(String outDir, boolean skipIrrelevant, boolean writeIrrelevant, String... inFiles) {
+    public WordFilesMergedSorter(String outDir, boolean skipIrrelevant, boolean writeIrrelevant, String... inFiles) {
         this(outDir, OUTFILE, skipIrrelevant, writeIrrelevant, inFiles);
     }
 
-    public WordFilesSorter(String outDir, String outFile, boolean skipIrrelevant, boolean writeIrrelevant,
+    public WordFilesMergedSorter(String outDir, String outFile, boolean skipIrrelevant, boolean writeIrrelevant,
             String... inFiles) {
         this.skipIrrelevant = skipIrrelevant;
         if (new File(outDir).isDirectory()) {

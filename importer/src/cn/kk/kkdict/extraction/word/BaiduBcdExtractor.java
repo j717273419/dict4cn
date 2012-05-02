@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.extraction.word;
 
 import java.io.BufferedWriter;
@@ -12,21 +32,23 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Set;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 import cn.kk.kkdict.utils.PinyinHelper;
 
 public class BaiduBcdExtractor {
-    public static final String IN_DIR = Helper.DIR_IN_WORDS+"\\baidu";
-    public static final String OUT_DIR = Helper.DIR_OUT_WORDS;
-    public static final String OUT_FILE = OUT_DIR + "\\output-words." + WordSource.BAIDU_BDICT.key;
+    public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BAIDU);
+    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_BAIDU,
+            "output-words." + WordSource.BAIDU_BDICT.key);
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
-            new File(OUT_DIR).mkdirs();
             System.out.print("搜索百度BCD文件'" + IN_DIR + "' ... ");
             BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
@@ -59,7 +81,8 @@ public class BaiduBcdExtractor {
         }
     }
 
-    private static int extractBdictToFile(File bcdFile, BufferedWriter writer, Set<String> categories) throws IOException {
+    private static int extractBdictToFile(File bcdFile, BufferedWriter writer, Set<String> categories)
+            throws IOException {
         int counter = 0;
 
         // read bcds into byte array
@@ -90,6 +113,8 @@ public class BaiduBcdExtractor {
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");
 
+            writer.write(Language.ZH.key);
+            writer.write(Helper.SEP_DEFINITION);
             writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(word), categories));
             writer.write(Helper.SEP_ATTRIBUTE);
             writer.write(WordSource.TYPE_ID);

@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.utils;
 
 import java.io.File;
@@ -256,12 +276,12 @@ public final class DictHelper {
             ByteBuffer merged) {
         return mergeDefinitionsAndAttributes(row1, row2, merged, false);
     }
-   
+
     public static boolean mergeDefinitionsAndAttributesLinked(DictByteBufferRow row1, DictByteBufferRow row2,
             ByteBuffer merged) {
         return mergeDefinitionsAndAttributes(row1, row2, merged, true);
     }
-    
+
     /**
      * Merge linked definitions and attributes.
      * 
@@ -368,8 +388,8 @@ public final class DictHelper {
     public static final int filterAttributes(ByteBuffer mergeBB) {
         int idx;
         mergeBB.rewind();
-        while (-1 != (idx = ArrayHelper.indexOf(mergeBB.array(), mergeBB.position(),
-                mergeBB.remaining(), DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
+        while (-1 != (idx = ArrayHelper.indexOf(mergeBB.array(), mergeBB.position(), mergeBB.remaining(),
+                DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES))) {
             int stopIdx = DictHelper.getNextStopPoint(mergeBB.array(), idx
                     + DictHelper.SEP_ATTR_TRANSLATION_SRC_BYTES.length, mergeBB.limit(), DictHelper.ORDER_ATTRIBUTE);
             if (mergeBB.limit() > stopIdx) {
@@ -471,6 +491,7 @@ public final class DictHelper {
             lngStr = Helper.substringBetweenNarrow(f, File.separator, "wiktionary-");
         }
         if (lngStr != null) {
+            System.out.println("wiki语言：" + Helper.toConstantName(lngStr));
             return Language.valueOf(Helper.toConstantName(lngStr));
         }
         return null;

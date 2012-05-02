@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.extraction.word;
 
 import java.io.BufferedWriter;
@@ -16,21 +36,22 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.zip.InflaterOutputStream;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 import cn.kk.kkdict.utils.PinyinHelper;
 
 public class QQPinyinQpydExtractor {
-    public static final String IN_DIR = Helper.DIR_IN_WORDS+"\\qq";
-    public static final String OUT_DIR = Helper.DIR_OUT_WORDS;
-    public static final String OUT_FILE = OUT_DIR + "\\output-words."+ WordSource.QQ_QPYD.key;
+    public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_QQ);
+    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_QQ, "output-words." + WordSource.QQ_QPYD.key);
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
         if (directory.isDirectory()) {
-            new File(OUT_DIR).mkdirs();
             System.out.print("搜索QPYD文件'" + IN_DIR + "' ... ");
             BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
 
@@ -108,6 +129,8 @@ public class QQPinyinQpydExtractor {
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     Helper.CHARSET_UTF16LE);
             if (PinyinHelper.checkValidPinyin(pinyin)) {
+                writer.write(Language.ZH.key);
+                writer.write(Helper.SEP_DEFINITION);
                 writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(cleanWord(word)), categories));
                 writer.write(Helper.SEP_ATTRIBUTE);
                 writer.write(WordSource.TYPE_ID);

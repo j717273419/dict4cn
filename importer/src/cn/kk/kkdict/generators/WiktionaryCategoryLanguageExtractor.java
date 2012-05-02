@@ -1,4 +1,24 @@
-package cn.kk.kkdict.tools;
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
+package cn.kk.kkdict.generators;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,6 +34,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.TranslationInfo;
 import cn.kk.kkdict.extraction.dict.WiktionaryPagesMetaCurrentChineseExtractor;
 import cn.kk.kkdict.types.Language;
@@ -29,7 +51,7 @@ import cn.kk.kkdict.utils.Helper;
  * 
  */
 public class WiktionaryCategoryLanguageExtractor {
-    public static final String GENERATED_DIR = Helper.DIR_OUT_GENERATED;
+    public static final String GENERATED_DIR = Configuration.IMPORTER_FOLDER_GENERATED.getPath(Source.NULL);
     public static final Language[] RELEVANT_LANGUAGES = WiktionaryPagesMetaCurrentChineseExtractor.RELEVANT_LANGUAGES;
     private static final Properties LNG2NAME_EN = new Properties();
     private static final String URL_CATEGORY_PREFIX_EN = "https://en.wiktionary.org/wiki/Category:";

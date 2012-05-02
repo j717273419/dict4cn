@@ -1,3 +1,23 @@
+/*  Copyright (c) 2010 Xiaoyun Zhu
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy  
+ *  of this software and associated documentation files (the "Software"), to deal  
+ *  in the Software without restriction, including without limitation the rights  
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+ *  copies of the Software, and to permit persons to whom the Software is  
+ *  furnished to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in  
+ *  all copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
+ *  THE SOFTWARE.  
+ */
 package cn.kk.kkdict.utils;
 
 import java.io.BufferedInputStream;
@@ -6,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +43,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,69 +52,57 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
+import javax.swing.filechooser.FileSystemView;
+
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.DictRow;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.types.Category;
 
 public final class Helper {
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
     private static final boolean INFO = true;
 
     public static final int BUFFER_SIZE = 1024 * 1024 * 4;
     public static final Charset CHARSET_EUCJP = Charset.forName("EUC-JP");
     public static final Charset CHARSET_UTF16LE = Charset.forName("UTF-16LE");
     public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
-    // public static final String DIR_IN_DICTS = "K:\\kkdict\\in\\dicts";
-    // public static final String DIR_IN_WORDS = "K:\\kkdict\\in\\words";
-    // public static final String DIR_IN_DICTS = "O:\\kkdict\\in\\dicts";
-    // public static final String DIR_IN_WORDS = "O:\\kkdict\\in\\words";
-    //
-    // public static final String DIR_OUT_DICTS = "O:\\kkdict\\out\\dicts";
-    // public static final String DIR_OUT_GENERATED = "O:\\kkdict\\out\\generated";
-    // public static final String DIR_OUT_WORDS = "O:\\kkdict\\out\\words";
-    public static final String DIR_IN_DICTS = "C:\\usr\\kkdict\\in\\dicts";
-    public static final String DIR_IN_WORDS = "C:\\usr\\kkdict\\in\\words";
-    public static final String DIR_OUT_DICTS = "C:\\usr\\kkdict\\out\\dicts";
-    public static final String DIR_OUT_GENERATED = "C:\\usr\\kkdict\\out\\generated";
-    public static final String DIR_OUT_WORDS = "C:\\usr\\kkdict\\out\\words";
-    // public static final String DIR_OUT_DICTS = "K:\\kkdict\\out\\dicts";
-    // public static final String DIR_OUT_GENERATED = "K:\\kkdict\\out\\generated";
-    // public static final String DIR_OUT_WORDS = "K:\\kkdict\\out\\words";
-
     public final static String EMPTY_STRING = "";
     public final static List<String> EMPTY_STRING_LIST = Collections.emptyList();
 
-    private static final String[][] HTML_ENTITIES = { { "fnof", "402" }, { "Alpha", "913" }, { "Beta", "914" },
-            { "Gamma", "915" }, { "Delta", "916" }, { "Epsilon", "917" }, { "Zeta", "918" }, { "Eta", "919" },
-            { "Theta", "920" }, { "Iota", "921" }, { "Kappa", "922" }, { "Lambda", "923" }, { "Mu", "924" },
-            { "Nu", "925" }, { "Xi", "926" }, { "Omicron", "927" }, { "Pi", "928" }, { "Rho", "929" },
-            { "Sigma", "931" }, { "Tau", "932" }, { "Upsilon", "933" }, { "Phi", "934" }, { "Chi", "935" },
-            { "Psi", "936" }, { "Omega", "937" }, { "alpha", "945" }, { "beta", "946" }, { "gamma", "947" },
-            { "delta", "948" }, { "epsilon", "949" }, { "zeta", "950" }, { "eta", "951" }, { "theta", "952" },
-            { "iota", "953" }, { "kappa", "954" }, { "lambda", "955" }, { "mu", "956" }, { "nu", "957" },
-            { "xi", "958" }, { "omicron", "959" }, { "pi", "960" }, { "rho", "961" }, { "sigmaf", "962" },
-            { "sigma", "963" }, { "tau", "964" }, { "upsilon", "965" }, { "phi", "966" }, { "chi", "967" },
-            { "psi", "968" }, { "omega", "969" }, { "thetasym", "977" }, { "upsih", "978" }, { "piv", "982" },
-            { "bull", "8226" }, { "hellip", "8230" }, { "prime", "8242" }, { "Prime", "8243" }, { "oline", "8254" },
-            { "frasl", "8260" }, { "weierp", "8472" }, { "image", "8465" }, { "real", "8476" }, { "trade", "8482" },
-            { "alefsym", "8501" }, { "larr", "8592" }, { "uarr", "8593" }, { "rarr", "8594" }, { "darr", "8595" },
-            { "harr", "8596" }, { "crarr", "8629" }, { "lArr", "8656" }, { "uArr", "8657" }, { "rArr", "8658" },
-            { "dArr", "8659" }, { "hArr", "8660" }, { "forall", "8704" }, { "part", "8706" }, { "exist", "8707" },
-            { "empty", "8709" }, { "nabla", "8711" }, { "isin", "8712" }, { "notin", "8713" }, { "ni", "8715" },
-            { "prod", "8719" }, { "sum", "8721" }, { "minus", "8722" }, { "lowast", "8727" }, { "radic", "8730" },
-            { "prop", "8733" }, { "infin", "8734" }, { "ang", "8736" }, { "and", "8743" }, { "or", "8744" },
-            { "cap", "8745" }, { "cup", "8746" }, { "int", "8747" }, { "there4", "8756" }, { "sim", "8764" },
-            { "cong", "8773" }, { "asymp", "8776" }, { "ne", "8800" }, { "equiv", "8801" }, { "le", "8804" },
-            { "ge", "8805" }, { "sub", "8834" }, { "sup", "8835" }, { "sube", "8838" }, { "supe", "8839" },
-            { "oplus", "8853" }, { "otimes", "8855" }, { "perp", "8869" }, { "sdot", "8901" }, { "lceil", "8968" },
-            { "rceil", "8969" }, { "lfloor", "8970" }, { "rfloor", "8971" }, { "lang", "9001" }, { "rang", "9002" },
-            { "loz", "9674" }, { "spades", "9824" }, { "clubs", "9827" }, { "hearts", "9829" }, { "diams", "9830" },
-            { "OElig", "338" }, { "oelig", "339" }, { "Scaron", "352" }, { "scaron", "353" }, { "Yuml", "376" },
-            { "circ", "710" }, { "tilde", "732" }, { "ensp", "8194" }, { "emsp", "8195" }, { "thinsp", "8201" },
-            { "zwnj", "8204" }, { "zwj", "8205" }, { "lrm", "8206" }, { "rlm", "8207" }, { "ndash", "8211" },
-            { "mdash", "8212" }, { "lsquo", "8216" }, { "rsquo", "8217" }, { "sbquo", "8218" }, { "ldquo", "8220" },
-            { "rdquo", "8221" }, { "bdquo", "8222" }, { "dagger", "8224" }, { "Dagger", "8225" }, { "permil", "8240" },
+    private static final String[][] HTML_ENTITIES = { { "amp", "38" }, { "quot", "34" }, { "lt", "60" },
+            { "gt", "62" }, { "fnof", "402" }, { "Alpha", "913" }, { "Beta", "914" }, { "Gamma", "915" },
+            { "Delta", "916" }, { "Epsilon", "917" }, { "Zeta", "918" }, { "Eta", "919" }, { "Theta", "920" },
+            { "Iota", "921" }, { "Kappa", "922" }, { "Lambda", "923" }, { "Mu", "924" }, { "Nu", "925" },
+            { "Xi", "926" }, { "Omicron", "927" }, { "Pi", "928" }, { "Rho", "929" }, { "Sigma", "931" },
+            { "Tau", "932" }, { "Upsilon", "933" }, { "Phi", "934" }, { "Chi", "935" }, { "Psi", "936" },
+            { "Omega", "937" }, { "alpha", "945" }, { "beta", "946" }, { "gamma", "947" }, { "delta", "948" },
+            { "epsilon", "949" }, { "zeta", "950" }, { "eta", "951" }, { "theta", "952" }, { "iota", "953" },
+            { "kappa", "954" }, { "lambda", "955" }, { "mu", "956" }, { "nu", "957" }, { "xi", "958" },
+            { "omicron", "959" }, { "pi", "960" }, { "rho", "961" }, { "sigmaf", "962" }, { "sigma", "963" },
+            { "tau", "964" }, { "upsilon", "965" }, { "phi", "966" }, { "chi", "967" }, { "psi", "968" },
+            { "omega", "969" }, { "thetasym", "977" }, { "upsih", "978" }, { "piv", "982" }, { "bull", "8226" },
+            { "hellip", "8230" }, { "prime", "8242" }, { "Prime", "8243" }, { "oline", "8254" }, { "frasl", "8260" },
+            { "weierp", "8472" }, { "image", "8465" }, { "real", "8476" }, { "trade", "8482" }, { "alefsym", "8501" },
+            { "larr", "8592" }, { "uarr", "8593" }, { "rarr", "8594" }, { "darr", "8595" }, { "harr", "8596" },
+            { "crarr", "8629" }, { "lArr", "8656" }, { "uArr", "8657" }, { "rArr", "8658" }, { "dArr", "8659" },
+            { "hArr", "8660" }, { "forall", "8704" }, { "part", "8706" }, { "exist", "8707" }, { "empty", "8709" },
+            { "nabla", "8711" }, { "isin", "8712" }, { "notin", "8713" }, { "ni", "8715" }, { "prod", "8719" },
+            { "sum", "8721" }, { "minus", "8722" }, { "lowast", "8727" }, { "radic", "8730" }, { "prop", "8733" },
+            { "infin", "8734" }, { "ang", "8736" }, { "and", "8743" }, { "or", "8744" }, { "cap", "8745" },
+            { "cup", "8746" }, { "int", "8747" }, { "there4", "8756" }, { "sim", "8764" }, { "cong", "8773" },
+            { "asymp", "8776" }, { "ne", "8800" }, { "equiv", "8801" }, { "le", "8804" }, { "ge", "8805" },
+            { "sub", "8834" }, { "sup", "8835" }, { "sube", "8838" }, { "supe", "8839" }, { "oplus", "8853" },
+            { "otimes", "8855" }, { "perp", "8869" }, { "sdot", "8901" }, { "lceil", "8968" }, { "rceil", "8969" },
+            { "lfloor", "8970" }, { "rfloor", "8971" }, { "lang", "9001" }, { "rang", "9002" }, { "loz", "9674" },
+            { "spades", "9824" }, { "clubs", "9827" }, { "hearts", "9829" }, { "diams", "9830" }, { "OElig", "338" },
+            { "oelig", "339" }, { "Scaron", "352" }, { "scaron", "353" }, { "Yuml", "376" }, { "circ", "710" },
+            { "tilde", "732" }, { "ensp", "8194" }, { "emsp", "8195" }, { "thinsp", "8201" }, { "zwnj", "8204" },
+            { "zwj", "8205" }, { "lrm", "8206" }, { "rlm", "8207" }, { "ndash", "8211" }, { "mdash", "8212" },
+            { "lsquo", "8216" }, { "rsquo", "8217" }, { "sbquo", "8218" }, { "ldquo", "8220" }, { "rdquo", "8221" },
+            { "bdquo", "8222" }, { "dagger", "8224" }, { "Dagger", "8225" }, { "permil", "8240" },
             { "lsaquo", "8249" }, { "rsaquo", "8250" }, { "euro", "8364" }, };
     private static final String[] HTML_KEYS;
 
@@ -166,9 +176,8 @@ public final class Helper {
         } else {
             StringBuilder sb = new StringBuilder(word.length() * 2);
             sb.append(word);
-            sb.append(Helper.SEP_ATTRIBUTE).append(Category.TYPE_ID);
             for (String c : categories) {
-                sb.append(c);
+                sb.append(Helper.SEP_ATTRIBUTE).append(Category.TYPE_ID).append(c);
             }
             return sb.toString();
         }
@@ -196,7 +205,8 @@ public final class Helper {
         if (DEBUG) {
             System.out.println("下载'" + url + "'到'" + to + "'。。。");
         }
-        if (!overwrite && new File(to).exists()) {
+        final File toFile = new File(to);
+        if (!overwrite && toFile.exists() && toFile.length() > 0) {
             System.err.println("文件'" + to + "'已存在。跳过下载程序。");
             return null;
         } else {
@@ -208,7 +218,11 @@ public final class Helper {
                 in = new BufferedInputStream(openUrlInputStream(url), BUFFER_SIZE);
                 writeInputStream(in, out);
             } catch (IOException e) {
-                System.err.println("下载失败：" + e.toString());
+                toFile.delete();
+                if (DEBUG) {
+                    System.err.println("下载'" + url + "'失败：" + e.toString());
+                }
+                throw e;
             } finally {
                 if (in != null) {
                     in.close();
@@ -218,9 +232,9 @@ public final class Helper {
 
                     long duration = System.currentTimeMillis() - start;
                     if (INFO) {
-                        System.out.println("下载文件'" + url + "'（" + formatSpace(new File(to).length()) + "），用时"
+                        System.out.println("下载文件'" + url + "'（" + formatSpace(toFile.length()) + "），用时"
                                 + Helper.formatDuration(duration) + "（"
-                                + Math.round(new File(to).length() / (duration / 1000.0) / 1024.0) + "kbps）。");
+                                + Math.round(toFile.length() / (duration / 1000.0) / 1024.0) + "kbps）。");
                     }
                 }
             }
@@ -673,14 +687,13 @@ public final class Helper {
     public static String toConstantName(String line) {
         final int count = line.length();
         StringBuilder sb = new StringBuilder(count);
-        line = line.replace("ß", "_");
         line = line.toUpperCase();
         for (int i = 0; i < count; i++) {
             char c = line.charAt(i);
             if (c == '.' || c == ':' || c == '?' || c == ',' || c == '*' || c == '=' || c == '„' || c == '“'
-                    || c == ')' || c == '1' || c == '2' || c == '3' || c == '4') {
+                    || c == ')' || (c >= '0' && c <= '9') || c == '"' || c == ';' || c == '!' || c == '<' || c == '>') {
                 continue;
-            } else if (c == ' ' || c == '\'' || c == '-') {
+            } else if (c == ' ' || c == '\'' || c == '-' || c == '&' || c == 'ß') {
                 sb.append('_');
             } else {
                 sb.append(c);
@@ -837,4 +850,129 @@ public final class Helper {
         return null;
     }
 
+    public static final double toFixed(final double d, final double precision) {
+        final double pow = Math.pow(10, precision);
+        return Math.round(d * pow) / pow;
+    }
+
+    private static final FileSystemView FILE_SYSTEM = FileSystemView.getFileSystemView();
+
+    /**
+     * <pre>
+     * Find resource in possible directories:
+     * 1. find in the running directory
+     * 2. find in the user directory
+     * 3. find in the user document directory
+     * 4. find on the user desktop
+     * 5. get from root of the running directory
+     * 6. load from class path and system path
+     * 7. find in all root directories e.g. C:, D:
+     * 8. find in temporary directory
+     * </pre>
+     * 
+     * @param resource
+     * @return
+     * @throws IllegalArgumentException
+     */
+    public static final File findResource(final String resource) throws IllegalArgumentException {
+        File resFile = null;
+        if (new File(resource).isFile()) {
+            // in run directory
+            resFile = new File(resource);
+        }
+        if (resFile == null) {
+            // in user directory
+            final String dir = System.getProperty("user.home");
+            if (!isEmptyOrNull(dir)) {
+                if (new File(dir, resource).isFile()) {
+                    resFile = new File(dir, resource);
+                }
+            }
+        }
+        if (resFile == null) {
+            // in user document directory
+            final File dir = FILE_SYSTEM.getDefaultDirectory();
+            if (dir != null) {
+                if (new File(dir, resource).isFile()) {
+                    resFile = new File(dir, resource);
+                }
+            }
+        }
+        if (resFile == null) {
+            // in user desktop directory
+            final File dir = FILE_SYSTEM.getHomeDirectory();
+            if (dir != null) {
+                if (new File(dir, resource).isFile()) {
+                    resFile = new File(dir, resource);
+                }
+            }
+        }
+        if (resFile == null) {
+            // get from root of run directory
+            final File dir = new File("/");
+            if (dir.isDirectory()) {
+                if (new File(dir, resource).isFile()) {
+                    resFile = new File(dir, resource);
+                }
+            }
+        }
+        if (resFile == null) {
+            // get from class path (root)
+            URL resUrl = Helper.class.getResource("/" + resource);
+            if (resUrl != null) {
+                resFile = new File(resUrl.getFile());
+                if (!resFile.isFile()) {
+                    resFile = null;
+                }
+            }
+        }
+        if (resFile == null) {
+            // find in root directories, e.g. c:\, d:\, e:\, x:\
+            File[] dirs = File.listRoots();
+            for (File dir : dirs) {
+                if (dir.isDirectory()) {
+                    if (new File(dir, resource).isFile()) {
+                        resFile = new File(dir, resource);
+                    }
+                }
+            }
+        }
+        if (resFile == null) {
+            // in temp directory
+            final String dir = System.getProperty("java.io.tmpdir");
+            if (!isEmptyOrNull(dir)) {
+                if (new File(dir, resource).isFile()) {
+                    resFile = new File(dir, resource);
+                }
+            }
+        }
+        if (DEBUG) {
+            if (resFile != null) {
+                System.out.println("找到：" + resFile.getAbsolutePath());
+            } else {
+                System.err.println("没有找到：" + resource);
+            }
+        }
+        return resFile;
+    }
+
+    public static void close(OutputStream out) {
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException e) {
+                // silent
+            }
+        }
+    }
+
+    public static void close(InputStream in) {
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                // silent
+            }
+        }
+    }
 }

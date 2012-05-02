@@ -1,6 +1,6 @@
 package cn.kk.kkdict.extraction.dict;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
 
