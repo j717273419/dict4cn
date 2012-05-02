@@ -81,12 +81,12 @@ public class LingoesLd2Extractor {
 
             long total = 0;
             for (File f : files) {
+                final long start = System.currentTimeMillis();
                 System.out.print("分析'" + f + " ... ");
                 int counter = extractLd2ToFile(f);
-                if (counter > 0) {
-                    System.out.println(counter);
-                    total += counter;
-                }
+
+                System.out.println(counter + "，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
+                total += counter;
             }
 
             System.out.println("\n=====================================");
@@ -164,8 +164,8 @@ public class LingoesLd2Extractor {
         int[] idxData = new int[6];
         String[] defData = new String[2];
 
-        final ArrayHelper.SensitiveStringDecoder[] encodings = detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData,
-                defData);
+        final ArrayHelper.SensitiveStringDecoder[] encodings = detectEncodings(inflatedBytes, offsetDefs, offsetXml,
+                defTotal, dataLen, idxData, defData);
 
         inflatedBytes.position(8);
         int counter = 0;

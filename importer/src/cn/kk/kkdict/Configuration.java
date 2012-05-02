@@ -35,6 +35,7 @@ public enum Configuration {
     IMPORTER_FOLDER_SELECTED_DICTS("importer.folder.selected.dicts"),
     IMPORTER_FOLDER_EXTRACTED_WORDS("importer.folder.extracted.words"),
     IMPORTER_FOLDER_EXTRACTED_DICTS("importer.folder.extracted.dicts"),
+    IMPORTER_FOLDER_EXTRACTED_CRAWLED("importer.folder.extracted.crawled"),
     IMPORTER_FOLDER_MERGED_WORDS("importer.folder.merged.words"),
     IMPORTER_FOLDER_MERGED_DICTS("importer.folder.merged.dicts"),
     IMPORTER_FOLDER_FILTERED_CRAWLED("importer.folder.filtered.crawled"),

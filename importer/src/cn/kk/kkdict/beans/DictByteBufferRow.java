@@ -23,6 +23,8 @@ package cn.kk.kkdict.beans;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
@@ -192,24 +194,25 @@ public class DictByteBufferRow {
             if (!attrsAnalyzed) {
                 parseAttributes();
             }
-            final int asSize = getAttributesSize(defIdx, valIdx);
-            if (valIdx < asSize) {
-                // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", attrIdx: " + attrIdx + "; size: "
-                // + size + ", asSize: " + asSize);
-                final IntList aStartList = attrStartIdx.get(defIdx).get(valIdx);
-                final IntList aStopList = attrStopIdx.get(defIdx).get(valIdx);
+            final int vSize = getValueSize(defIdx);
+            if (valIdx < vSize) {
+                final int asSize = getAttributesSize(defIdx, valIdx);
+                if (attrIdx < asSize) {
+                    // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", attrIdx: " + attrIdx +
+                    // "; size: "
+                    // + size + ", asSize: " + asSize);
+                    final IntList aStartList = attrStartIdx.get(defIdx).get(valIdx);
+                    final IntList aStopList = attrStopIdx.get(defIdx).get(valIdx);
 
-                final int aStartIdx = aStartList.get(attrIdx);
-                final int aStopIdx = aStopList.get(attrIdx);
-                bb.limit(aStopIdx);
-                bb.position(aStartIdx);
-            } else {
-                bb.limit(0);
+                    final int aStartIdx = aStartList.get(attrIdx);
+                    final int aStopIdx = aStopList.get(attrIdx);
+                    bb.limit(aStopIdx);
+                    bb.position(aStartIdx);
+                    return bb;
+                }
             }
-        } else {
-            bb.limit(0);
         }
-        return bb;
+        return (ByteBuffer) bb.limit(0);
     }
 
     public final ByteBuffer getFirstValueAttributes(final int defIdx) {
@@ -764,4 +767,36 @@ public class DictByteBufferRow {
         ArrayHelper.giveBack(tmpBB);
         return result;
     }
+
+    public final ByteBuffer getFirstAttributeValue(final int defIdx, final int valIdx, final byte[] typeIdBytes) {
+        final int asSize = getAttributesSize(defIdx, valIdx);
+        ByteBuffer aBB;
+        for (int attrIdx = 0; attrIdx < asSize; attrIdx++) {
+            aBB = getAttribute(defIdx, valIdx, attrIdx);
+            if (aBB.remaining() > typeIdBytes.length) {
+                if (ArrayHelper.equalsP(aBB, typeIdBytes)) {
+                    aBB.position(aBB.position() + typeIdBytes.length);
+                    return aBB;
+                }
+            }
+        }
+        return (ByteBuffer) bb.limit(0);
+    }
+
+    public final ByteBuffer[] getAttributeValues(final int defIdx, final int valIdx, final byte[] typeIdBytes) {
+        List<ByteBuffer> aBBs = new LinkedList<ByteBuffer>();
+        final int asSize = getAttributesSize(defIdx, valIdx);
+        ByteBuffer aBB;
+        for (int attrIdx = 0; attrIdx < asSize; attrIdx++) {
+            aBB = getAttribute(defIdx, valIdx, attrIdx);
+            if (aBB.remaining() > typeIdBytes.length) {
+                if (ArrayHelper.equalsP(aBB, typeIdBytes)) {
+                    aBB.position(aBB.position() + typeIdBytes.length);
+                    aBBs.add(ArrayHelper.wrap(aBB));
+                }
+            }
+        }
+        return aBBs.toArray(new ByteBuffer[aBBs.size()]);
+    }
+
 }

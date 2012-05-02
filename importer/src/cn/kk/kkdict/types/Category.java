@@ -71,7 +71,8 @@ public enum Category {
     SECURITY("安"),
     COMMUNICATION("讯"),    
     TRAVEL("旅"),
-    INSURANCE("保"),;
+    INSURANCE("保"),
+    GIFT("礼");  // 礼物，礼仪
     public static final String TYPE_ID = "类";
     public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public static final String[] KEYS;

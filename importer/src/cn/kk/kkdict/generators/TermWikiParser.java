@@ -197,17 +197,22 @@ public class TermWikiParser {
             final long start = System.currentTimeMillis();
             String[] urls = LNGS.get(lng);
             final String file = OUTDIR + "/" + PREFIX + lng.key + "." + TranslationSource.TERMWIKI.key;
-            System.out.print("创建文件：" + file + " 。。。 ");
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-            long count = 0;
-            for (String url : urls) {
-                count += parseUrl(lng, url, out);
+            if (Helper.isEmptyOrNotExists(file)) {
+                System.out.print("创建文件：" + file + " 。。。 ");
+                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file), Helper.BUFFER_SIZE);
+                long count = 0;
+                for (String url : urls) {
+                    count += parseUrl(lng, url, out);
+                }
+                System.out.println("共" + count + "词组，花时：" + Helper.formatDuration(System.currentTimeMillis() - start));
+                total += count;
+                out.close();
+            } else {
+                System.out.println("跳过：" + file + "，文件已存在。");
             }
-            System.out.println("共" + count + "词组，花时：" + Helper.formatDuration(System.currentTimeMillis() - start));
-            total += count;
-            out.close();
         }
-        BufferedOutputStream outCategories = new BufferedOutputStream(new FileOutputStream(OUTFILE_CATEGORY));
+        BufferedOutputStream outCategories = new BufferedOutputStream(new FileOutputStream(OUTFILE_CATEGORY),
+                Helper.BUFFER_SIZE);
         outCategories.write(("# termwiki categories generated at " + new Date() + "\n").getBytes(Helper.CHARSET_UTF8));
         for (String category : categories) {
             outCategories.write('=');
