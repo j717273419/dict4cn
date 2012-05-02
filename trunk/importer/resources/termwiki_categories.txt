@@ -1,3 +1,5 @@
+GAME=Toys
+PSYCHOLOGY=Motivational Terms
 INDUSTRY=Energy (renewable)
 MILITARY=Aerospace and defense
 INDUSTRY=Glass packaging
