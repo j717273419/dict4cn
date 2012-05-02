@@ -1,3 +1,6 @@
+SOFTWARE=Software; Computer
+INDUSTRY=Standardization
+GIFT=Gifts & crafts
 GAME=Toys
 PSYCHOLOGY=Motivational Terms
 INDUSTRY=Energy (renewable)

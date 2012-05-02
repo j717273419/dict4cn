@@ -46,6 +46,8 @@ public class WikiDictGeoLocationCorrector {
     private static final char UNKNOWN_DIR = '\0';
     public static final String IN_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
     public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getPath(Source.DICT_WIKIPEDIA);
+    public static final String OUT_DIR_FINISHED = OUT_DIR + "/finished";
+
     public static final String SUFFIX_CORRECTED = "_corrected";
     private static final boolean DEBUG = false;
     private static final boolean TRACE = false;
@@ -110,6 +112,8 @@ public class WikiDictGeoLocationCorrector {
                     System.out.println("完成'" + outFile + "'，有效：" + statValid + "，无效：" + statInvalid + "（"
                             + Helper.formatSpace(new File(outFile).length()) + "），用时："
                             + Helper.formatDuration(System.currentTimeMillis() - startFile));
+                    File file = new File(f);
+                    file.renameTo(new File(OUT_DIR_FINISHED, file.getName()));
                 }
             }
             ArrayHelper.giveBack(lineBB);

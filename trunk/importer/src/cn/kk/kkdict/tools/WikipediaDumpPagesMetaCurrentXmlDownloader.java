@@ -65,10 +65,14 @@ public class WikipediaDumpPagesMetaCurrentXmlDownloader {
                 @Override
                 public void run() {
                     try {
-                        if (null != Helper.download(url,
-                                OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1), false)) {
-                            System.out.println("下载'" + url + "'成功。");
-                            successCounter.incrementAndGet();
+                        String file = OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1);
+                        if (Helper.isEmptyOrNotExists(file)) {
+                            if (null != Helper.download(url, file, false)) {
+                                System.out.println("下载'" + url + "'成功。");
+                                successCounter.incrementAndGet();
+                            }
+                        } else {
+                            System.out.println("跳过：" + url + "，文件已存在。");
                         }
                     } catch (Throwable e) {
                         System.err.println("下载'" + url + "'失败：" + e.toString());

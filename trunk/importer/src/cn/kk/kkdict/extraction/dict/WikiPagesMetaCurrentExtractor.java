@@ -33,8 +33,7 @@ import cn.kk.kkdict.utils.Helper;
 
 /**
  * 
- * 用时：中文~10分钟（全），8分钟（无图片链接，坐标）
- * TODO: categories
+ * 用时：中文~10分钟（全），8分钟（无图片链接，坐标） TODO: categories
  */
 public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
 
@@ -42,9 +41,13 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
 
     public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
 
+    public static final String OUT_DIR_FINISHED = OUT_DIR + "/finished";
+
     public static void main(String args[]) throws IOException {
         WikiPagesMetaCurrentExtractor extractor = new WikiPagesMetaCurrentExtractor();
         File directory = new File(IN_DIR);
+        new File(OUT_DIR_FINISHED).mkdirs();
+
         if (directory.isDirectory()) {
             System.out.print("搜索维基百科pages-meta-current.xml文件'" + IN_DIR + "' ... ");
             new File(OUT_DIR).mkdirs();
@@ -63,6 +66,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
             long total = 0;
             for (File f : files) {
                 total += extractor.extractWikipediaPagesMetaCurrent(f);
+                f.renameTo(new File(OUT_DIR_FINISHED, f.getName()));
             }
             ArrayHelper.WARN = true;
 

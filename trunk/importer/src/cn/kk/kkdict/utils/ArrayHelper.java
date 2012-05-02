@@ -1423,4 +1423,12 @@ public final class ArrayHelper {
         }
         return pos;
     }
+
+    public static final ByteBuffer wrap(final ByteBuffer bb) {
+        return (ByteBuffer) ByteBuffer.wrap(bb.array()).limit(bb.limit()).position(bb.position());
+    }
+
+    public final static boolean equalsP(final ByteBuffer bb, final byte[] bytes) {
+        return equals(bb.array(), bb.position(), bytes);
+    }
 }

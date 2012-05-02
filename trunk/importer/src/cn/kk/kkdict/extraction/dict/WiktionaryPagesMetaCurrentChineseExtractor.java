@@ -54,6 +54,8 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
 
     public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY);
 
+    public static final String OUT_DIR_FINISHED = OUT_DIR + "/finished";
+
     public static final Language[] RELEVANT_LANGUAGES = { Language.EN, Language.RU, Language.PL, Language.JA,
             Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT, Language.ES, Language.PT, Language.NL,
             Language.SV, Language.UK, Language.VI, Language.CA, Language.NO, Language.FI, Language.CS, Language.HU,
@@ -92,12 +94,15 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
         final String LNG = "zh";
         WiktionaryPagesMetaCurrentChineseExtractor extractor = new WiktionaryPagesMetaCurrentChineseExtractor();
         ArrayHelper.WARN = false;
-        extractor.extractWiktionaryPagesMetaCurrent(IN_DIR + File.separator + LNG
-                + "wiktionary-latest-pages-meta-current.xml.bz2");
+        String f = IN_DIR + File.separator + LNG + "wiktionary-latest-pages-meta-current.xml.bz2";
+        extractor.extractWiktionaryPagesMetaCurrent(f);
+        File file = new File(f);
+        file.renameTo(new File(OUT_DIR_FINISHED, file.getName()));
     }
 
     private int extractWiktionaryPagesMetaCurrent(String f) throws FileNotFoundException, IOException {
-        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_", null, null, "output-dict_src.wikt_", null);
+        initialize(f, OUT_DIR, "output-dict.wikt_", null, null, null, "output-dict_redirects.wikt_", null, null,
+                "output-dict_src.wikt_", null);
         ParserResult pr;
         byte[] tmp;
         while (-1 != (lineLen = ArrayHelper.readLineTrimmed(in, lineBB))) {
@@ -146,12 +151,13 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
                         ChineseHelper.toSimplifiedChinese(tmpBB);
                     }
                     if (DEBUG && TRACE) {
-                        System.out.println(ArrayHelper.toString(nameBB)+"，标题（" + pr + "）：" + ArrayHelper.toString(tmpBB));
+                        System.out.println(ArrayHelper.toString(nameBB) + "，标题（" + pr + "）："
+                                + ArrayHelper.toString(tmpBB));
                     }
                     if (null != (tmp = parseSourceLanguage(pr))) {
                         if (DEBUG) {
-                            System.out
-                                    .println(ArrayHelper.toString(nameBB)+"，语言：" + ArrayHelper.toString(tmp) + ", " + ArrayHelper.toString(lineBB));
+                            System.out.println(ArrayHelper.toString(nameBB) + "，语言：" + ArrayHelper.toString(tmp) + ", "
+                                    + ArrayHelper.toString(lineBB));
 
                         }
                         clearAttributes();
@@ -312,9 +318,8 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     @Override
     protected void initialize(final String f, final String outDir, final String outPrefix,
             final String outPrefixCategories, final String outPrefixRelated, final String outPrefixAbstracts,
-            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates, final String outPrefixSource,
-            final String outPrefixAttributes)
-            throws IOException {
+            final String outPrefixRedirects, final String outPrefixImages, final String outPrefixCoordinates,
+            final String outPrefixSource, final String outPrefixAttributes) throws IOException {
         super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated, outPrefixAbstracts,
                 outPrefixRedirects, outPrefixImages, outPrefixCoordinates, outPrefixSource, outPrefixAttributes);
         final String lngName = Helper.toConstantName(fileLng);

@@ -53,6 +53,7 @@ public class WikiDictImageLocationCorrector {
     public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_MERGED_DICTS.getPath(Source.DICT_WIKIPEDIA);
     public static final String OUT_IMG_DIR = Configuration.IMPORTER_FOLDER_MERGED_DICTS
             .getPath(Source.DICT_WIKIPEDIA_IMAGES);
+    public static final String OUT_DIR_FINISHED = OUT_DIR + "/finished";
 
     private static final byte[][] NON_FREE_UPPER = new byte[][] { "{{non-free".toUpperCase().getBytes(
             Helper.CHARSET_UTF8) };
@@ -149,6 +150,8 @@ public class WikiDictImageLocationCorrector {
                     System.out.println("完成'" + outFile + "'，有效：" + statValid + "，无效：" + statInvalid + "（"
                             + Helper.formatSpace(new File(outFile).length()) + "），用时："
                             + Helper.formatDuration(System.currentTimeMillis() - startFile));
+                    File file = new File(f);
+                    file.renameTo(new File(OUT_DIR_FINISHED, file.getName()));
                 }
             }
             ArrayHelper.giveBack(lineBB);

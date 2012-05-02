@@ -975,4 +975,9 @@ public final class Helper {
             }
         }
     }
+
+    public final static boolean isEmptyOrNotExists(final String file) {
+        File f = new File(file);
+        return !f.isFile() || f.length() == 0;
+    }
 }
