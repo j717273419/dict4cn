@@ -28,19 +28,11 @@ import java.net.URLConnection;
 import java.util.List;
 
 import cn.kk.kkdict.beans.FormattedArrayList;
+import cn.kk.kkdict.types.GoogleLanguage;
 
 public final class TranslationHelper {
 
     private static final int MAX_RESULTS = 3;
-
-    public static enum GoogleLanguage {
-        CN("zh-CN"), DE("de"), EN("en"), IT("it"), JA("ja"), KO("ko"), RU("ru"), FR("fr"), LA("la");
-        public final String key;
-
-        private GoogleLanguage(String key) {
-            this.key = key;
-        }
-    }
 
     /**
      * Available languages: zh-CN, de, en, it, ja, ko, ru, fr, la (see

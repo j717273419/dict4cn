@@ -53,7 +53,7 @@ public class DictByteBufferRowTest {
         assertTrue(row3.hasFirstValueAttributes(0));
         assertTrue(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源2".getBytes(Helper.CHARSET_UTF8))));
         assertTrue(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源1".getBytes(Helper.CHARSET_UTF8))));
-        
+
         assertFalse(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("源".getBytes(Helper.CHARSET_UTF8))));
         assertFalse(row3.hasFirstValueAttribute(0, ByteBuffer.wrap("‹源2‹源3".getBytes(Helper.CHARSET_UTF8))));
     }

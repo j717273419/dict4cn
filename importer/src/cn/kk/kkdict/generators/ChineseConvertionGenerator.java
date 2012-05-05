@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PinyinHelper;
+import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class ChineseConvertionGenerator {
     public static void main(String[] args) throws IOException {
@@ -20,8 +20,8 @@ public class ChineseConvertionGenerator {
         try {
             int[] simple = null;
             int[] traditional = null;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(PinyinHelper.class.getResourceAsStream("/"
-                    + res)));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    PhoneticTranscriptionHelper.class.getResourceAsStream("/" + res)));
             String line;
             while (null != (line = reader.readLine())) {
                 String[] parts = line.split(Helper.SEP_PARTS);
@@ -32,7 +32,7 @@ public class ChineseConvertionGenerator {
                         simple = new int[length];
                         for (int i = 0; i < length; i++) {
                             simple[i] = map.codePointAt(i);
-                            if (map.substring(i, i ).equals(new String(Character.toChars(simple[i])))) {
+                            if (map.substring(i, i).equals(new String(Character.toChars(simple[i])))) {
                                 System.err.println(map.substring(i, i + 1) + "->"
                                         + new String(Character.toChars(simple[i])));
                             }

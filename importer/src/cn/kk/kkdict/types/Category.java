@@ -53,7 +53,7 @@ public enum Category {
     RELIGION("信"),
     ARTS("艺"),
     HOBBY("趣"),
-    ECONOMY("商"), // 
+    ECONOMY("商"), //
     MYTHOLOGY("神"),
     PHYSICS("物"),
     POLITICS("政"), // 政府，机构，政治
@@ -65,14 +65,14 @@ public enum Category {
     BUILDING("建"), // 交通， 建筑
     PETS("宠"),
     GAME("玩"),
-    MEDIA("媒"),    
+    MEDIA("媒"),
     SOCIETY("社"),
     ASTRONOMY("星"),
     SECURITY("安"),
-    COMMUNICATION("讯"),    
+    COMMUNICATION("讯"),
     TRAVEL("旅"),
     INSURANCE("保"),
-    GIFT("礼");  // 礼物，礼仪
+    GIFT("礼"); // 礼物，礼仪
     public static final String TYPE_ID = "类";
     public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public static final String[] KEYS;

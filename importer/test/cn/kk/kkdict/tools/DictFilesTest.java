@@ -13,7 +13,7 @@ import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
-public class DictFilesMergerTest {
+public class DictFilesTest {
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
     private final String testFile1 = TMP_DIR + File.separator + "test1.txt";
     private final String testFile2 = TMP_DIR + File.separator + "test2.txt";

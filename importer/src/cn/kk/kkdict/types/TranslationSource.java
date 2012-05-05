@@ -38,7 +38,7 @@ public enum TranslationSource {
     STARDICT("stardict_ifo"),
     LINGOES_LD2("lingoes_ld2"),
     TERMWIKI("termwiki"),
-    
+
     WIKI_AA("wiki_aa"),
     WIKI_AB("wiki_ab"),
     WIKI_ACE("wiki_ace"),
@@ -493,8 +493,7 @@ public enum TranslationSource {
     WIKT_ZA("wikt_za"),
     WIKT_ZH("wikt_zh"),
     WIKT_ZH_MIN_NAN("wikt_zh_min_nan"),
-    WIKT_ZU("wikt_zu"),
-    ;
+    WIKT_ZU("wikt_zu"), ;
     public static final String TYPE_ID = "源";
     public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public final String key;

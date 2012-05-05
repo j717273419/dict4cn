@@ -51,7 +51,7 @@ public class DictFilesExtractor {
     private final ByteBuffer lngBB;
     private boolean writeSkipped;
     private DictByteBufferRow mainRow = new DictByteBufferRow();
-    
+
     public static void main(String[] args) throws IOException {
         String outDir = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
         String inFileTest = outDir + File.separator + "output-dict.wiki_ang";

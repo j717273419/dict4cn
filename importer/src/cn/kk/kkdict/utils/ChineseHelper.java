@@ -198,8 +198,8 @@ public final class ChineseHelper {
     private static void createTraditionalSimpleMap() {
         final String file = "traditional2simple.txt";
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(PinyinHelper.class.getResourceAsStream("/"
-                    + file)));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    PhoneticTranscriptionHelper.class.getResourceAsStream("/" + file)));
             String line;
             while (null != (line = reader.readLine())) {
                 String[] parts = line.split(Helper.SEP_PARTS);
@@ -228,8 +228,8 @@ public final class ChineseHelper {
     private static void createSimpleTraditionalMap() {
         final String file = "simple2traditional.txt";
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(PinyinHelper.class.getResourceAsStream("/"
-                    + file)));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    PhoneticTranscriptionHelper.class.getResourceAsStream("/" + file)));
             String line;
             while (null != (line = reader.readLine())) {
                 String[] parts = line.split(Helper.SEP_PARTS);

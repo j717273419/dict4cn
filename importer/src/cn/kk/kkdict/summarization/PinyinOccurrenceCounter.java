@@ -40,7 +40,8 @@ import cn.kk.kkdict.beans.Stat;
 import cn.kk.kkdict.utils.Helper;
 
 public class PinyinOccurrenceCounter {
-    private static final String OUT_FILE = Configuration.IMPORTER_FOLDER_MERGED_WORDS.getFile(Source.NULL, "output-occurrences.pinyin");
+    private static final String OUT_FILE = Configuration.IMPORTER_FOLDER_MERGED_WORDS.getFile(Source.NULL,
+            "output-occurrences.pinyin");
     private static final String IN_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getPath(Source.NULL);
 
     public static void main(String args[]) throws IOException {
@@ -54,9 +55,9 @@ public class PinyinOccurrenceCounter {
                     return name.startsWith("output-words.");
                 }
             });
-            
+
             System.out.println(files.length);
-            
+
             Map<String, Integer> statsMap = new FormattedTreeMap<String, Integer>();
             int total = 0;
             for (File f : files) {

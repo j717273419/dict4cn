@@ -423,6 +423,7 @@ public class ArrayHelperTest {
         byte[] test1 = { 1, 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, 1, -1, 5, -8, -22, 46, 8, 1 };
         ByteBuffer bb = ByteBuffer.wrap(test1);
         ArrayHelper.stripP(bb, (byte) 1);
-        assertArrayEquals(new byte[] { 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, -1, 5, -8, -22, 46, 8 }, ArrayHelper.toBytesP(bb));
+        assertArrayEquals(new byte[] { 4, 7, 8, 6, 2, 3, 6, 9, 0, 6, 3, -1, 5, -8, -22, 46, 8 },
+                ArrayHelper.toBytesP(bb));
     }
 }

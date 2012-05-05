@@ -37,7 +37,7 @@ import cn.kk.kkdict.utils.Helper;
  * 渐进式的排序词典文件
  * 
  * @author x_kez
- *
+ * 
  */
 public class DividedDictFilesSorter {
     private final Language sortLng;
@@ -50,10 +50,12 @@ public class DividedDictFilesSorter {
     public static void main(String[] args) throws IOException, InterruptedException {
         String[] files = new String[21];
         for (int i = 0; i <= 20; i++) {
-            files[i] = Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getFile(Source.DICT_WIKIPEDIA, "output-dict_xtr-result_ddfes-" + i + ".wiki");
+            files[i] = Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getFile(Source.DICT_WIKIPEDIA,
+                    "output-dict_xtr-result_ddfes-" + i + ".wiki");
         }
-        DividedDictFilesSorter sorter = new DividedDictFilesSorter(Language.ZH, Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getPath(Source.DICT_WIKIPEDIA),
-                "output-dict_ddfs.wiki", files);
+        DividedDictFilesSorter sorter = new DividedDictFilesSorter(Language.ZH,
+                Configuration.IMPORTER_FOLDER_FILTERED_DICTS.getPath(Source.DICT_WIKIPEDIA), "output-dict_ddfs.wiki",
+                files);
         sorter.sort();
     }
 
@@ -92,8 +94,8 @@ public class DividedDictFilesSorter {
             } else {
                 working.add(this.outFile);
             }
-            DictFilesMergedSorter sorter = new DictFilesMergedSorter(sortLng, this.outDir, new File(tmpOutFile).getName(), true, false,
-                    working.toArray(new String[working.size()]));
+            DictFilesMergedSorter sorter = new DictFilesMergedSorter(sortLng, this.outDir,
+                    new File(tmpOutFile).getName(), true, false, working.toArray(new String[working.size()]));
             sorter.sort();
             new File(this.outFile).delete();
             new File(sorter.outFile).renameTo(new File(this.outFile));

@@ -21,14 +21,11 @@
 package cn.kk.kkdict.extraction.dict;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
-import cn.kk.kkdict.extraction.dict.EdictJaEnExtractor.JECategory;
-import cn.kk.kkdict.extraction.dict.EdictZhDeExtractor.EdictCategory;
 import cn.kk.kkdict.types.Category;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.TranslationSource;

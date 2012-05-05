@@ -29,11 +29,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * The TarInputStream reads a UNIX tar archive as an InputStream.
- * methods are provided to position at each successive entry in
- * the archive, and the read each entry as a normal input stream
- * using read().
- *
+ * The TarInputStream reads a UNIX tar archive as an InputStream. methods are provided to position at each successive
+ * entry in the archive, and the read each entry as a normal input stream using read().
+ * 
  */
 public class TarInputStream extends FilterInputStream {
     private static final int SMALL_BUFFER_SIZE = 256;
@@ -51,9 +49,8 @@ public class TarInputStream extends FilterInputStream {
     protected TarEntry currEntry;
 
     /**
-     * This contents of this array is not used at all in this class,
-     * it is only here to avoid repreated object creation during calls
-     * to the no-arg read method.
+     * This contents of this array is not used at all in this class, it is only here to avoid repreated object creation
+     * during calls to the no-arg read method.
      */
     protected byte[] oneBuf;
 
@@ -61,7 +58,9 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Constructor for TarInputStream.
-     * @param is the input stream to use
+     * 
+     * @param is
+     *            the input stream to use
      */
     public TarInputStream(InputStream is) {
         this(is, TarBuffer.DEFAULT_BLKSIZE, TarBuffer.DEFAULT_RCDSIZE);
@@ -69,8 +68,11 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Constructor for TarInputStream.
-     * @param is the input stream to use
-     * @param blockSize the block size to use
+     * 
+     * @param is
+     *            the input stream to use
+     * @param blockSize
+     *            the block size to use
      */
     public TarInputStream(InputStream is, int blockSize) {
         this(is, blockSize, TarBuffer.DEFAULT_RCDSIZE);
@@ -78,9 +80,13 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Constructor for TarInputStream.
-     * @param is the input stream to use
-     * @param blockSize the block size to use
-     * @param recordSize the record size to use
+     * 
+     * @param is
+     *            the input stream to use
+     * @param blockSize
+     *            the block size to use
+     * @param recordSize
+     *            the record size to use
      */
     public TarInputStream(InputStream is, int blockSize, int recordSize) {
         super(is);
@@ -93,7 +99,9 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Closes this stream. Calls the TarBuffer's close() method.
-     * @throws IOException on error
+     * 
+     * @throws IOException
+     *             on error
      */
     @Override
     public void close() throws IOException {
@@ -102,7 +110,7 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Get the record size being used by this stream's TarBuffer.
-     *
+     * 
      * @return The TarBuffer record size.
      */
     public int getRecordSize() {
@@ -110,16 +118,14 @@ public class TarInputStream extends FilterInputStream {
     }
 
     /**
-     * Get the available data that can be read from the current
-     * entry in the archive. This does not indicate how much data
-     * is left in the entire archive, only in the current entry.
-     * This value is determined from the entry's size header field
-     * and the amount of data already read from the current entry.
-     * Integer.MAX_VALUE is returen in case more than Integer.MAX_VALUE
-     * bytes are left in the current entry in the archive.
-     *
+     * Get the available data that can be read from the current entry in the archive. This does not indicate how much
+     * data is left in the entire archive, only in the current entry. This value is determined from the entry's size
+     * header field and the amount of data already read from the current entry. Integer.MAX_VALUE is returen in case
+     * more than Integer.MAX_VALUE bytes are left in the current entry in the archive.
+     * 
      * @return The number of available bytes for the current entry.
-     * @throws IOException for signature
+     * @throws IOException
+     *             for signature
      */
     @Override
     public int available() throws IOException {
@@ -130,14 +136,14 @@ public class TarInputStream extends FilterInputStream {
     }
 
     /**
-     * Skip bytes in the input buffer. This skips bytes in the
-     * current entry's data, not the entire archive, and will
-     * stop at the end of the current entry's data if the number
-     * to skip extends beyond that point.
-     *
-     * @param numToSkip The number of bytes to skip.
+     * Skip bytes in the input buffer. This skips bytes in the current entry's data, not the entire archive, and will
+     * stop at the end of the current entry's data if the number to skip extends beyond that point.
+     * 
+     * @param numToSkip
+     *            The number of bytes to skip.
      * @return the number actually skipped
-     * @throws IOException on error
+     * @throws IOException
+     *             on error
      */
     @Override
     public long skip(long numToSkip) throws IOException {
@@ -160,7 +166,7 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Since we do not support marking just yet, we return false.
-     *
+     * 
      * @return False.
      */
     @Override
@@ -170,8 +176,9 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Since we do not support marking just yet, we do nothing.
-     *
-     * @param markLimit The limit to mark.
+     * 
+     * @param markLimit
+     *            The limit to mark.
      */
     @Override
     public void mark(int markLimit) {
@@ -185,17 +192,14 @@ public class TarInputStream extends FilterInputStream {
     }
 
     /**
-     * Get the next entry in this tar archive. This will skip
-     * over any remaining data in the current entry, if there
-     * is one, and place the input stream at the header of the
-     * next entry, and read the header and instantiate a new
-     * TarEntry from the header bytes and return that entry.
-     * If there are no more entries in the archive, null will
-     * be returned to indicate that the end of the archive has
-     * been reached.
-     *
+     * Get the next entry in this tar archive. This will skip over any remaining data in the current entry, if there is
+     * one, and place the input stream at the header of the next entry, and read the header and instantiate a new
+     * TarEntry from the header bytes and return that entry. If there are no more entries in the archive, null will be
+     * returned to indicate that the end of the archive has been reached.
+     * 
      * @return The next TarEntry in the archive, or null.
-     * @throws IOException on error
+     * @throws IOException
+     *             on error
      */
     public TarEntry getNextEntry() throws IOException {
         if (hasHitEOF) {
@@ -206,18 +210,14 @@ public class TarInputStream extends FilterInputStream {
             long numToSkip = entrySize - entryOffset;
 
             if (DEBUG) {
-                System.err.println("TarInputStream: SKIP currENTRY '"
-                        + currEntry.getName() + "' SZ "
-                        + entrySize + " OFF "
-                        + entryOffset + "  skipping "
-                        + numToSkip + " bytes");
+                System.err.println("TarInputStream: SKIP currENTRY '" + currEntry.getName() + "' SZ " + entrySize
+                        + " OFF " + entryOffset + "  skipping " + numToSkip + " bytes");
             }
 
             while (numToSkip > 0) {
                 long skipped = skip(numToSkip);
                 if (skipped <= 0) {
-                    throw new RuntimeException("failed to skip current tar"
-                                               + " entry");
+                    throw new RuntimeException("failed to skip current tar" + " entry");
                 }
                 numToSkip -= skipped;
             }
@@ -245,9 +245,7 @@ public class TarInputStream extends FilterInputStream {
             currEntry = new TarEntry(headerBuf);
 
             if (DEBUG) {
-                System.err.println("TarInputStream: SET CURRENTRY '"
-                        + currEntry.getName()
-                        + "' size = "
+                System.err.println("TarInputStream: SET CURRENTRY '" + currEntry.getName() + "' size = "
                         + currEntry.getSize());
             }
 
@@ -271,8 +269,7 @@ public class TarInputStream extends FilterInputStream {
                 return null;
             }
             // remove trailing null terminator
-            if (longName.length() > 0
-                && longName.charAt(longName.length() - 1) == 0) {
+            if (longName.length() > 0 && longName.charAt(longName.length() - 1) == 0) {
                 longName.deleteCharAt(longName.length() - 1);
             }
             currEntry.setName(longName.toString());
@@ -283,11 +280,12 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Reads a byte from the current tar archive entry.
-     *
+     * 
      * This method simply calls read( byte[], int, int ).
-     *
+     * 
      * @return The byte read, or -1 at EOF.
-     * @throws IOException on error
+     * @throws IOException
+     *             on error
      */
     @Override
     public int read() throws IOException {
@@ -297,16 +295,19 @@ public class TarInputStream extends FilterInputStream {
 
     /**
      * Reads bytes from the current tar archive entry.
-     *
-     * This method is aware of the boundaries of the current
-     * entry in the archive and will deal with them as if they
+     * 
+     * This method is aware of the boundaries of the current entry in the archive and will deal with them as if they
      * were this stream's start and EOF.
-     *
-     * @param buf The buffer into which to place bytes read.
-     * @param offset The offset at which to place bytes read.
-     * @param numToRead The number of bytes to read.
+     * 
+     * @param buf
+     *            The buffer into which to place bytes read.
+     * @param offset
+     *            The offset at which to place bytes read.
+     * @param numToRead
+     *            The number of bytes to read.
      * @return The number of bytes read, or -1 at EOF.
-     * @throws IOException on error
+     * @throws IOException
+     *             on error
      */
     @Override
     public int read(byte[] buf, int offset, int numToRead) throws IOException {
@@ -321,8 +322,7 @@ public class TarInputStream extends FilterInputStream {
         }
 
         if (readBuf != null) {
-            int sz = (numToRead > readBuf.length) ? readBuf.length
-                    : numToRead;
+            int sz = (numToRead > readBuf.length) ? readBuf.length : numToRead;
 
             System.arraycopy(readBuf, 0, buf, offset, sz);
 
@@ -347,8 +347,7 @@ public class TarInputStream extends FilterInputStream {
 
             if (rec == null) {
                 // Unexpected EOF!
-                throw new IOException("unexpected EOF with " + numToRead
-                        + " bytes unread");
+                throw new IOException("unexpected EOF with " + numToRead + " bytes unread");
             }
 
             int sz = numToRead;
@@ -377,11 +376,12 @@ public class TarInputStream extends FilterInputStream {
     }
 
     /**
-     * Copies the contents of the current tar archive entry directly into
-     * an output stream.
-     *
-     * @param out The OutputStream into which to write the entry's data.
-     * @throws IOException on error
+     * Copies the contents of the current tar archive entry directly into an output stream.
+     * 
+     * @param out
+     *            The OutputStream into which to write the entry's data.
+     * @throws IOException
+     *             on error
      */
     public void copyEntryContents(OutputStream out) throws IOException {
         byte[] buf = new byte[LARGE_BUFFER_SIZE];

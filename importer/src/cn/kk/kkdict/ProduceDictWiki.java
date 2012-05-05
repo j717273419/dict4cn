@@ -26,7 +26,6 @@ import cn.kk.kkdict.summarization.WikiDictGeoLocationCorrector;
 import cn.kk.kkdict.summarization.WikiDictImageLocationCorrector;
 import cn.kk.kkdict.summarization.WikiDictRelatedCorrector;
 import cn.kk.kkdict.summarization.WikiDictsMerger;
-import cn.kk.kkdict.tools.WikipediaDumpPagesMetaCurrentXmlDownloader;
 import cn.kk.kkdict.utils.Helper;
 
 public class ProduceDictWiki {
@@ -38,8 +37,8 @@ public class ProduceDictWiki {
      */
     public static void main(String[] args) throws Exception {
         long timeStarted = System.currentTimeMillis();
-        
-        // runJob(WikipediaDumpPagesMetaCurrentXmlDownloader.class);        
+
+        // runJob(WikipediaDumpPagesMetaCurrentXmlDownloader.class);
         runJob(WikiPagesMetaCurrentExtractor.class);
         runJob(WikiDictRelatedCorrector.class);
         runJob(WikiDictGeoLocationCorrector.class);
@@ -57,7 +56,7 @@ public class ProduceDictWiki {
 
         System.out.println("Starting " + mainClass.getName() + " ...");
         mainClass.getMethod("main", String[].class).invoke(mainClass, DEFAULT_ARGS);
-        
+
         System.out.println(mainClass.getName() + " finished in "
                 + Helper.formatDuration(System.currentTimeMillis() - started) + "\n\n");
     }

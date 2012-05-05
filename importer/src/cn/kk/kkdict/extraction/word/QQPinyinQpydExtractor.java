@@ -43,11 +43,12 @@ import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PinyinHelper;
+import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class QQPinyinQpydExtractor {
     public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_QQ);
-    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_QQ, "output-words." + WordSource.QQ_QPYD.key);
+    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_QQ,
+            "output-words." + WordSource.QQ_QPYD.key);
 
     public static void main(String[] args) throws IOException {
         File directory = new File(IN_DIR);
@@ -62,7 +63,7 @@ public class QQPinyinQpydExtractor {
                 }
             });
             System.out.println(files.length);
-            
+
             int total = 0;
             String tmp;
             for (File f : files) {
@@ -84,7 +85,8 @@ public class QQPinyinQpydExtractor {
         }
     }
 
-    private static int extractQpydToFile(File qpydFile, BufferedWriter writer, Set<String> categories) throws IOException {
+    private static int extractQpydToFile(File qpydFile, BufferedWriter writer, Set<String> categories)
+            throws IOException {
         int counter = 0;
 
         // read qpyd into byte array
@@ -118,8 +120,8 @@ public class QQPinyinQpydExtractor {
             int wordLength = dataUnzippedBytes.get() & 0xff;
             dataUnzippedBytes.getInt(); // garbage
             int pinyinStartAddr = dataUnzippedBytes.getInt();
-            
-            int wordStartAddr = pinyinStartAddr + pinyinLength;            
+
+            int wordStartAddr = pinyinStartAddr + pinyinLength;
             if (unzippedDictStartAddr == -1) {
                 unzippedDictStartAddr = pinyinStartAddr;
             }
@@ -128,7 +130,7 @@ public class QQPinyinQpydExtractor {
                     Helper.CHARSET_UTF8);
             String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength),
                     Helper.CHARSET_UTF16LE);
-            if (PinyinHelper.checkValidPinyin(pinyin)) {
+            if (PhoneticTranscriptionHelper.checkValidPinyin(pinyin)) {
                 writer.write(Language.ZH.key);
                 writer.write(Helper.SEP_DEFINITION);
                 writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(cleanWord(word)), categories));

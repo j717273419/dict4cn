@@ -1012,9 +1012,10 @@ public class WikiExtractorBase {
             if (found) {
                 final int lod = lineBB.limit() - start;
                 if (!ArrayHelper.isEmpty(geoLocationInfoboxBB)) {
-                    final int remains = geoLocationInfoboxBB.capacity() - geoLocationInfoboxBB.limit();                    
+                    final int remains = geoLocationInfoboxBB.capacity() - geoLocationInfoboxBB.limit();
                     if (remains > lod + 1) {
-                        geoLocationInfoboxBB.position(geoLocationInfoboxBB.limit()).limit(geoLocationInfoboxBB.capacity());
+                        geoLocationInfoboxBB.position(geoLocationInfoboxBB.limit()).limit(
+                                geoLocationInfoboxBB.capacity());
                         geoLocationInfoboxBB.put((byte) '|');
                         ArrayHelper.copy(lineBB, start, geoLocationInfoboxBB, geoLocationInfoboxBB.position(), lod);
                         geoLocationInfoboxBB.limit(geoLocationInfoboxBB.position() + lod);

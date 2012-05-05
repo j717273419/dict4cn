@@ -32,7 +32,7 @@ import cn.kk.kkdict.utils.Helper;
 /**
  * 
  * 排序多个字典文件中的指定语言。
- *
+ * 
  */
 public class DividedDictFilesExtractSorter {
     private final Language sortLng;
@@ -85,7 +85,8 @@ public class DividedDictFilesExtractSorter {
                     writeSkippedExtracted, working.toArray(new String[working.size()]));
             extractor.extract();
             if (tmpFile.length() > Helper.SEP_LIST_BYTES.length) {
-                DictFilesMergedSorter sorter = new DictFilesMergedSorter(sortLng, this.outDir, true, false, extractor.outFile);
+                DictFilesMergedSorter sorter = new DictFilesMergedSorter(sortLng, this.outDir, true, false,
+                        extractor.outFile);
                 sorter.sort();
                 File sorterOutFile = new File(sorter.outFile);
                 if (sorterOutFile.length() > Helper.SEP_LIST_BYTES.length) {
@@ -97,15 +98,14 @@ public class DividedDictFilesExtractSorter {
                         tmpFile.delete();
                         outFileFile.renameTo(tmpFile);
                         TimeUnit.SECONDS.sleep(1);
-                        SortedDictFilesMerger merger = new SortedDictFilesMerger(sortLng, outDir, outFileFile.getName(),
-                                tmpOutFile, sorter.outFile);
+                        SortedDictFilesMerger merger = new SortedDictFilesMerger(sortLng, outDir,
+                                outFileFile.getName(), tmpOutFile, sorter.outFile);
                         merger.merge();
                         tmpFile.delete();
                         sorterOutFile.delete();
                     }
                     TimeUnit.SECONDS.sleep(1);
-                    System.out.println("排序临时文件完成：'" + outFile + "'（" + Helper.formatSpace(outFileFile.length())
-                            + "）");
+                    System.out.println("排序临时文件完成：'" + outFile + "'（" + Helper.formatSpace(outFileFile.length()) + "）");
                 } else {
                     sorterOutFile.delete();
                 }

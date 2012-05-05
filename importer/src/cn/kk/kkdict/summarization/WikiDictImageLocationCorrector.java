@@ -43,7 +43,6 @@ import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PinyinHelper;
 
 /**
  * 写出完整的图像连接，过滤不存在的或有版权保护的连接。下载原图片。把wiki图像转换成完整的URL。

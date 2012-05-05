@@ -31,7 +31,6 @@ import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.WikiParseStep;
 import cn.kk.kkdict.extraction.dict.WikiExtractorBase;
-import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
@@ -41,7 +40,7 @@ import cn.kk.kkdict.utils.Helper;
  * @author x_kez
  * 
  */
-public class WikiFileTemplateNamesGenerator extends WikiExtractorBase {    
+public class WikiFileTemplateNamesGenerator extends WikiExtractorBase {
     public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
 
     public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_GENERATED.getFile(Source.NULL,

@@ -55,7 +55,7 @@ public class WiktContentState {
     public void setSourceLanguage(String sourceLanguage) {
         this.sourceLanguage = sourceLanguage;
     }
-    
+
     public void putTranslation(String key, String val) {
         String v1 = null;
         if ((v1 = languages.get(key)) != null) {
@@ -64,7 +64,7 @@ public class WiktContentState {
             this.languages.put(key, val);
         }
     }
-    
+
     private void clear() {
         languages.clear();
         sourceWordType = Helper.EMPTY_STRING;

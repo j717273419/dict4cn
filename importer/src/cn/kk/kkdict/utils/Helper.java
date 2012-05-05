@@ -26,16 +26,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -43,7 +43,6 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,8 +53,6 @@ import java.util.zip.InflaterInputStream;
 
 import javax.swing.filechooser.FileSystemView;
 
-import cn.kk.kkdict.Configuration;
-import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.DictRow;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
@@ -216,7 +213,7 @@ public final class Helper {
             try {
                 out = new BufferedOutputStream(new FileOutputStream(to), BUFFER_SIZE);
                 in = new BufferedInputStream(openUrlInputStream(url), BUFFER_SIZE);
-                writeInputStream(in, out);
+                write(in, out);
             } catch (IOException e) {
                 toFile.delete();
                 if (DEBUG) {
@@ -243,13 +240,35 @@ public final class Helper {
     }
 
     public final static InputStream openUrlInputStream(final String url) throws MalformedURLException, IOException {
+        return openUrlInputStream(url, false, null);
+    }
+
+    public final static InputStream openUrlInputStream(final String url, final boolean post, final String output)
+            throws MalformedURLException, IOException {
         URL urlObj = new URL(url);
-        URLConnection conn = urlObj.openConnection();
+        HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
+        if (post) {
+            conn.setRequestMethod("POST");
+        }
         conn.addRequestProperty("User-Agent",
                 "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
         conn.addRequestProperty("Cache-Control", "no-cache");
         conn.addRequestProperty("Pragma", "no-cache");
+        final String referer;
+        final int pathIdx;
+        if ((pathIdx = url.lastIndexOf('/')) > "https://".length()) {
+            referer = url.substring(0, pathIdx);
+        } else {
+            referer = url;
+        }
+        conn.setRequestProperty("Referer", referer);
         conn.setUseCaches(false);
+        if (output != null) {
+            conn.setDoOutput(true);
+            BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream());
+            out.write(output.getBytes(CHARSET_UTF8));
+            out.close();
+        }
         return conn.getInputStream();
     }
 
@@ -258,7 +277,7 @@ public final class Helper {
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream(BUFFER_SIZE);
         Deflater def = new Deflater(level);
         OutputStream out = new DeflaterOutputStream(dataOut, def, BUFFER_SIZE);
-        writeInputStream(in, out);
+        write(in, out);
         in.close();
         def.end();
         return ByteBuffer.wrap(dataOut.toByteArray());
@@ -270,7 +289,7 @@ public final class Helper {
         Deflater def = new Deflater(level);
         def.setDictionary(readBytes(dictionaryFile).array());
         OutputStream out = new DeflaterOutputStream(dataOut, def, BUFFER_SIZE);
-        writeInputStream(in, out);
+        write(in, out);
         in.close();
         return ByteBuffer.wrap(dataOut.toByteArray());
     }
@@ -278,7 +297,7 @@ public final class Helper {
     public static ByteBuffer decompressFile(String compressedFile) throws IOException {
         InflaterInputStream in = new InflaterInputStream(new FileInputStream(compressedFile));
         ByteArrayOutputStream dataOut = new ByteArrayOutputStream(BUFFER_SIZE);
-        writeInputStream(in, dataOut);
+        write(in, dataOut);
         in.close();
         return ByteBuffer.wrap(dataOut.toByteArray());
     }
@@ -291,17 +310,17 @@ public final class Helper {
             try {
                 inf.setDictionary(readBytes(dictionaryFile).array());
                 ByteArrayOutputStream dataOut = new ByteArrayOutputStream(BUFFER_SIZE);
-                writeInputStream(in, dataOut);
+                write(in, dataOut);
                 in.close();
                 return ByteBuffer.wrap(dataOut.toByteArray());
             } catch (IllegalArgumentException e) {
-                System.err.println("Invalid dictionary!");
+                System.err.println("文件夹不存在!");
                 return null;
             } finally {
                 inf.end();
             }
         } else {
-            System.err.println("No dictionary needed!");
+            System.err.println("不需要词典!");
             inf.end();
             return null;
         }
@@ -784,18 +803,26 @@ public final class Helper {
         }
     }
 
-    public static void writeBytes(byte[] data, String file) throws IOException {
+    public static final void writeBytes(final byte[] data, final String file) throws IOException {
         FileOutputStream f = new FileOutputStream(file);
         f.write(data);
         f.close();
     }
 
-    private static void writeInputStream(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[BUFFER_SIZE];
+    public static final void write(final InputStream in, final OutputStream out) throws IOException {
         int len;
-        while ((len = in.read(buffer)) > 0) {
-            out.write(buffer, 0, len);
+        while ((len = in.read(IO_BB.array())) > 0) {
+            out.write(IO_BB.array(), 0, len);
         }
+    }
+
+    public static final void writeToFile(final InputStream in, final File file) throws IOException {
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+        int len;
+        while ((len = in.read(IO_BB.array())) > 0) {
+            out.write(IO_BB.array(), 0, len);
+        }
+        out.close();
     }
 
     public static final int deleteDirectory(File path) {
@@ -873,6 +900,7 @@ public final class Helper {
      * @param resource
      * @return
      * @throws IllegalArgumentException
+     * @throws IOException
      */
     public static final File findResource(final String resource) throws IllegalArgumentException {
         File resFile = null;
@@ -920,7 +948,12 @@ public final class Helper {
             // get from class path (root)
             URL resUrl = Helper.class.getResource("/" + resource);
             if (resUrl != null) {
-                resFile = new File(resUrl.getFile());
+                try {
+                    resFile = File.createTempFile(resource, EMPTY_STRING);
+                    writeToFile(Helper.class.getResourceAsStream("/" + resource), resFile);
+                } catch (IOException e) {
+                    System.err.println("从JAR导出'" + resource + "'时出错：" + e.toString());
+                }
                 if (!resFile.isFile()) {
                     resFile = null;
                 }
@@ -956,7 +989,7 @@ public final class Helper {
         return resFile;
     }
 
-    public static void close(OutputStream out) {
+    public static final void close(final OutputStream out) {
         if (out != null) {
             try {
                 out.close();
@@ -966,7 +999,7 @@ public final class Helper {
         }
     }
 
-    public static void close(InputStream in) {
+    public static final void close(final InputStream in) {
         if (in != null) {
             try {
                 in.close();
@@ -980,4 +1013,26 @@ public final class Helper {
         File f = new File(file);
         return !f.isFile() || f.length() == 0;
     }
+
+    public static final void close(final Reader in) {
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                // silent
+            }
+        }
+    }
+
+    public static final void close(final Writer out) {
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException e) {
+                // silent
+            }
+        }
+    }
+
+    private static final ByteBuffer IO_BB = ByteBuffer.wrap(new byte[BUFFER_SIZE]);
 }

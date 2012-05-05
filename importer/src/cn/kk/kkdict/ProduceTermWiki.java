@@ -21,14 +21,7 @@
 package cn.kk.kkdict;
 
 import cn.kk.kkdict.extraction.dict.TermWikiExtractor;
-import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.generators.TermWikiParser;
-import cn.kk.kkdict.summarization.WikiDictCategoriesMerger;
-import cn.kk.kkdict.summarization.WikiDictGeoLocationCorrector;
-import cn.kk.kkdict.summarization.WikiDictImageLocationCorrector;
-import cn.kk.kkdict.summarization.WikiDictRelatedCorrector;
-import cn.kk.kkdict.summarization.WikiDictsMerger;
-import cn.kk.kkdict.tools.WikipediaDumpPagesMetaCurrentXmlDownloader;
 import cn.kk.kkdict.utils.Helper;
 
 public class ProduceTermWiki {

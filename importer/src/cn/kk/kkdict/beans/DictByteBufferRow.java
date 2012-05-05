@@ -20,6 +20,8 @@
  */
 package cn.kk.kkdict.beans;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,9 +154,6 @@ public class DictByteBufferRow {
     }
 
     public final int indexOfValue(final int defIdx, ByteBuffer valBB) {
-        if (bb == valBB) {
-            valBB = ByteBuffer.wrap(ArrayHelper.toBytesP(valBB));
-        }
         for (int valIdx = 0; valIdx < size; valIdx++) {
             getValue(defIdx, valIdx);
             if (bb.hasRemaining() && ArrayHelper.equalsP(bb, valBB)) {
@@ -194,25 +193,24 @@ public class DictByteBufferRow {
             if (!attrsAnalyzed) {
                 parseAttributes();
             }
-            final int vSize = getValueSize(defIdx);
-            if (valIdx < vSize) {
-                final int asSize = getAttributesSize(defIdx, valIdx);
-                if (attrIdx < asSize) {
-                    // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", attrIdx: " + attrIdx +
-                    // "; size: "
-                    // + size + ", asSize: " + asSize);
-                    final IntList aStartList = attrStartIdx.get(defIdx).get(valIdx);
-                    final IntList aStopList = attrStopIdx.get(defIdx).get(valIdx);
+            final int asSize = getAttributesSize(defIdx, valIdx);
+            if (valIdx < asSize) {
+                // System.out.println("defIdx: " + defIdx + ", valIdx: " + valIdx + ", attrIdx: " + attrIdx + "; size: "
+                // + size + ", asSize: " + asSize);
+                final IntList aStartList = attrStartIdx.get(defIdx).get(valIdx);
+                final IntList aStopList = attrStopIdx.get(defIdx).get(valIdx);
 
-                    final int aStartIdx = aStartList.get(attrIdx);
-                    final int aStopIdx = aStopList.get(attrIdx);
-                    bb.limit(aStopIdx);
-                    bb.position(aStartIdx);
-                    return bb;
-                }
+                final int aStartIdx = aStartList.get(attrIdx);
+                final int aStopIdx = aStopList.get(attrIdx);
+                bb.limit(aStopIdx);
+                bb.position(aStartIdx);
+            } else {
+                bb.limit(0);
             }
+        } else {
+            bb.limit(0);
         }
-        return (ByteBuffer) bb.limit(0);
+        return bb;
     }
 
     public final ByteBuffer getFirstValueAttributes(final int defIdx) {
@@ -270,7 +268,7 @@ public class DictByteBufferRow {
         return bb;
     }
 
-    public final ByteBuffer getDefinitionTo(final int defIdx, final int valIdx) {
+    public final ByteBuffer getDefinitionValuesTo(final int defIdx, final int valIdx) {
         if (defIdx < size) {
             final int end = Math.max(valueStopIdx.get(defIdx).get(valIdx), attrsStopIdx.get(defIdx).get(valIdx));
             bb.limit(end);
@@ -295,12 +293,9 @@ public class DictByteBufferRow {
      * 
      * @param lngBB
      * 
-     * @return
+     * @return definition index with the given lng, -1 if nothing found
      */
     public final int indexOfLanguage(ByteBuffer lngBB) {
-        if (bb == lngBB) {
-            lngBB = ByteBuffer.wrap(ArrayHelper.toBytesP(lngBB));
-        }
         for (int i = 0; i < size; i++) {
             getLanguage(i);
             if (bb.hasRemaining() && ArrayHelper.equalsP(bb, lngBB)) {
@@ -311,10 +306,10 @@ public class DictByteBufferRow {
         return -1;
     }
 
-    public final ByteBuffer getLanguage(final int i) {
-        if (i < size) {
-            bb.limit(lngStopIdx.get(i));
-            bb.position(lngStartIdx.get(i));
+    public final ByteBuffer getLanguage(final int defIdx) {
+        if (defIdx < size) {
+            bb.limit(lngStopIdx.get(defIdx));
+            bb.position(lngStartIdx.get(defIdx));
         } else {
             bb.limit(0);
         }
@@ -363,9 +358,6 @@ public class DictByteBufferRow {
     }
 
     public final boolean hasAttribute(final int defIdx, final int valIdx, ByteBuffer attrBB) {
-        if (bb == attrBB) {
-            attrBB = ByteBuffer.wrap(ArrayHelper.toBytesP(attrBB));
-        }
         if (defIdx < size) {
             final int asSize = getAttributesSize(defIdx, valIdx);
             for (int attrIdx = 0; attrIdx < asSize; attrIdx++) {
@@ -654,7 +646,7 @@ public class DictByteBufferRow {
             if (copied) {
                 ArrayHelper.giveBack(bb);
             }
-            bb = rowBB;
+            bb = ArrayHelper.wrap(rowBB);
             copied = false;
         }
         this.array = bb.array();
@@ -768,6 +760,35 @@ public class DictByteBufferRow {
         return result;
     }
 
+    public void writeDefinition(final OutputStream out, final int defIdx) throws IOException {
+        if (defIdx >= 0 && defIdx < size) {
+            ArrayHelper.writeP(out, getLanguage(defIdx));
+            out.write(Helper.SEP_DEFINITION_BYTES);
+
+            final int valSize = getValueSize(defIdx);
+            boolean firstVal = true;
+            for (int valIdx = 0; valIdx < valSize; valIdx++) {
+                if (firstVal) {
+                    firstVal = false;
+                } else {
+                    out.write(Helper.SEP_WORDS_BYTES);
+                }
+                ArrayHelper.writeP(out, getValueWithAttributes(defIdx, valIdx));
+            }
+        }
+    }
+
+    public void write(final OutputStream out, final int firstDefIdx) throws IOException {
+        writeDefinition(out, firstDefIdx);
+
+        for (int defIdx = 0; defIdx < size; defIdx++) {
+            if (defIdx != firstDefIdx) {
+                out.write(Helper.SEP_LIST_BYTES);
+                writeDefinition(out, defIdx);
+            }
+        }
+    }
+
     public final ByteBuffer getFirstAttributeValue(final int defIdx, final int valIdx, final byte[] typeIdBytes) {
         final int asSize = getAttributesSize(defIdx, valIdx);
         ByteBuffer aBB;
@@ -777,6 +798,7 @@ public class DictByteBufferRow {
                 if (ArrayHelper.equalsP(aBB, typeIdBytes)) {
                     aBB.position(aBB.position() + typeIdBytes.length);
                     return aBB;
+
                 }
             }
         }

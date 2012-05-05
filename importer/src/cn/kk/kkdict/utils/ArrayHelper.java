@@ -22,6 +22,7 @@ package cn.kk.kkdict.utils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -568,6 +569,10 @@ public final class ArrayHelper {
         final int l1 = bb1.limit();
         final int l2 = bb2.limit();
         return isSuccessor(bb1, 0, l1, bb2, 0, l2);
+    }
+
+    public static final boolean isSuccessorP(final ByteBuffer bb1, final ByteBuffer bb2) {
+        return isSuccessor(bb1, bb1.position(), bb1.remaining(), bb2, bb2.position(), bb2.remaining());
     }
 
     /**
@@ -1430,5 +1435,9 @@ public final class ArrayHelper {
 
     public final static boolean equalsP(final ByteBuffer bb, final byte[] bytes) {
         return equals(bb.array(), bb.position(), bytes);
+    }
+
+    public final static void writeP(final OutputStream out, final ByteBuffer bb) throws IOException {
+        out.write(bb.array(), bb.position(), bb.remaining());
     }
 }
