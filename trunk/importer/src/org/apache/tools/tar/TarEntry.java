@@ -28,33 +28,25 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * This class represents an entry in a Tar archive. It consists
- * of the entry's header, as well as the entry's File. Entries
- * can be instantiated in one of three ways, depending on how
- * they are to be used.
+ * This class represents an entry in a Tar archive. It consists of the entry's header, as well as the entry's File.
+ * Entries can be instantiated in one of three ways, depending on how they are to be used.
  * <p>
- * TarEntries that are created from the header bytes read from
- * an archive are instantiated with the TarEntry( byte[] )
- * constructor. These entries will be used when extracting from
- * or listing the contents of an archive. These entries have their
- * header filled in using the header bytes. They also set the File
- * to null, since they reference an archive entry not a file.
+ * TarEntries that are created from the header bytes read from an archive are instantiated with the TarEntry( byte[] )
+ * constructor. These entries will be used when extracting from or listing the contents of an archive. These entries
+ * have their header filled in using the header bytes. They also set the File to null, since they reference an archive
+ * entry not a file.
  * <p>
- * TarEntries that are created from Files that are to be written
- * into an archive are instantiated with the TarEntry( File )
- * constructor. These entries have their header filled in using
- * the File's information. They also keep a reference to the File
- * for convenience when writing entries.
+ * TarEntries that are created from Files that are to be written into an archive are instantiated with the TarEntry(
+ * File ) constructor. These entries have their header filled in using the File's information. They also keep a
+ * reference to the File for convenience when writing entries.
  * <p>
- * Finally, TarEntries can be constructed from nothing but a name.
- * This allows the programmer to construct the entry by hand, for
- * instance when only an InputStream is available for writing to
- * the archive, and the header information is constructed from
- * other information. In this case the header fields are set to
- * defaults and the File is set to null.
- *
+ * Finally, TarEntries can be constructed from nothing but a name. This allows the programmer to construct the entry by
+ * hand, for instance when only an InputStream is available for writing to the archive, and the header information is
+ * constructed from other information. In this case the header fields are set to defaults and the File is set to null.
+ * 
  * <p>
  * The C structure for a Tar Entry's header is:
+ * 
  * <pre>
  * struct header {
  * char name[NAMSIZ];
@@ -73,7 +65,7 @@ import java.util.Locale;
  * char devminor[8];
  * } header;
  * </pre>
- *
+ * 
  */
 
 public class TarEntry implements TarConstants {
@@ -134,7 +126,7 @@ public class TarEntry implements TarConstants {
     /**
      * Construct an empty entry and prepares the header values.
      */
-    private TarEntry () {
+    private TarEntry() {
         this.magic = new StringBuffer(TMAGIC);
         this.name = new StringBuffer();
         this.linkName = new StringBuffer();
@@ -153,22 +145,24 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Construct an entry with only a name. This allows the programmer
-     * to construct the entry's header "by hand". File is set to null.
-     *
-     * @param name the entry name
+     * Construct an entry with only a name. This allows the programmer to construct the entry's header "by hand". File
+     * is set to null.
+     * 
+     * @param name
+     *            the entry name
      */
     public TarEntry(String name) {
         this(name, false);
     }
 
     /**
-     * Construct an entry with only a name. This allows the programmer
-     * to construct the entry's header "by hand". File is set to null.
-     *
-     * @param name the entry name
-     * @param preserveLeadingSlashes whether to allow leading slashes
-     * in the name.
+     * Construct an entry with only a name. This allows the programmer to construct the entry's header "by hand". File
+     * is set to null.
+     * 
+     * @param name
+     *            the entry name
+     * @param preserveLeadingSlashes
+     *            whether to allow leading slashes in the name.
      */
     public TarEntry(String name, boolean preserveLeadingSlashes) {
         this();
@@ -195,9 +189,11 @@ public class TarEntry implements TarConstants {
 
     /**
      * Construct an entry with a name and a link flag.
-     *
-     * @param name the entry name
-     * @param linkFlag the entry link flag.
+     * 
+     * @param name
+     *            the entry name
+     * @param linkFlag
+     *            the entry link flag.
      */
     public TarEntry(String name, byte linkFlag) {
         this(name);
@@ -208,10 +204,10 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Construct an entry for a file. File is set to file, and the
-     * header is constructed from information from the file.
-     *
-     * @param file The file that the entry represents.
+     * Construct an entry for a file. File is set to file, and the header is constructed from information from the file.
+     * 
+     * @param file
+     *            The file that the entry represents.
      */
     public TarEntry(File file) {
         this();
@@ -243,10 +239,10 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Construct an entry from an archive's header bytes. File is set
-     * to null.
-     *
-     * @param headerBuf The header bytes from a tar archive entry.
+     * Construct an entry from an archive's header bytes. File is set to null.
+     * 
+     * @param headerBuf
+     *            The header bytes from a tar archive entry.
      */
     public TarEntry(byte[] headerBuf) {
         this();
@@ -254,10 +250,10 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Determine if the two entries are equal. Equality is determined
-     * by the header names being equal.
-     *
-     * @param it Entry to be checked for equality.
+     * Determine if the two entries are equal. Equality is determined by the header names being equal.
+     * 
+     * @param it
+     *            Entry to be checked for equality.
      * @return True if the entries are equal.
      */
     public boolean equals(TarEntry it) {
@@ -265,10 +261,10 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Determine if the two entries are equal. Equality is determined
-     * by the header names being equal.
-     *
-     * @param it Entry to be checked for equality.
+     * Determine if the two entries are equal. Equality is determined by the header names being equal.
+     * 
+     * @param it
+     *            Entry to be checked for equality.
      * @return True if the entries are equal.
      */
     @Override
@@ -281,7 +277,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Hashcodes are based on entry names.
-     *
+     * 
      * @return the entry hashcode
      */
     @Override
@@ -290,11 +286,11 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Determine if the given entry is a descendant of this entry.
-     * Descendancy is determined by the name of the descendant
-     * starting with this entry's name.
-     *
-     * @param desc Entry to be checked as a descendent of this.
+     * Determine if the given entry is a descendant of this entry. Descendancy is determined by the name of the
+     * descendant starting with this entry's name.
+     * 
+     * @param desc
+     *            Entry to be checked as a descendent of this.
      * @return True if entry is a descendant of this.
      */
     public boolean isDescendent(TarEntry desc) {
@@ -303,7 +299,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's name.
-     *
+     * 
      * @return This entry's name.
      */
     public String getName() {
@@ -312,8 +308,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's name.
-     *
-     * @param name This entry's new name.
+     * 
+     * @param name
+     *            This entry's new name.
      */
     public void setName(String name) {
         this.name = new StringBuffer(normalizeFileName(name, false));
@@ -321,8 +318,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set the mode for this entry
-     *
-     * @param mode the mode for this entry
+     * 
+     * @param mode
+     *            the mode for this entry
      */
     public void setMode(int mode) {
         this.mode = mode;
@@ -330,7 +328,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's link name.
-     *
+     * 
      * @return This entry's link name.
      */
     public String getLinkName() {
@@ -339,7 +337,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's user id.
-     *
+     * 
      * @return This entry's user id.
      */
     public int getUserId() {
@@ -348,8 +346,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's user id.
-     *
-     * @param userId This entry's new user id.
+     * 
+     * @param userId
+     *            This entry's new user id.
      */
     public void setUserId(int userId) {
         this.userId = userId;
@@ -357,7 +356,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's group id.
-     *
+     * 
      * @return This entry's group id.
      */
     public int getGroupId() {
@@ -366,8 +365,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's group id.
-     *
-     * @param groupId This entry's new group id.
+     * 
+     * @param groupId
+     *            This entry's new group id.
      */
     public void setGroupId(int groupId) {
         this.groupId = groupId;
@@ -375,7 +375,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's user name.
-     *
+     * 
      * @return This entry's user name.
      */
     public String getUserName() {
@@ -384,8 +384,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's user name.
-     *
-     * @param userName This entry's new user name.
+     * 
+     * @param userName
+     *            This entry's new user name.
      */
     public void setUserName(String userName) {
         this.userName = new StringBuffer(userName);
@@ -393,7 +394,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's group name.
-     *
+     * 
      * @return This entry's group name.
      */
     public String getGroupName() {
@@ -402,8 +403,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's group name.
-     *
-     * @param groupName This entry's new group name.
+     * 
+     * @param groupName
+     *            This entry's new group name.
      */
     public void setGroupName(String groupName) {
         this.groupName = new StringBuffer(groupName);
@@ -411,9 +413,11 @@ public class TarEntry implements TarConstants {
 
     /**
      * Convenience method to set this entry's group and user ids.
-     *
-     * @param userId This entry's new user id.
-     * @param groupId This entry's new group id.
+     * 
+     * @param userId
+     *            This entry's new user id.
+     * @param groupId
+     *            This entry's new group id.
      */
     public void setIds(int userId, int groupId) {
         setUserId(userId);
@@ -422,9 +426,11 @@ public class TarEntry implements TarConstants {
 
     /**
      * Convenience method to set this entry's group and user names.
-     *
-     * @param userName This entry's new user name.
-     * @param groupName This entry's new group name.
+     * 
+     * @param userName
+     *            This entry's new user name.
+     * @param groupName
+     *            This entry's new group name.
      */
     public void setNames(String userName, String groupName) {
         setUserName(userName);
@@ -432,10 +438,10 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Set this entry's modification time. The parameter passed
-     * to this method is in "Java time".
-     *
-     * @param time This entry's new modification time.
+     * Set this entry's modification time. The parameter passed to this method is in "Java time".
+     * 
+     * @param time
+     *            This entry's new modification time.
      */
     public void setModTime(long time) {
         modTime = time / MILLIS_PER_SECOND;
@@ -443,8 +449,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's modification time.
-     *
-     * @param time This entry's new modification time.
+     * 
+     * @param time
+     *            This entry's new modification time.
      */
     public void setModTime(Date time) {
         modTime = time.getTime() / MILLIS_PER_SECOND;
@@ -452,7 +459,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's modification time.
-     *
+     * 
      * @return time This entry's new modification time.
      */
     public Date getModTime() {
@@ -461,7 +468,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's file.
-     *
+     * 
      * @return This entry's file.
      */
     public File getFile() {
@@ -470,7 +477,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's mode.
-     *
+     * 
      * @return This entry's mode.
      */
     public int getMode() {
@@ -479,7 +486,7 @@ public class TarEntry implements TarConstants {
 
     /**
      * Get this entry's file size.
-     *
+     * 
      * @return This entry's file size.
      */
     public long getSize() {
@@ -488,27 +495,26 @@ public class TarEntry implements TarConstants {
 
     /**
      * Set this entry's file size.
-     *
-     * @param size This entry's new file size.
+     * 
+     * @param size
+     *            This entry's new file size.
      */
     public void setSize(long size) {
         this.size = size;
     }
 
-
     /**
      * Indicate if this entry is a GNU long name block
-     *
+     * 
      * @return true if this is a long name extension provided by GNU tar
      */
     public boolean isGNULongNameEntry() {
-        return linkFlag == LF_GNUTYPE_LONGNAME
-                           && name.toString().equals(GNU_LONGLINK);
+        return linkFlag == LF_GNUTYPE_LONGNAME && name.toString().equals(GNU_LONGLINK);
     }
 
     /**
      * Return whether or not this entry represents a directory.
-     *
+     * 
      * @return True if this entry is a directory.
      */
     public boolean isDirectory() {
@@ -528,9 +534,9 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * If this entry represents a file, and the file is a directory, return
-     * an array of TarEntries for this entry's children.
-     *
+     * If this entry represents a file, and the file is a directory, return an array of TarEntries for this entry's
+     * children.
+     * 
      * @return An array of TarEntry's for this entry's children.
      */
     public TarEntry[] getDirectoryEntries() {
@@ -538,7 +544,7 @@ public class TarEntry implements TarConstants {
             return new TarEntry[0];
         }
 
-        String[]   list = file.list();
+        String[] list = file.list();
         TarEntry[] result = new TarEntry[list.length];
 
         for (int i = 0; i < list.length; ++i) {
@@ -550,8 +556,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Write an entry's header information to a header buffer.
-     *
-     * @param outbuf The tar entry header buffer to fill in.
+     * 
+     * @param outbuf
+     *            The tar entry header buffer to fill in.
      */
     public void writeEntryHeader(byte[] outbuf) {
         int offset = 0;
@@ -588,8 +595,9 @@ public class TarEntry implements TarConstants {
 
     /**
      * Parse an entry's header information from a header buffer.
-     *
-     * @param header The tar entry header buffer to get information from.
+     * 
+     * @param header
+     *            The tar entry header buffer to get information from.
      */
     public void parseTarHeader(byte[] header) {
         int offset = 0;
@@ -622,11 +630,9 @@ public class TarEntry implements TarConstants {
     }
 
     /**
-     * Strips Windows' drive letter as well as any leading slashes,
-     * turns path separators into forward slahes.
+     * Strips Windows' drive letter as well as any leading slashes, turns path separators into forward slahes.
      */
-    private static String normalizeFileName(String fileName,
-                                            boolean preserveLeadingSlashes) {
+    private static String normalizeFileName(String fileName, boolean preserveLeadingSlashes) {
         String osname = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
         if (osname != null) {
@@ -639,9 +645,7 @@ public class TarEntry implements TarConstants {
                     char ch1 = fileName.charAt(0);
                     char ch2 = fileName.charAt(1);
 
-                    if (ch2 == ':'
-                        && ((ch1 >= 'a' && ch1 <= 'z')
-                            || (ch1 >= 'A' && ch1 <= 'Z'))) {
+                    if (ch2 == ':' && ((ch1 >= 'a' && ch1 <= 'z') || (ch1 >= 'A' && ch1 <= 'Z'))) {
                         fileName = fileName.substring(2);
                     }
                 }

@@ -32,13 +32,15 @@ public class LongestLineFinder {
     private static final double showQuantile = 0.5;
 
     public static void main(String[] args) throws IOException {
-        findLongestLines(Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_EDICT, "output-dict_zh_de.edict_hande"), showQuantile);
+        findLongestLines(Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_EDICT,
+                "output-dict_zh_de.edict_hande"), showQuantile);
     }
 
     /**
      * 
      * @param file
-     * @param quantileOfLongest 0=all, anything between, 1=only longest
+     * @param quantileOfLongest
+     *            0=all, anything between, 1=only longest
      * @throws FileNotFoundException
      * @throws IOException
      */

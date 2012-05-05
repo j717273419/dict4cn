@@ -32,7 +32,7 @@ public class FormattedTreeSet<E> extends TreeSet<E> {
     public FormattedTreeSet() {
         super();
     }
-    
+
     public FormattedTreeSet(String sep) {
         super();
         this.sep = sep;

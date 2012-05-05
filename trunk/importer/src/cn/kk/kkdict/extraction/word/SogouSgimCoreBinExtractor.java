@@ -19,6 +19,7 @@
  *  THE SOFTWARE.  
  */
 package cn.kk.kkdict.extraction.word;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,9 +47,11 @@ import cn.kk.kkdict.utils.Helper;
  * @author keke
  */
 public class SogouSgimCoreBinExtractor {
-    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_SOGOU, "sgim_core.bin");
-    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_SOGOU, "output-words." + WordSource.SOGOU_CORE.key);
-    
+    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_SOGOU,
+            "sgim_core.bin");
+    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_SOGOU,
+            "output-words." + WordSource.SOGOU_CORE.key);
+
     public static void main(String[] args) throws IOException {
         // read scel into byte array
         FileChannel fChannel = new RandomAccessFile(IN_FILE, "r").getChannel();
@@ -80,7 +83,7 @@ public class SogouSgimCoreBinExtractor {
             bb.position(startPos);
             while (bb.hasRemaining() && words-- > 0) {
                 s = bb.getShort();
-                bb.get(buffer.array(), 0, s);                
+                bb.get(buffer.array(), 0, s);
                 String str = new String(buffer.array(), 0, s, "UTF-16LE");
                 if (ChineseHelper.containsChinese(str)) {
                     writer.write(Language.ZH.key);
@@ -97,7 +100,7 @@ public class SogouSgimCoreBinExtractor {
             int diff = endPos - startPos;
             System.out.println("读出单词'" + IN_FILE + "'：" + counter);
             System.out.println("单词结尾位置：0x" + Integer.toHexString(endPos));
-            System.out.println("单词词典长度：0x" + Integer.toHexString(diff)+"，"+diff+" bytes。");
+            System.out.println("单词词典长度：0x" + Integer.toHexString(diff) + "，" + diff + " bytes。");
         }
 
         writer.close();

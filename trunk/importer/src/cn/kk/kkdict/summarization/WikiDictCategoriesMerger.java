@@ -101,8 +101,8 @@ public class WikiDictCategoriesMerger {
                     System.out.println("排序类别文件：'" + mergedOutFile + "'（"
                             + Helper.formatSpace(new File(mergedOutFile).length()) + "）");
                 }
-                DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.EN, OUT_DIR, new File(OUT_FILE).getName(), true,
-                        false, mergedOutFile);
+                DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.EN, OUT_DIR,
+                        new File(OUT_FILE).getName(), true, false, mergedOutFile);
                 sorter.sort();
                 new File(mergedOutFile).delete();
                 new File(outFileTmp).delete();
@@ -117,14 +117,15 @@ public class WikiDictCategoriesMerger {
             new File(outFileTmp).delete();
             new File(OUT_FILE).renameTo(new File(outFileTmp));
             TimeUnit.SECONDS.sleep(1);
-            DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.DE, OUT_DIR, new File(OUT_FILE).getName(), false,
-                    false, outFileTmp);
+            DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.DE, OUT_DIR,
+                    new File(OUT_FILE).getName(), false, false, outFileTmp);
             sorter.sort();
 
             new File(outFileTmp).delete();
             new File(OUT_FILE).renameTo(new File(outFileTmp));
             TimeUnit.SECONDS.sleep(1);
-            sorter = new DictFilesMergedSorter(Language.ZH, OUT_DIR, new File(OUT_FILE).getName(), false, false, outFileTmp);
+            sorter = new DictFilesMergedSorter(Language.ZH, OUT_DIR, new File(OUT_FILE).getName(), false, false,
+                    outFileTmp);
             sorter.sort();
             new File(outFileTmp).delete();
             System.out.println("排序中文完成.输出文件：'" + OUT_FILE + "'（" + Helper.formatSpace(new File(OUT_FILE).length())

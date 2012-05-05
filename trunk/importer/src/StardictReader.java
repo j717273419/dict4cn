@@ -115,6 +115,6 @@ public class StardictReader {
                 break;
             }
         }
-        tarIn.close(); 
+        tarIn.close();
     }
 }

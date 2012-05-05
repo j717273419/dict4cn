@@ -78,7 +78,7 @@ public class QQPinyinQpydReader {
         dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
 
         System.out.println("文件: " + qqydFile);
-        
+
         // read info of compressed data
         int startZippedDictAddr = dataRawBytes.getInt(0x38);
         int zippedDictLength = dataRawBytes.limit() - startZippedDictAddr;
@@ -107,7 +107,7 @@ public class QQPinyinQpydReader {
         Channels.newChannel(new FileOutputStream(qqydFile + ".unzipped")).write(dataUnzippedBytes);
         System.out.println("压缩数据：0x" + Integer.toHexString(startZippedDictAddr) + " (解压前：" + zippedDictLength
                 + " B, 解压后：" + dataUnzippedBytes.limit() + " B)");
-        
+
         // stores the start address of actual dictionary data
         int unzippedDictStartAddr = -1;
         byte[] byteArray = dataUnzippedBytes.array();
@@ -117,9 +117,9 @@ public class QQPinyinQpydReader {
             int pinyinLength = dataUnzippedBytes.get() & 0xff;
             int wordLength = dataUnzippedBytes.get() & 0xff;
             dataUnzippedBytes.getInt(); // garbage
-            int pinyinStartAddr = dataUnzippedBytes.getInt();            
+            int pinyinStartAddr = dataUnzippedBytes.getInt();
             int wordStartAddr = pinyinStartAddr + pinyinLength;
-            
+
             if (unzippedDictStartAddr == -1) {
                 unzippedDictStartAddr = pinyinStartAddr;
                 System.out.println("词库地址（解压后）：0x" + Integer.toHexString(unzippedDictStartAddr) + "\n");

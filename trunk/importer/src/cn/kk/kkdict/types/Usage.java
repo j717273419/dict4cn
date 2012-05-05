@@ -35,11 +35,11 @@ public enum Usage {
     RARE("罕"),
     JUDICIAL("咒"),
     DIALECT("方"),
-    VULGAR("粗"),   
-    ;
+    VULGAR("粗"), ;
     public static final String TYPE_ID = "用";
-    
+
     public final String key;
+
     Usage(String key) {
         this.key = key;
     }

@@ -34,7 +34,7 @@ public class ProduceGenerated {
      */
     public static void main(String[] args) throws Exception {
         long timeStarted = System.currentTimeMillis();
-        
+
         runJob(ChineseConvertionGenerator.class);
         runJob(LanguageExtractor.class);
         runJob(WiktionaryCategoryLanguageExtractor.class);
@@ -49,7 +49,7 @@ public class ProduceGenerated {
 
         System.out.println("Starting " + mainClass.getName() + " ...");
         mainClass.getMethod("main", String[].class).invoke(mainClass, DEFAULT_ARGS);
-        
+
         System.out.println(mainClass.getName() + " finished in "
                 + Helper.formatDuration(System.currentTimeMillis() - started) + "\n\n");
     }

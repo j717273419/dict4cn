@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DictRow {
-    private static final Map<String, String> EMPTY_TREE_MAP = Collections.unmodifiableMap(new FormattedTreeMap<String, String>());
+    private static final Map<String, String> EMPTY_TREE_MAP = Collections
+            .unmodifiableMap(new FormattedTreeMap<String, String>());
     private static final Set<String> EMPTY_TREE_SET = Collections.unmodifiableSet(new FormattedTreeSet<String>());
     private String name;
     private String pronounciation;

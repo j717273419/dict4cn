@@ -54,7 +54,8 @@ public class WordsMerger {
                     if (files.length > 0) {
                         String[] filePaths = Helper.getFileNames(files);
                         File f = new File(Helper.appendFileName(filePaths[0], "_merged"));
-                        WordFilesMergedSorter sorter = new WordFilesMergedSorter(f.getPath(), f.getName(), false, false, filePaths);
+                        WordFilesMergedSorter sorter = new WordFilesMergedSorter(f.getPath(), f.getName(), false,
+                                false, filePaths);
                         sorter.sort();
 
                         System.out.println("总共读取词语文件：" + files.length + "，" + "词语数目：" + sorter.getTotalSorted());

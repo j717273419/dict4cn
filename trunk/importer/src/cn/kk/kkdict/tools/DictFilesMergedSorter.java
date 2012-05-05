@@ -69,7 +69,7 @@ public class DictFilesMergedSorter extends WordFilesMergedSorter {
         // String inFile2 = "D:\\test2.txt";
         // String inFile3 = "D:\\test3.txt";
         String outDir = Configuration.IMPORTER_FOLDER_MERGED_DICTS.getPath(Source.DICT_EDICT);
-        
+
         // new DictFilesSorter(Language.ZH, outFile, false, inFile0, inFile1,
         // inFile2, inFile3, inFile4, inFile5,
         // inFile6,

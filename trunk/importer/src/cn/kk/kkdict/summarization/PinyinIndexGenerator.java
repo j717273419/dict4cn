@@ -22,7 +22,6 @@ package cn.kk.kkdict.summarization;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,7 +34,7 @@ import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.FormattedArrayList;
 import cn.kk.kkdict.beans.ListStat;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PinyinHelper;
+import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class PinyinIndexGenerator {
     private static final String OUT_FILE = Configuration.IMPORTER_FOLDER_MERGED_WORDS.getFile(Source.NULL,
@@ -165,7 +164,7 @@ public class PinyinIndexGenerator {
             List<String> words = stat.getValues();
             for (int j = 0; j < words.size(); j++) {
                 String v = words.get(j);
-                String[] parts = PinyinHelper.getShenMuYunMu(v);
+                String[] parts = PhoneticTranscriptionHelper.getShenMuYunMu(v);
                 for (String similar : similars) {
                     boolean found = false;
                     if (similar.equals(parts[0])) {

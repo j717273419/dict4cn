@@ -48,13 +48,13 @@ public class WikiDictGeoLocationCorrectorTest {
         // System.out.println(ArrayHelper.toString(bb));
         assertEquals("zh═兰辛 (密歇根州)‹位42.75,84.5", ArrayHelper.toString(bb));
 
-        String test5="zh═蒙诺维亚‹位latitude=34°08'39&quot;N|longitude=118°00'07&quot;W";
+        String test5 = "zh═蒙诺维亚‹位latitude=34°08'39&quot;N|longitude=118°00'07&quot;W";
         bb = ByteBuffer.wrap(test5.getBytes(Helper.CHARSET_UTF8));
         row.parseFrom(bb);
         WikiDictGeoLocationCorrector.correctGeoLocation(row);
         System.out.println(ArrayHelper.toString(bb));
         assertEquals("zh═蒙诺维亚‹位34.125,118.0", ArrayHelper.toString(bb));
-        
+
     }
 
 }

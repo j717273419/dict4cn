@@ -61,15 +61,15 @@ public class DeflateReader {
         ByteBuffer dataRawBytes = readBytes(dflFile);
 
         System.out.println("文件: " + dflFile);
-        System.out.println("文件大小: " + dataRawBytes.limit() + " B (0x"
-                + Integer.toHexString(dataRawBytes.limit()) + ")");
+        System.out
+                .println("文件大小: " + dataRawBytes.limit() + " B (0x" + Integer.toHexString(dataRawBytes.limit()) + ")");
 
         List<String> outputFiles = new ArrayList<String>();
         while (dataRawBytes.position() < dataRawBytes.limit() - 2) {
             try {
                 int position = dataRawBytes.position();
                 String positionHex = "0x" + Integer.toHexString(position);
-                int header = dataRawBytes.getShort() & 0xffff;                
+                int header = dataRawBytes.getShort() & 0xffff;
                 String headerHex = "0x" + Integer.toHexString(header);
                 if (Arrays.binarySearch(DEFLATE_WITH_DICT_HEADERS, header) >= 0) {
                     System.out.println(positionHex + ": Deflate with dictionary header '" + headerHex

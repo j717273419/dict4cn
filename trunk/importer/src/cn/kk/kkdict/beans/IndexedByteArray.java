@@ -22,12 +22,10 @@ package cn.kk.kkdict.beans;
 
 import java.util.Arrays;
 
-
 public class IndexedByteArray implements Comparable<IndexedByteArray> {
     private byte[] data;
     private int idx;
     private int weight;
-
 
     public IndexedByteArray() {
     }

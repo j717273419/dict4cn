@@ -21,7 +21,6 @@
 
 package cn.kk.kkdict.tools;
 
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -44,7 +43,8 @@ public class LongestLineFinder {
     }
 
     public static void main(String[] args) throws IOException {
-        LongestLineFinder finder = new LongestLineFinder("O:\\kkdict\\out\\dicts\\wiki\\output-dict_categories-merged_mrg-tmp.wiki");
+        LongestLineFinder finder = new LongestLineFinder(
+                "O:\\kkdict\\out\\dicts\\wiki\\output-dict_categories-merged_mrg-tmp.wiki");
         System.out.println(finder.find());
     }
 

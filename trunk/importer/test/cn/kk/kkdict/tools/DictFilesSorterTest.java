@@ -1,10 +1,10 @@
 package cn.kk.kkdict.tools;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,133 +14,90 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class DictFilesSorterTest {
-    private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+    private static final String TMP_DIR = System.getProperty("java.io.tmpdir") + File.separator;
     private final String testFile1 = TMP_DIR + File.separator + "test1.txt";
     private final String testFile2 = TMP_DIR + File.separator + "test2.txt";
     private final String testFile3 = TMP_DIR + File.separator + "test3.txt";
+    private final String testFile1Sorted = TMP_DIR + File.separator + "test1_srt.txt";
+    private final String testFile2Sorted = TMP_DIR + File.separator + "test2_srt.txt";
+    private final String testFile3Sorted = TMP_DIR + File.separator + "test3_srt.txt";
 
     @Before
     public void setUp() throws Exception {
         Helper.writeBytes(("de═Bombe‹源wiki_ang▫hi═बम‹源wiki_ang▫ar═قنبلة‹源wiki_ang▫th═ระเบิด‹源wiki_angzh═炸弹‹源wiki_ang\n"
-                + "ar═فضاء خارجي‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫zh═外层空间‹源wiki_ang▫yo═Òfurufú\n"
-                + "t1═t1‹源a1‹源a2▫th═อวกาศ‹源wiki_ang▫zh═外层空间‹源wiki_ang▫yo═Òfurufú▫t2═t2‹源a1‹源a2‹源a3▫t3═t3\n"
-                + "t2═t2‹源a1‹源a2▫t1═t1‹源a2‹源a4‹源a3▫zh═外层空间‹源wiki_ang▫yo═Òfurufú▫t5═t5▫t4═t4\n")
-                .getBytes(Helper.CHARSET_UTF8), testFile1);
+                + "ar═فضاء خارجي‹源wiki_ang▫zh═外层空间‹源wiki_ang▫yo═Òfurufú\n"
+                + "zh═z1‹源a1‹源a2▫th═อวกาศ‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t3═t3\n"
+                + "zh═z1‹源a1‹源a2▫th═อวกาศ‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t3═t3\n"
+                + "zh═z2‹源a1‹源a2▫t1═t1‹源a2‹源a4‹源a3▫t5═t5▫t4═t4\n").getBytes(Helper.CHARSET_UTF8), testFile1);
         Helper.writeBytes(("de═Fenster‹源wiki_ang▫nrm═F'nêt'‹源wiki_ang▫tr═Pencere‹源wiki_ang\n"
-                + "zh═沃尔夫斯堡‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang").getBytes(Helper.CHARSET_UTF8), testFile2);
+                + "zh═z2‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang").getBytes(Helper.CHARSET_UTF8), testFile2);
         Helper.writeBytes(
                 ("zh═华捷伍德‹源wiki_ang\n"
                         + "hi═नेपियर‹源wiki_ang▫zh═内皮尔 (纽西兰)‹源wiki_ang▫nl═Napier (Nieuw-Zeeland)‹源wiki_ang▫ru═Нейпир‹源wiki_ang▫af═Napier, Nieu-Seeland‹源wiki_ang\n"
-                        + "br═Rinkin‹源wiki_ang").getBytes(Helper.CHARSET_UTF8), testFile3);
+                        + "br═Rinkin‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫zh═外层空间").getBytes(Helper.CHARSET_UTF8), testFile3);
+
+        new DictFilesSorter(TMP_DIR + "test1_srt.txt", Language.ZH, true, true, testFile1).sort();
+        new DictFilesSorter(TMP_DIR + "test2_srt.txt", Language.ZH, true, true, testFile2).sort();
+        new DictFilesSorter(TMP_DIR + "test3_srt.txt", Language.ZH, true, true, testFile3).sort();
     }
 
     @Test
-    public void testSortWriteSkipped() {
-        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", false, true, testFile1,
-                testFile2, testFile3);
-        sorter.setFilterAttributes(false);
-
+    public void testMerge1() {
+        SortedDictFilesMerger merger = new SortedDictFilesMerger(Language.ZH, TMP_DIR, "result.txt", testFile1Sorted,
+                testFile2Sorted);
         try {
-            sorter.sort();
-            // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
+            merger.merge();
+            // System.out.println("结果：" + ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator +
+            // "result.txt")));
+            assertEquals("zh═外层空间‹源wiki_ang▫ar═فضاء خارجي‹源wiki_ang▫yo═Òfurufú\n"
+                    + "zh═z1‹源a1‹源a2▫th═อวกาศ‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t3═t3\n"
+                    + "zh═z2‹源a1‹源a2‹源wiki_ang▫t1═t1‹源a2‹源a4‹源a3▫t5═t5▫t4═t4▫kk═Вольфсбург‹源wiki_ang\n",
+                    ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail(e.toString());
+        }
+    }
+
+    @Test
+    public void testMerge2() {
+        SortedDictFilesMerger merger = new SortedDictFilesMerger(Language.ZH, TMP_DIR, "result.txt", testFile2Sorted,
+                testFile3Sorted);
+        try {
+            merger.merge();
+            // System.out.println("结果：" + ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator +
+            // "result.txt")));
             assertEquals(
                     "zh═内皮尔 (纽西兰)‹源wiki_ang▫hi═नेपियर‹源wiki_ang▫nl═Napier (Nieuw-Zeeland)‹源wiki_ang▫ru═Нейпир‹源wiki_ang▫af═Napier, Nieu-Seeland‹源wiki_ang\n"
                             + "zh═华捷伍德‹源wiki_ang\n"
-                            + "zh═外层空间‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t1═t1‹源a2‹源a4‹源a3‹源a1▫yo═Òfurufú▫t5═t5▫t4═t4▫ar═فضاء خارجي‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫t3═t3\n"
-                            + "zh═沃尔夫斯堡‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang\n",
+                            + "zh═外层空间▫br═Rinkin‹源wiki_ang▫th═อวกาศ‹源wiki_ang\n"
+                            + "zh═z2‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang\n",
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-
-            assertEquals(
-                    "br═Rinkin‹源wiki_ang\n"
-                            + "de═Bombe‹源wiki_ang▫hi═बम‹源wiki_ang▫ar═قنبلة‹源wiki_ang▫th═ระเบิด‹源wiki_angzh═炸弹‹源wiki_ang\n"
-                            + "de═Fenster‹源wiki_ang▫nrm═F'nêt'‹源wiki_ang▫tr═Pencere‹源wiki_ang\n",
-                    ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator
-                            + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED))));
-        } catch (Throwable t) {
-            t.printStackTrace();
-            fail(t.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail(e.toString());
         }
     }
 
     @Test
-    public void testSortWithoutSkipped() {
-        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
-                testFile2, testFile3);
-        sorter.setFilterAttributes(false);
-
+    public void testMerge3() {
+        SortedDictFilesMerger merger = new SortedDictFilesMerger(Language.ZH, TMP_DIR, "result.txt", testFile1Sorted,
+                testFile3Sorted);
         try {
-            new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
-
-            sorter.sort();
-            // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
+            merger.merge();
+            // System.out.println("结果：" + ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator +
+            // "result.txt")));
             assertEquals(
                     "zh═内皮尔 (纽西兰)‹源wiki_ang▫hi═नेपियर‹源wiki_ang▫nl═Napier (Nieuw-Zeeland)‹源wiki_ang▫ru═Нейпир‹源wiki_ang▫af═Napier, Nieu-Seeland‹源wiki_ang\n"
                             + "zh═华捷伍德‹源wiki_ang\n"
-                            + "zh═外层空间‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t1═t1‹源a2‹源a4‹源a3‹源a1▫yo═Òfurufú▫t5═t5▫t4═t4▫ar═فضاء خارجي‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫t3═t3\n"
-                            + "zh═沃尔夫斯堡‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang\n",
+                            + "zh═外层空间‹源wiki_ang▫br═Rinkin‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫ar═فضاء خارجي‹源wiki_ang▫yo═Òfurufú\n"
+                            + "zh═z1‹源a1‹源a2▫th═อวกาศ‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t3═t3\n"
+                            + "zh═z2‹源a1‹源a2▫t1═t1‹源a2‹源a4‹源a3▫t5═t5▫t4═t4\n",
                     ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-
-            assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
-        } catch (Throwable t) {
-            t.printStackTrace();
-            fail(t.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail(e.toString());
         }
     }
 
-    @Test
-    public void testSortWithSkipped() {
-        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", false, false, testFile1,
-                testFile2, testFile3);
-        sorter.setFilterAttributes(false);
-
-        try {
-            new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
-
-            sorter.sort();
-            // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-            assertEquals(
-                    "zh═内皮尔 (纽西兰)‹源wiki_ang▫hi═नेपियर‹源wiki_ang▫nl═Napier (Nieuw-Zeeland)‹源wiki_ang▫ru═Нейпир‹源wiki_ang▫af═Napier, Nieu-Seeland‹源wiki_ang\n"
-                            + "zh═华捷伍德‹源wiki_ang\n"
-                            + "zh═外层空间‹源wiki_ang▫t2═t2‹源a1‹源a2‹源a3▫t1═t1‹源a2‹源a4‹源a3‹源a1▫yo═Òfurufú▫t5═t5▫t4═t4▫ar═فضاء خارجي‹源wiki_ang▫th═อวกาศ‹源wiki_ang▫t3═t3\n"
-                            + "zh═沃尔夫斯堡‹源wiki_ang▫kk═Вольфсбург‹源wiki_ang\n"
-                            + "br═Rinkin‹源wiki_ang\n"
-                            + "de═Bombe‹源wiki_ang▫hi═बम‹源wiki_ang▫ar═قنبلة‹源wiki_ang▫th═ระเบิด‹源wiki_angzh═炸弹‹源wiki_ang\n"
-                            + "de═Fenster‹源wiki_ang▫nrm═F'nêt'‹源wiki_ang▫tr═Pencere‹源wiki_ang\n",
-                    ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-
-            assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
-        } catch (Throwable t) {
-            t.printStackTrace();
-            fail(t.toString());
-        }
-    }
-
-    @Test
-    public void testFilterAttributes() {
-        DictFilesMergedSorter sorter = new DictFilesMergedSorter(Language.ZH, TMP_DIR, "result.txt", true, false, testFile1,
-                testFile2, testFile3);
-        sorter.setFilterAttributes(true);
-
-        try {
-            new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).delete();
-
-            sorter.sort();
-            // System.out.println(ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-            assertEquals("zh═内皮尔 (纽西兰)▫hi═नेपियर▫nl═Napier (Nieuw-Zeeland)▫ru═Нейпир▫af═Napier, Nieu-Seeland\n"
-                    + "zh═华捷伍德\n" + "zh═外层空间▫t2═t2▫t1═t1▫yo═Òfurufú▫t5═t5▫t4═t4▫ar═فضاء خارجي▫th═อวกาศ▫t3═t3\n"
-                    + "zh═沃尔夫斯堡▫kk═Вольфсбург\n",
-                    ArrayHelper.toString(Helper.readBytes(TMP_DIR + File.separator + "result.txt")));
-
-            assertFalse(new File(TMP_DIR + File.separator
-                    + Helper.appendFileName(new File("result.txt").getName(), DictFilesMergedSorter.SUFFIX_SKIPPED)).isFile());
-        } catch (Throwable t) {
-            t.printStackTrace();
-            fail(t.toString());
-        }
-    }
 }

@@ -21,7 +21,6 @@
 package cn.kk.kkdict.tools;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +29,6 @@ import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.DictByteBufferRow;
 import cn.kk.kkdict.utils.ArrayHelper;
-import cn.kk.kkdict.utils.Helper;
 
 /**
  * 显示词典文件
@@ -38,7 +36,8 @@ import cn.kk.kkdict.utils.Helper;
 public class DictReader {
     // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
     // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";
-    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_WIKIPEDIA, "output-dict.wiki_ak");
+    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_WIKIPEDIA,
+            "output-dict.wiki_ak");
 
     /**
      * @param args

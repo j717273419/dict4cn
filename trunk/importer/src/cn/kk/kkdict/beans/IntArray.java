@@ -25,7 +25,6 @@ import java.util.Arrays;
 public class IntArray implements Comparable<IntArray> {
     private int[] data;
 
-
     public IntArray() {
     }
 

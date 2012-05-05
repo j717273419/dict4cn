@@ -39,7 +39,7 @@ import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PinyinHelper;
+import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class BaiduBcdExtractor {
     public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BAIDU);
@@ -108,7 +108,8 @@ public class BaiduBcdExtractor {
                 } else {
                     pinyin.append('\'');
                 }
-                pinyin.append(PinyinHelper.FEN_MU[dataRawBytes.get()] + PinyinHelper.YUN_MU[dataRawBytes.get()]);
+                pinyin.append(PhoneticTranscriptionHelper.FEN_MU[dataRawBytes.get()]
+                        + PhoneticTranscriptionHelper.YUN_MU[dataRawBytes.get()]);
             }
             dataRawBytes.get(buf, 0, 2 * length);
             String word = new String(buf, 0, 2 * length, "UTF-16LE");

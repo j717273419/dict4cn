@@ -247,7 +247,7 @@ public class SortedDictFilesMerger {
                                             + ArrayHelper.toStringP(otherRow.getByteBuffer()) + " == "
                                             + ArrayHelper.toStringP(mainRow.getByteBuffer()));
                                 }
-                                mainRow.parseFrom(mergeBB, true);
+                                mainRow.parseFrom(mergeBB);
                             } else {
                                 if (DEBUG) {
                                     System.out.println(inFileIdx + ": skip "

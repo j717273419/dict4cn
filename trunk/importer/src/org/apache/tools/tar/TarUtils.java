@@ -25,7 +25,7 @@ package org.apache.tools.tar;
 
 /**
  * This class provides static utility methods to work with byte streams.
- *
+ * 
  */
 // CheckStyle:HideUtilityClassConstructorCheck OFF (bc)
 public class TarUtils {
@@ -33,18 +33,20 @@ public class TarUtils {
     private static final int BYTE_MASK = 255;
 
     /**
-     * Parse an octal string from a header buffer. This is used for the
-     * file permission mode value.
-     *
-     * @param header The header buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * Parse an octal string from a header buffer. This is used for the file permission mode value.
+     * 
+     * @param header
+     *            The header buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The long value of the octal string.
      */
     public static long parseOctal(byte[] header, int offset, int length) {
-        long    result = 0;
+        long result = 0;
         boolean stillPadding = true;
-        int     end = offset + length;
+        int end = offset + length;
 
         for (int i = offset; i < end; ++i) {
             if (header[i] == 0) {
@@ -72,15 +74,18 @@ public class TarUtils {
 
     /**
      * Parse an entry name from a header buffer.
-     *
-     * @param header The header buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * 
+     * @param header
+     *            The header buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The header's entry name.
      */
     public static StringBuffer parseName(byte[] header, int offset, int length) {
         StringBuffer result = new StringBuffer(length);
-        int          end = offset + length;
+        int end = offset + length;
 
         for (int i = offset; i < end; ++i) {
             if (header[i] == 0) {
@@ -95,11 +100,15 @@ public class TarUtils {
 
     /**
      * Determine the number of bytes in an entry name.
-     *
-     * @param name The header name from which to parse.
-     * @param buf The buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * 
+     * @param name
+     *            The header name from which to parse.
+     * @param buf
+     *            The buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The number of bytes in a header's entry name.
      */
     public static int getNameBytes(StringBuffer name, byte[] buf, int offset, int length) {
@@ -118,15 +127,19 @@ public class TarUtils {
 
     /**
      * Parse an octal integer from a header buffer.
-     *
-     * @param value The header value
-     * @param buf The buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * 
+     * @param value
+     *            The header value
+     * @param buf
+     *            The buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The integer value of the octal bytes.
      */
     public static int getOctalBytes(long value, byte[] buf, int offset, int length) {
-        int    idx = length - 1;
+        int idx = length - 1;
 
         buf[offset + idx] = 0;
         --idx;
@@ -154,11 +167,15 @@ public class TarUtils {
 
     /**
      * Parse an octal long integer from a header buffer.
-     *
-     * @param value The header value
-     * @param buf The buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * 
+     * @param value
+     *            The header value
+     * @param buf
+     *            The buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The long value of the octal bytes.
      */
     public static int getLongOctalBytes(long value, byte[] buf, int offset, int length) {
@@ -172,11 +189,15 @@ public class TarUtils {
 
     /**
      * Parse the checksum octal integer from a header buffer.
-     *
-     * @param value The header value
-     * @param buf The buffer from which to parse.
-     * @param offset The offset into the buffer from which to parse.
-     * @param length The number of header bytes to parse.
+     * 
+     * @param value
+     *            The header value
+     * @param buf
+     *            The buffer from which to parse.
+     * @param offset
+     *            The offset into the buffer from which to parse.
+     * @param length
+     *            The number of header bytes to parse.
      * @return The integer value of the entry's checksum.
      */
     public static int getCheckSumOctalBytes(long value, byte[] buf, int offset, int length) {
@@ -190,8 +211,9 @@ public class TarUtils {
 
     /**
      * Compute the checksum of a tar entry header.
-     *
-     * @param buf The tar entry's header buffer.
+     * 
+     * @param buf
+     *            The tar entry's header buffer.
      * @return The computed checksum.
      */
     public static long computeCheckSum(byte[] buf) {

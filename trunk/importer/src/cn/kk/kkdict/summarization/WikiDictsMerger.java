@@ -185,8 +185,8 @@ public class WikiDictsMerger {
 
                 System.out.print("。。。【" + step + "。" + step2 + "。合并'" + task + "'文件：'" + lngOutFile + "'，'" + mainFile
                         + "'，语言：'" + task + "'】");
-                SortedDictFilesJoiner joiner = new SortedDictFilesJoiner(lng, WORK_DIR, SortedDictFilesJoiner.OUT_FILE, mainFile,
-                        lngOutFile);
+                SortedDictFilesJoiner joiner = new SortedDictFilesJoiner(lng, WORK_DIR, SortedDictFilesJoiner.OUT_FILE,
+                        mainFile, lngOutFile);
                 joiner.join();
                 new File(lngOutFile).delete();
                 new File(Helper.appendFileName(lngOutFile, SortedDictFilesJoiner.SUFFIX_SKIPPED)).delete();

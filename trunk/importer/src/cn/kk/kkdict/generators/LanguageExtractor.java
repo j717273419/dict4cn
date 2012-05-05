@@ -249,8 +249,8 @@ public class LanguageExtractor {
         System.out.println("合并后总共语言：" + wikiInfos.size());
     }
 
-    private static void generateInitialTranslationSourceJava(List<TranslationInfo> wikiInfos, List<TranslationInfo> wiktInfos,
-            String file) throws IOException {
+    private static void generateInitialTranslationSourceJava(List<TranslationInfo> wikiInfos,
+            List<TranslationInfo> wiktInfos, String file) throws IOException {
         System.out.println("创建TranslationSourceWiki.java文件'" + file + "' 。。。");
         StringBuilder sb = new StringBuilder(1024 * 32);
         sb.append("package cn.kk.kkdict.types;").append(Helper.SEP_NEWLINE);
@@ -276,7 +276,8 @@ public class LanguageExtractor {
         System.out.println("创建TranslationSourceWiki.java文件成功。");
     }
 
-    private static void generateInitialLanguageFamilyJava(List<TranslationInfo> rowInfos, String file) throws IOException {
+    private static void generateInitialLanguageFamilyJava(List<TranslationInfo> rowInfos, String file)
+            throws IOException {
         Set<String> families = new FormattedTreeSet<String>();
         for (TranslationInfo i : rowInfos) {
             String enumName = Helper.toConstantName(i.family);
@@ -348,8 +349,8 @@ public class LanguageExtractor {
         System.out.println("创建Language.java文件成功。");
     }
 
-    private static void generateInitialLanguageConstantsJava(List<TranslationInfo> rowInfos, List<TranslationInfo> wikiInfos,
-            List<TranslationInfo> wiktInfos, String file) throws IOException {
+    private static void generateInitialLanguageConstantsJava(List<TranslationInfo> rowInfos,
+            List<TranslationInfo> wikiInfos, List<TranslationInfo> wiktInfos, String file) throws IOException {
         Set<String> families = new FormattedTreeSet<String>();
         for (TranslationInfo i : rowInfos) {
             String enumName = Helper.toConstantName(i.family);
