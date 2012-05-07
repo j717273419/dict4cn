@@ -82,7 +82,7 @@ public class DictFilesExtractor {
             this.outDir = outDir;
             this.extractLng = extractLng;
             this.outFile = outDir + File.separator + outFileName;
-            this.lngBB = ByteBuffer.wrap(extractLng.key.getBytes(Helper.CHARSET_UTF8));
+            this.lngBB = ByteBuffer.wrap(extractLng.keyBytes);
             this.writeSkipped = writeSkipped;
         } else {
             this.inFiles = null;

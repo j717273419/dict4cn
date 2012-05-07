@@ -322,10 +322,9 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
             final String outPrefixSource, final String outPrefixAttributes) throws IOException {
         super.initialize(f, outDir, outPrefix, outPrefixCategories, outPrefixRelated, outPrefixAbstracts,
                 outPrefixRedirects, outPrefixImages, outPrefixCoordinates, outPrefixSource, outPrefixAttributes);
-        final String lngName = Helper.toConstantName(fileLng);
-        this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.valueOf(lngName));
+        this.languageNames = LanguageConstants.getLanguageNamesBytes(Language.fromKey(fileLng));
         categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_"
-                + lngName + ".txt"));
+                + fileLng + ".txt"));
     }
 
     @Override

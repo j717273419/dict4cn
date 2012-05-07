@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLDecoder;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -79,8 +80,8 @@ public class WiktionaryCategoryLanguageExtractor {
         // Set<String> allCategories =
         // parseAllCategories("C:\\Users\\x_kez\\AppData\\Local\\Temp\\kkdl5139596254287798107.tmp");
         System.out.println("共找到" + lngCategories.size() + "语言类。");
-        Map<Language, BufferedWriter> catWriters = new HashMap<Language, BufferedWriter>();
-        Map<Language, BufferedWriter> lngWriters = new HashMap<Language, BufferedWriter>();
+        Map<Language, BufferedWriter> catWriters = new EnumMap<Language, BufferedWriter>(Language.class);
+        Map<Language, BufferedWriter> lngWriters = new EnumMap<Language, BufferedWriter>(Language.class);
         Helper.DEBUG = false;
         for (Language l : RELEVANT_LANGUAGES) {
             catWriters.put(l, new BufferedWriter(new FileWriter(GENERATED_DIR + File.separator + "cat2lng_" + l.name()
@@ -204,7 +205,7 @@ public class WiktionaryCategoryLanguageExtractor {
 
     private static Language getWiktionaryUrlLanguage(String file) {
         // //en.
-        return Language.valueOf(Helper.toConstantName(Helper.substringBetween(file, "//", ".")));
+        return Language.fromKey(Helper.substringBetween(file, "//", "."));
     }
 
     private static void writeCategoryLanguages(String file, Language fileLng, BufferedWriter writer, Language catLng,
@@ -231,7 +232,7 @@ public class WiktionaryCategoryLanguageExtractor {
                 System.err.println("没找到类别语言：" + lng);
             } else {
                 try {
-                    return Language.valueOf(Helper.toConstantName(lngKey));
+                    return Language.fromKey(lngKey);
                 } catch (IllegalArgumentException e) {
                     String l = Helper.toConstantName(lngKey);
                     System.err

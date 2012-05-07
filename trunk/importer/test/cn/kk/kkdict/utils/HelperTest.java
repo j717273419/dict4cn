@@ -3,6 +3,9 @@ package cn.kk.kkdict.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Test;
 
 public class HelperTest {
@@ -54,4 +57,18 @@ public class HelperTest {
         assertTrue(Helper.findResource("simple2traditional.txt") != null);
         assertTrue(Helper.findResource("config.properties") != null);
     }
+    
+    @Test
+    public void testReadWriteStatusFile() {
+        try {
+            File file = File.createTempFile("testStatusFile", null);
+            file.delete();
+            System.out.println(file.getAbsolutePath());
+            assertEquals(0, Helper.readStatsFile(file.getAbsolutePath()));
+            Helper.writeStatsFile(file.getAbsolutePath(), 1234567);
+            assertEquals(1234567, Helper.readStatsFile(file.getAbsolutePath()));        
+        } catch (IOException e) {
+        };
+    }
+    
 }

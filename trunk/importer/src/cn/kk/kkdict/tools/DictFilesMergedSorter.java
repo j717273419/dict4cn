@@ -82,14 +82,14 @@ public class DictFilesMergedSorter extends WordFilesMergedSorter {
             boolean writeIrrelevant, String... inFiles) {
         super(outDir, outFile, skipIrrelevant, writeIrrelevant, inFiles);
         this.sortLng = sortLng;
-        this.lngBB = ByteBuffer.wrap(sortLng.key.getBytes(Helper.CHARSET_UTF8));
+        this.lngBB = ByteBuffer.wrap(sortLng.keyBytes);
     }
 
     public DictFilesMergedSorter(Language sortLng, String outDir, boolean skipIrrelevant, boolean writeIrrelevantFiles,
             String... inFiles) {
         super(outDir, OUTFILE, skipIrrelevant, writeIrrelevantFiles, inFiles);
         this.sortLng = sortLng;
-        this.lngBB = ByteBuffer.wrap(sortLng.key.getBytes(Helper.CHARSET_UTF8));
+        this.lngBB = ByteBuffer.wrap(sortLng.keyBytes);
     }
 
     @Override

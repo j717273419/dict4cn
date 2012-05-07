@@ -46,7 +46,9 @@ import cn.kk.kkdict.types.GeoLocation;
 import cn.kk.kkdict.types.ImageLocation;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.LanguageConstants;
+import cn.kk.kkdict.types.Redirect;
 import cn.kk.kkdict.types.TranslationSource;
+import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.DictHelper;
@@ -115,8 +117,6 @@ public class WikiExtractorBase {
             "west coord".getBytes(Helper.CHARSET_UTF8), "N".getBytes(Helper.CHARSET_UTF8),
             "W".getBytes(Helper.CHARSET_UTF8), "latitude".getBytes(Helper.CHARSET_UTF8),
             "longitude".getBytes(Helper.CHARSET_UTF8) };
-
-    private static final int MIN_ABSTRACT_CHARS = 250;
 
     private static final byte[] TAG_IMAGEMAP_NAME_BYTES = "imagemap".getBytes(Helper.CHARSET_UTF8);
 
@@ -220,8 +220,6 @@ public class WikiExtractorBase {
 
     private static final byte[] REDIRECT_LOWER_BYTES = "#redirect ".getBytes(Helper.CHARSET_UTF8);
 
-    private static final int MAX_ABSTRACT_CHARS = 500;
-
     protected static final boolean INFO = true;
 
     protected static final boolean DEBUG = false;
@@ -234,7 +232,7 @@ public class WikiExtractorBase {
 
     static final byte[] TAG_REDIRECT_BEGIN_BYTES = "<redirect title=\"".getBytes(Helper.CHARSET_UTF8);
 
-    static final byte[] KEY_ZH_BYTES = Language.ZH.key.getBytes(Helper.CHARSET_UTF8);
+    static final byte[] KEY_ZH_BYTES = Language.ZH.keyBytes;
 
     static final byte[] PREFIX_WIKI_TAG_BYTES = "[[".getBytes(Helper.CHARSET_UTF8);
 
@@ -351,6 +349,7 @@ public class WikiExtractorBase {
     protected BufferedOutputStream outRedirects;
     protected BufferedOutputStream outImageLocations;
     protected BufferedOutputStream outGeoLocations;
+    protected WordType wordType = null;
 
     protected ByteBuffer abstractBB = ArrayHelper.borrowByteBufferMedium();
 
@@ -377,17 +376,19 @@ public class WikiExtractorBase {
             } else {
                 lineLen = tmpBB.limit();
             }
-            tmpBB.limit(lineLen);
-            final byte[] relatedBytes;
-            if (chinese) {
-                ChineseHelper.toSimplifiedChinese(tmpBB);
-                relatedBytes = ArrayHelper.toBytes(tmpBB);
-            } else {
-                relatedBytes = ArrayHelper.toBytes(tmpBB);
-            }
-            relatedWords.add(relatedBytes);
-            if (DEBUG && TRACE) {
-                System.out.println("相关：" + ArrayHelper.toString(relatedBytes));
+            if (lineLen > 2) {
+                tmpBB.limit(lineLen);
+                final byte[] relatedBytes;
+                if (chinese) {
+                    ChineseHelper.toSimplifiedChinese(tmpBB);
+                    relatedBytes = ArrayHelper.toBytes(tmpBB);
+                } else {
+                    relatedBytes = ArrayHelper.toBytes(tmpBB);
+                }
+                relatedWords.add(relatedBytes);
+                if (DEBUG && TRACE) {
+                    System.out.println("相关：" + ArrayHelper.toString(relatedBytes));
+                }
             }
         }
     }
@@ -523,6 +524,7 @@ public class WikiExtractorBase {
         languages.clear();
         relatedWords.clear();
         parseAbstract = outAbstracts != null;
+        wordType = null;
         opened = 0;
         insideInfobox = false;
         if (parseAbstract) {
@@ -797,8 +799,8 @@ public class WikiExtractorBase {
                 } else {
                     abstractBB.clear();
                 }
-                stripWikiLineP(lineBB, abstractBB, MAX_ABSTRACT_CHARS);
-                if (abstractBB.limit() > MIN_ABSTRACT_CHARS) {
+                stripWikiLineP(lineBB, abstractBB, Abstract.MAX_ABSTRACT_CHARS);
+                if (abstractBB.limit() > Abstract.MIN_ABSTRACT_CHARS) {
                     parseAbstract = false;
                 }
             }
@@ -1372,7 +1374,7 @@ public class WikiExtractorBase {
         return true;
     }
 
-    private final boolean writeDef() throws IOException {
+    protected boolean writeDef() throws IOException {
         out.write(fileLngBytes);
         out.write(Helper.SEP_DEFINITION_BYTES);
         out.write(nameBB.array(), 0, nameBB.limit());
@@ -1393,15 +1395,13 @@ public class WikiExtractorBase {
         }
         out.write(Helper.SEP_NEWLINE_CHAR);
         return true;
-
     }
 
     private final boolean writeAttributes() throws IOException {
-        if (outAttributes != null && !categories.isEmpty()) {
+        if (outAttributes != null) {
             boolean first = true;
-            for (byte[] c : categories) {
-                byte[] cat = getMappedCategory(c);
-                if (cat != null) {
+            if (!categories.isEmpty()) {
+                for (byte[] c : categories) {
                     if (first) {
                         first = false;
                         outAttributes.write(fileLngBytes);
@@ -1410,7 +1410,7 @@ public class WikiExtractorBase {
                     }
                     outAttributes.write(Helper.SEP_ATTRS_BYTES);
                     outAttributes.write(Category.TYPE_ID_BYTES);
-                    outAttributes.write(cat);
+                    outAttributes.write(c);
                 }
             }
             if (!first) {
@@ -1421,11 +1421,6 @@ public class WikiExtractorBase {
         return false;
     }
 
-    private byte[] getMappedCategory(byte[] c) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     private final boolean writeSource() throws IOException {
         if (outSource != null) {
             outSource.write(fileLngBytes);
@@ -1433,8 +1428,13 @@ public class WikiExtractorBase {
             outSource.write(nameBB.array(), 0, nameBB.limit());
             outSource.write(Helper.SEP_ATTRS_BYTES);
             outSource.write(TranslationSource.TYPE_ID_BYTES);
-            outSource.write(translationSource.key.getBytes(Helper.CHARSET_UTF8));
+            outSource.write(translationSource.keyBytes);
             outSource.write(Helper.SEP_NEWLINE_CHAR);
+            if (wordType != null) {
+                outSource.write(Helper.SEP_ATTRS_BYTES);
+                outSource.write(WordType.TYPE_ID_BYTES);
+                outSource.write(wordType.keyBytes);
+            }
             return true;
         }
         return false;
@@ -1541,7 +1541,8 @@ public class WikiExtractorBase {
             outRedirects.write(fileLngBytes);
             outRedirects.write(Helper.SEP_DEFINITION_BYTES);
             outRedirects.write(nameBB.array(), 0, nameBB.limit());
-            outRedirects.write(Helper.SEP_WORDS_BYTES);
+            outRedirects.write(Helper.SEP_ATTRS_BYTES);
+            outRedirects.write(Redirect.TYPE_ID_BYTES);
             outRedirects.write(tmpArray, 0, tmpBB.limit());
             outRedirects.write(Helper.SEP_NEWLINE_CHAR);
             statRedirects++;

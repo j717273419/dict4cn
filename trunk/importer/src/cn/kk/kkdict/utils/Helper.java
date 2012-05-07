@@ -25,6 +25,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,9 @@ import java.io.RandomAccessFile;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,6 +47,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,6 +147,10 @@ public final class Helper {
     public static final byte[] BYTES_XML_TAG_STOP = { '&', 'g', 't', ';' };
 
     static {
+        System.setProperty("http.keepAlive", "true");
+        CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+        HttpURLConnection.setFollowRedirects(false);
+
         Arrays.sort(HTML_ENTITIES, new Comparator<String[]>() {
             @Override
             public int compare(String[] o1, String[] o2) {
@@ -239,21 +248,44 @@ public final class Helper {
         }
     }
 
+    private static final Map<String, String> DEFAULT_CONN_HEADERS = new HashMap<String, String>();
+
+    static {
+        resetConnectionHeaders();
+    }
+
     public final static InputStream openUrlInputStream(final String url) throws MalformedURLException, IOException {
         return openUrlInputStream(url, false, null);
     }
 
-    public final static InputStream openUrlInputStream(final String url, final boolean post, final String output)
+    public static final void resetConnectionHeaders() {
+        DEFAULT_CONN_HEADERS.clear();
+        DEFAULT_CONN_HEADERS.put("User-Agent",
+                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
+        DEFAULT_CONN_HEADERS.put("Cache-Control", "no-cache");
+        DEFAULT_CONN_HEADERS.put("Pragma", "no-cache");
+    }
+
+    public static final void putConnectionHeader(final String key, final String value) {
+        DEFAULT_CONN_HEADERS.put(key, value);
+    }
+
+    public static final InputStream openUrlInputStream(final String url, final boolean post, final String output)
+            throws IOException {
+        return getUrlConnection(url, post, output).getInputStream();
+    }
+
+    public final static HttpURLConnection getUrlConnection(final String url) throws MalformedURLException, IOException {
+        return getUrlConnection(url, false, null);
+    }
+
+    public final static HttpURLConnection getUrlConnection(final String url, final boolean post, final String output)
             throws MalformedURLException, IOException {
         URL urlObj = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
         if (post) {
             conn.setRequestMethod("POST");
         }
-        conn.addRequestProperty("User-Agent",
-                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1");
-        conn.addRequestProperty("Cache-Control", "no-cache");
-        conn.addRequestProperty("Pragma", "no-cache");
         final String referer;
         final int pathIdx;
         if ((pathIdx = url.lastIndexOf('/')) > "https://".length()) {
@@ -262,6 +294,13 @@ public final class Helper {
             referer = url;
         }
         conn.setRequestProperty("Referer", referer);
+        final Set<String> keys = DEFAULT_CONN_HEADERS.keySet();
+        for (String k : keys) {
+            final String value = DEFAULT_CONN_HEADERS.get(k);
+            if (value != null) {
+                conn.setRequestProperty(k, value);
+            }
+        }
         conn.setUseCaches(false);
         if (output != null) {
             conn.setDoOutput(true);
@@ -269,7 +308,7 @@ public final class Helper {
             out.write(output.getBytes(CHARSET_UTF8));
             out.close();
         }
-        return conn.getInputStream();
+        return conn;
     }
 
     public static ByteBuffer compressFile(String rawFile, int level) throws IOException {
@@ -711,8 +750,10 @@ public final class Helper {
             char c = line.charAt(i);
             if (c == '.' || c == ':' || c == '?' || c == ',' || c == '*' || c == '=' || c == '„' || c == '“'
                     || c == ')' || (c >= '0' && c <= '9') || c == '"' || c == ';' || c == '!' || c == '<' || c == '>') {
+                // [:\.\?;\*=\)0-9";!<>„“]
                 continue;
             } else if (c == ' ' || c == '\'' || c == '-' || c == '&' || c == 'ß') {
+                // [ '\-&ß]
                 sb.append('_');
             } else {
                 sb.append(c);
@@ -884,6 +925,16 @@ public final class Helper {
 
     private static final FileSystemView FILE_SYSTEM = FileSystemView.getFileSystemView();
 
+    public static final FileInputStream findResourceAsStream(final String resource) throws IllegalArgumentException,
+            IOException {
+        final File file = findResource(resource);
+        if (null != file) {
+            return new FileInputStream(file);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * <pre>
      * Find resource in possible directories:
@@ -949,7 +1000,7 @@ public final class Helper {
             URL resUrl = Helper.class.getResource("/" + resource);
             if (resUrl != null) {
                 try {
-                    resFile = File.createTempFile(resource, EMPTY_STRING);
+                    resFile = File.createTempFile(resource, null);
                     writeToFile(Helper.class.getResourceAsStream("/" + resource), resFile);
                 } catch (IOException e) {
                     System.err.println("从JAR导出'" + resource + "'时出错：" + e.toString());
@@ -1035,4 +1086,107 @@ public final class Helper {
     }
 
     private static final ByteBuffer IO_BB = ByteBuffer.wrap(new byte[BUFFER_SIZE]);
+
+    public static final long readStatsFile(final String file) {
+        try {
+            ByteBuffer bb = readBytes(file);
+            return Long.parseLong(ArrayHelper.toString(bb));
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    public static final void writeStatsFile(final String file, final long status) {
+        try {
+            writeBytes(String.valueOf(status).getBytes(Helper.CHARSET_UTF8), file);
+        } catch (Exception e) {
+            System.err.println("写出状态文件'" + file + "'时出错：" + e.toString());
+        }
+    }
+
+    public static final void appendCookies(final StringBuffer cookie, final HttpURLConnection conn) {
+        List<String> values = conn.getHeaderFields().get("Set-Cookie");
+        if (values != null) {
+            for (String v : values) {
+                if (v.indexOf("deleted") == -1) {
+                    if (cookie.length() > 0) {
+                        cookie.append("; ");
+                    }
+                    cookie.append(v.split(";")[0]);
+                }
+            }
+        }
+    }
+
+    public static String unescapeCode(String str) throws IOException {
+        StringBuffer sb = new StringBuffer(str.length());
+        int sz = str.length();
+        StringBuffer unicode = new StringBuffer(4);
+        boolean hadSlash = false;
+        boolean inUnicode = false;
+        for (int i = 0; i < sz; i++) {
+            char ch = str.charAt(i);
+            if (inUnicode) {
+                unicode.append(ch);
+                if (unicode.length() == 4) {
+                    try {
+                        int value = Integer.parseInt(unicode.toString(), 16);
+                        sb.append((char) value);
+                        unicode.setLength(0);
+                        inUnicode = false;
+                        hadSlash = false;
+                    } catch (NumberFormatException nfe) {
+                        // ignore
+                    }
+                }
+                continue;
+            }
+            if (hadSlash) {
+                hadSlash = false;
+                switch (ch) {
+                case '\\':
+                    sb.append('\\');
+                    break;
+                case '\'':
+                    sb.append('\'');
+                    break;
+                case '\"':
+                    sb.append('"');
+                    break;
+                case 'r':
+                    sb.append('\r');
+                    break;
+                case 'f':
+                    sb.append('\f');
+                    break;
+                case 't':
+                    sb.append('\t');
+                    break;
+                case 'n':
+                    sb.append('\n');
+                    break;
+                case 'b':
+                    sb.append('\b');
+                    break;
+                case 'u': {
+                    inUnicode = true;
+                    break;
+                }
+                default:
+                    sb.append(ch);
+                    break;
+                }
+                continue;
+            } else if (ch == '\\') {
+                hadSlash = true;
+                continue;
+            }
+            sb.append(ch);
+        }
+        if (hadSlash) {
+            sb.append('\\');
+        }
+        return sb.toString();
+    }
+
 }

@@ -20,6 +20,8 @@
  */
 package cn.kk.kkdict.types;
 
+import cn.kk.kkdict.utils.Helper;
+
 public enum WordType {
     NOUN("名", "名词"),
     VERB("动", "动词"),
@@ -46,11 +48,14 @@ public enum WordType {
     PLURAL("复", "复数"),
     REFLEXIVE("自", "反身动词"), ;
     public static final String TYPE_ID = "词";
+    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public final String key;
+    public final byte[] keyBytes;
     public final String name;
 
     WordType(String key, String name) {
         this.key = key;
         this.name = name;
+        this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
     }
 }
