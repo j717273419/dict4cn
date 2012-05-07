@@ -32,7 +32,7 @@ import cn.kk.kkdict.types.UriLocation;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
-public class TermWikiParser {
+public class BabLaParser {
     private static final boolean DEBUG = false;
     private String sessionCookie;
     private static final Map<Language, String[]> LNGS;
@@ -172,7 +172,7 @@ public class TermWikiParser {
         LNGS.put(Language.YO, new String[] { URL_TERMWIKI + "/Language:Yoruba_%28YO%29" });
     }
 
-    public TermWikiParser() {
+    public BabLaParser() {
     }
 
     /**
@@ -180,7 +180,7 @@ public class TermWikiParser {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        TermWikiParser parser = new TermWikiParser();
+        BabLaParser parser = new BabLaParser();
         if (parser.login("xinxinxin", "Ji0\"§SSFwez")) {
             parser.start();
         }

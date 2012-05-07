@@ -24,10 +24,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.WikiParseStep;
+import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
@@ -103,6 +106,7 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
                     // write old definition
                     writeDefinition();
                     handleContentTitle();
+                    wordType = WordType.NOUN;
                 }
             } else if (step == WikiParseStep.TITLE_FOUND) {
                 int idx;
@@ -156,4 +160,5 @@ public class WikiPagesMetaCurrentExtractor extends WikiExtractorBase {
         cleanup();
         return statOk;
     }
+
 }

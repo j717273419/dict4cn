@@ -5372,7 +5372,7 @@ public class EdictJaEnExtractor extends EdictZhDeExtractor {
         Bufo_japonicus(null, null),
         Chinese(null, null),
         Organisation(null, null),
-        biological(null, null),
+        biological(null, Category.TYPE_ID + Category.BIOLOGY.key),
         dance(null, null),
         fabric(null, null),
         family_of_languages(null, null),

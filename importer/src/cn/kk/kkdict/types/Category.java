@@ -21,7 +21,9 @@
 package cn.kk.kkdict.types;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.utils.Helper;
@@ -30,6 +32,8 @@ public enum Category {
     PEOPLE("人"), // 工作，职业，人际关系
     NAME("名"), // 地名， 山， 河， 桥， 路， 街 学校 单位, 品牌
     BIOLOGY("生"),
+    PLANTS("植"),
+    ANIMALS("兽"),
     GEOGRAPHY("地"), // 天文， 地理，地质，航海，天气
     COSMETICS("美"), // 美容， 化妆, 护肤, 穿着, 眼饰
     PHILOSOPHY("哲"),
@@ -75,30 +79,34 @@ public enum Category {
     GIFT("礼"); // 礼物，礼仪
     public static final String TYPE_ID = "类";
     public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
-    public static final String[] KEYS;
+    private static final Map<String, Category> KEYS_MAP;
     static {
         Category[] values = Category.values();
-        KEYS = new String[values.length];
-        int i = 0;
+        KEYS_MAP = new TreeMap<String, Category>();
         for (Category c : values) {
-            KEYS[i] = c.key;
-            i++;
+            KEYS_MAP.put(c.key, c);
         }
-        Arrays.sort(KEYS);
     }
+    public static final Category fromKey(final String key) {
+        return KEYS_MAP.get(key);
+    }
+    
     public final String key;
+    public final byte[] keyBytes;
 
     Category(String key) {
         this.key = key;
+        this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
     }
 
-    public static Set<String> parseValid(String[] split) {
+    public static final Set<String> parseValid(final String... split) {
         Set<String> result = new FormattedTreeSet<String>();
         for (String s : split) {
-            if (Arrays.binarySearch(KEYS, s) >= 0) {
+            if (KEYS_MAP.containsKey(s)) {
                 result.add(s);
             }
         }
         return result;
     }
+
 }

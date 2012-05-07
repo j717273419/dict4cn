@@ -34,7 +34,7 @@ import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.Helper;
 
 /**
- * Download:
+ * Download: http://www.mdbg.net/chindict/chindict.php?page=cc-cedict
  * 
  * @author x_kez
  * 
@@ -99,7 +99,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         area_in_Taiwan(null, Category.TYPE_ID + Category.NAME.key),
         as_a_horse(null, null),
         as_of_water(null, null),
-        bamboo(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        bamboo(null, Category.TYPE_ID + Category.PLANTS.key),
         bandits(null, Category.TYPE_ID + Category.LAW.key),
         bank(null, Category.TYPE_ID + Category.ECONOMY.key),
         be(null, null),
@@ -201,7 +201,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         family(null, Category.TYPE_ID + Category.PEOPLE.key),
         final_part(null, null),
         financial(null, Category.TYPE_ID + Category.ECONOMY.key),
-        fish(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        fish(null, Category.TYPE_ID + Category.ANIMALS.key),
         fraud_proof(null, null),
         from(null, null),
         fruit(null, Category.TYPE_ID + Category.CUISINE.key),
@@ -212,10 +212,10 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         geology(null, Category.TYPE_ID + Category.GEOGRAPHY.key),
         geom(null, null),
         geometry(null, Category.TYPE_ID + Category.MATHEMATICS.key),
-        grass(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        grass(null, Category.TYPE_ID + Category.PLANTS.key),
         hair(null, Category.TYPE_ID + Category.MEDICINE.key),
-        herb(null, Category.TYPE_ID + Category.BIOLOGY.key),
-        horse(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        herb(null, Category.TYPE_ID + Category.PLANTS.key),
+        horse(null, Category.TYPE_ID + Category.ANIMALS.key),
         ie(null, null),
         idiom(null, null),
         in(null, null),
@@ -338,7 +338,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         town_in_Kham_prov_of_Tibet(null, Category.TYPE_ID + Category.NAME.key),
         town_in_Taiwan(null, Category.TYPE_ID + Category.NAME.key),
         town_in_central_Tibet(null, Category.TYPE_ID + Category.NAME.key),
-        tree(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        tree(null, Category.TYPE_ID + Category.PLANTS.key),
         troops(null, null),
         tw(null, null),
         unit_of_currency(null, null),
@@ -375,7 +375,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         a_problem(null, null),
         affairs(null, null),
         ancient_measure(null, Category.TYPE_ID + Category.MATHEMATICS.key),
-        ape(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        ape(null, Category.TYPE_ID + Category.ANIMALS.key),
         army(null, Category.TYPE_ID + Category.MILITARY.key),
         around(null, null),
         basketball(null, Category.TYPE_ID + Category.SPORTS.key),
@@ -403,7 +403,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         feminine_name(null, Category.TYPE_ID + Category.PEOPLE.key),
         fencing(null, null),
         finance(null, Category.TYPE_ID + Category.ECONOMY.key),
-        flower(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        flower(null, Category.TYPE_ID + Category.PLANTS.key),
         formal(null, null),
         from_above(null, null),
         from_illness(null, null),
@@ -425,7 +425,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         meat(null, Category.TYPE_ID + Category.CUISINE.key),
         metal(null, Category.TYPE_ID + Category.CHEMISTRY.key),
         millet(null, null),
-        monkey(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        monkey(null, Category.TYPE_ID + Category.ANIMALS.key),
         mountain(null, Category.TYPE_ID + Category.NAME.key),
         musical_instrument(null, Category.TYPE_ID + Category.MUSIC.key),
         of_fish(null, Category.TYPE_ID + Category.CUISINE.key),
@@ -437,7 +437,7 @@ public class EdictZhEnExtractor extends EdictZhDeExtractor {
         painting(null, null),
         people(null, Category.TYPE_ID + Category.PEOPLE.key),
         philosophy(null, Category.TYPE_ID + Category.PHILOSOPHY.key),
-        plant(null, Category.TYPE_ID + Category.BIOLOGY.key),
+        plant(null, Category.TYPE_ID + Category.PLANTS.key),
         position(null, null),
         programming_language(null, Category.TYPE_ID + Category.SOFTWARE.key),
         pron(null, WordType.TYPE_ID + WordType.PRONOUN.key),

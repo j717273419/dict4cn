@@ -492,7 +492,7 @@ public final class DictHelper {
         }
         if (lngStr != null) {
             System.out.println("wiki语言：" + Helper.toConstantName(lngStr));
-            return Language.valueOf(Helper.toConstantName(lngStr));
+            return Language.fromKey(lngStr);
         }
         return null;
     }

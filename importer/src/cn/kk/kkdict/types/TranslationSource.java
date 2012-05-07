@@ -31,6 +31,7 @@ public enum TranslationSource {
     EDICT_ZH_EN("edict_ce"),
     EDICT_JA_EN("edict_je"),
     EDICT_ZH_DE("edict_hande"),
+    EDICT_ZH_FR("edict_cf"),
     LEO_DICT("leodict_www"),
     GOOGLE_TRANSLATION("googletrans_www"),
     BABYLON_DICT("babylon_bdict"),
@@ -497,8 +498,10 @@ public enum TranslationSource {
     public static final String TYPE_ID = "源";
     public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
     public final String key;
+    public final byte[] keyBytes;
 
     TranslationSource(String key) {
         this.key = key;
+        this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
     }
 }

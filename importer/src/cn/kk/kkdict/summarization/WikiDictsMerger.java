@@ -160,7 +160,7 @@ public class WikiDictsMerger {
         int step2 = 0;
         String[] filePaths = Helper.getFileNames(files);
         for (String task : tasks) {
-            Language lng = Language.valueOf(Helper.toConstantName(task));
+            Language lng = Language.fromKey(task);
             System.out.println("。。。【" + step + "。合并语言'" + task + "'】");
             System.out.println("。。。【" + step + "。" + (++step2) + "。导出所有含有'" + task + "'词组的数据 】");
             String lngOutFile = Helper.appendFileName(DictFilesExtractor.OUTFILE, "_lng");

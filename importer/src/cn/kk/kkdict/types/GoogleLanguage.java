@@ -1,5 +1,6 @@
 package cn.kk.kkdict.types;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +81,7 @@ public enum GoogleLanguage {
     }
 
     static {
-        LNG_MAPPING = new HashMap<Language, GoogleLanguage>();
+        LNG_MAPPING = new EnumMap<Language, GoogleLanguage>(Language.class);
         for (GoogleLanguage l : values()) {
             LNG_MAPPING.put(l.lng, l);
         }

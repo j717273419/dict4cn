@@ -20,7 +20,7 @@
  */
 package cn.kk.kkdict;
 
-import cn.kk.kkdict.extraction.dict.TermWikiExtractor;
+import cn.kk.kkdict.extraction.crawl.TermWikiCrawler;
 import cn.kk.kkdict.generators.TermWikiParser;
 import cn.kk.kkdict.utils.Helper;
 
@@ -35,7 +35,7 @@ public class ProduceTermWiki {
         long timeStarted = System.currentTimeMillis();
 
         runJob(TermWikiParser.class);
-        runJob(TermWikiExtractor.class);
+        runJob(TermWikiCrawler.class);
 
         System.out.println("\n\n======================================\n总共用时："
                 + Helper.formatDuration(System.currentTimeMillis() - timeStarted));

@@ -69,7 +69,7 @@ public class SortedDictFilesJoiner {
             } else {
                 this.outFile = outDir + File.separator + OUT_FILE;
             }
-            this.lngBB = ByteBuffer.wrap(mergeLng.key.getBytes(Helper.CHARSET_UTF8));
+            this.lngBB = ByteBuffer.wrap(mergeLng.keyBytes);
         } else {
             this.inFiles = null;
             this.inFileMain = null;
