@@ -466,7 +466,7 @@ public class TermWikiCrawler {
                                 if (DEBUG) {
                                     if (targetCat != null) {
                                         System.out.println("title: " + title + ", cat: " + targetCat.key);
-                                    } else {
+                                    } else if (!CAT_MAPPER.containsKey(category.toUpperCase())) {
                                         System.out.println("title: " + title + ", ?cat?: " + category);
                                     }
                                 }
