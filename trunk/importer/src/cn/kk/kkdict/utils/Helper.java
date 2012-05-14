@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -147,7 +148,7 @@ public final class Helper {
     public static final byte[] BYTES_XML_TAG_STOP = { '&', 'g', 't', ';' };
 
     static {
-        System.setProperty("http.keepAlive", "true");
+        System.setProperty("http.keepAlive", "false");
         CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         HttpURLConnection.setFollowRedirects(false);
 
@@ -1189,4 +1190,34 @@ public final class Helper {
         return sb.toString();
     }
 
+    public final static void traverseDirAction(final File directory, final FileFilter filter, final FileFilter action)
+            throws IOException {
+        if (directory.isDirectory()) {
+            final File[] childs = directory.listFiles();
+            boolean found = false;
+            for (File child : childs) {
+                if (child.isDirectory()) {
+                    traverseDirAction(child, filter, action);
+                } else if (!found && filter.accept(child)) {
+                    found = true;
+                }
+            }
+            if (found) {
+                action.accept(directory);
+            }
+        }
+    }
+
+    public final static void traverseFileAction(final File directory, final FileFilter action) throws IOException {
+        if (directory.isDirectory()) {
+            final File[] childs = directory.listFiles();
+            for (File child : childs) {
+                if (child.isDirectory()) {
+                    traverseFileAction(child, action);
+                } else {
+                    action.accept(child);
+                }
+            }
+        }
+    }
 }
