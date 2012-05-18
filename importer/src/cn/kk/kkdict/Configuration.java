@@ -64,7 +64,8 @@ public enum Configuration {
         WORD_SOGOU("sogou"),
         NULL(""),
         DICT_WIKIPEDIA_IMAGES("wikipedia.images"),
-        WORD_TERMWIKI("termwiki");
+        WORD_TERMWIKI("termwiki"),
+        WORD_BABLA("babla");
         public final String name;
         public final static Source[] DICTS;
         public final static Source[] WORDS;
