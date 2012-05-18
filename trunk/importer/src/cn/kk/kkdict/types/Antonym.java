@@ -20,13 +20,11 @@
  */
 package cn.kk.kkdict.types;
 
-public enum Gender {
-    MASCULINE("阳"), FEMININE("阴"), NEUTER("中"), PLURAL("复");
+import cn.kk.kkdict.utils.Helper;
 
-    public static final String TYPE_ID = "冠";
-    public final String key;
+public enum Antonym {
+    ;
 
-    private Gender(String key) {
-        this.key = key;
-    }
+    public static final String TYPE_ID = "反";
+    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
 }

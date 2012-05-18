@@ -728,7 +728,7 @@ public class EdictZhDeExtractor {
         schwarzer_Stein_im_chinesischen_Schach(null, Category.TYPE_ID + Category.SPORTS.key),
         schwedischer_Chemiker(null, Category.TYPE_ID + Category.CHEMISTRY.key),
         sein(null, null),
-        sich(null, WordType.TYPE_ID + WordType.REFLEXIVE.key),
+        sich(null, WordType.TYPE_ID + WordType.VERB_REFLEXIVE.key),
         stūpa(null, null),
         subjektiv_ohne_andere_Sichtweise_zu_berücksichtigen(null, null),
         väterlicherseits(null, Category.TYPE_ID + Category.PEOPLE.key),

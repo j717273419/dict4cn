@@ -39,6 +39,7 @@ public enum TranslationSource {
     STARDICT("stardict_ifo"),
     LINGOES_LD2("lingoes_ld2"),
     TERMWIKI("termwiki"),
+    BABLA("babla"),
 
     WIKI_AA("wiki_aa"),
     WIKI_AB("wiki_ab"),

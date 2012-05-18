@@ -29,6 +29,7 @@ public enum WordType {
     ADVERB("副", "副词"),
     PREPOSITION("介", "介词"),
     PRONOUN("代", "代词"),
+    PROPER_NOUN("专", "专用名词"),
     CONJUNCTION("连", "连词"),
     INTERJECTION("叹", "感叹词"),
     DETERMINER("定", "定词"),
@@ -39,23 +40,36 @@ public enum WordType {
     PREFIX("前", "前缀"),
     SUFFIX("后", "后缀"),
     ABBREVIATION("缩", "缩写"),
-    ANTONYM("反", "反义词"),
-    SYNONYM("近", "近义词"),
     PARTICLE("助", "助词"),
     SINGULAR("单", "单数"),
-    // TODO
-    PARTICIPE("分", "分词"),
+    PARTICIPLE("分", "分词"),
     PLURAL("复", "复数"),
-    REFLEXIVE("自", "反身动词"), ;
-    public static final String TYPE_ID = "词";
-    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
-    public final String key;
-    public final byte[] keyBytes;
-    public final String name;
+    VERB_REFLEXIVE("自", "反身动词"),    
+    CONTRACTION("缩","缩写词"),
+    VERB_TRANSITIVE("及", "及物动词"),
+    VERB_INTRANSITIVE("莫", "不及物动词"),
+    VERB_PAST_PARTICIPLE("过", "过去分词"),
+    VERB_GERUND("化","动名词"),
+    AD_COMPARATIVE("比", "比较级"),
+    AD_SUPERLATIVE("最", "最高级"),  	
+  	PROVERB("谚", "谚语"),
+  	IDIOM("习", "习惯用语"),
+  	COMPOUND_WORD("混", "复合词"),
+  	EXAMPLE("例", "例子"), ;
+    ;
+	public static final String	TYPE_ID				= "词";
 
-    WordType(String key, String name) {
-        this.key = key;
-        this.name = name;
-        this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
-    }
+	public static final byte[]	TYPE_ID_BYTES	= TYPE_ID.getBytes(Helper.CHARSET_UTF8);
+
+	public final String					key;
+
+	public final byte[]					keyBytes;
+
+	public final String					name;
+
+	WordType(String key, String name) {
+		this.key = key;
+		this.name = name;
+		this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
+	}
 }

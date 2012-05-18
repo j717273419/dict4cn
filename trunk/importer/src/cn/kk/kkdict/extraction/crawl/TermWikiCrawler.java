@@ -54,11 +54,20 @@ public class TermWikiCrawler {
         WORD_TYPES_MAP.put("adverb", WordType.ADVERB);
         WORD_TYPES_MAP.put("preposition", WordType.PREPOSITION);
         WORD_TYPES_MAP.put("conjunction", WordType.CONJUNCTION);
-        WORD_TYPES_MAP.put("proper noun", WordType.PRONOUN);
+        WORD_TYPES_MAP.put("proper noun", WordType.PROPER_NOUN);
+        // added
+        WORD_TYPES_MAP.put("pronoun", WordType.PRONOUN);
+        WORD_TYPES_MAP.put("interjection", WordType.INTERJECTION);
+    		WORD_TYPES_MAP.put("article", WordType.ARTICLE);
+    		WORD_TYPES_MAP.put("numeral", WordType.NUMERAL);
+    		WORD_TYPES_MAP.put("particle", WordType.PARTICLE);
+    		WORD_TYPES_MAP.put("contraction", WordType.CONTRACTION);    		
     }
 
     private static final Map<String, Category> CAT_MAPPER = new TreeMap<String, Category>();
-
+    public TermWikiCrawler() {
+    	new File(OUT_DIR_FINISHED).mkdirs();
+    }
     static {
         final File termwikiCategories = Helper.findResource("termwiki_categories.txt");
         System.out.println("导入类型文件：" + termwikiCategories.getAbsolutePath());
@@ -219,7 +228,7 @@ public class TermWikiCrawler {
             for (File f : files) {
                 final long start = System.currentTimeMillis();
                 final int skipLines = (int) Helper.readStatsFile(IN_STATUS);
-                System.out.print("分析'" + f + " ... ");
+                System.out.print("分析'" + f + " ["+skipLines+"] ... ");
                 final File outFile = new File(OUT_DIR, f.getName());
                 final File outFileDescription = new File(OUT_DIR,
                         Helper.appendFileName(f.getName(), SUFFIX_DESCRIPTION));
@@ -274,13 +283,13 @@ public class TermWikiCrawler {
     private int crawl(final File f, final BufferedOutputStream out, BufferedOutputStream outDesc,
             BufferedOutputStream outSyms, BufferedOutputStream outRels, BufferedOutputStream outRelsSeeAlso,
             int skipLines) throws IOException {
-        int count = 0;
         if (skipLines < 0) {
             skipLines = 0;
         }
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);
         ByteBuffer lineBB = ArrayHelper.borrowByteBufferSmall();
         DictByteBufferRow row = new DictByteBufferRow();
+        int count = skipLines;
         while (-1 != ArrayHelper.readLineTrimmed(in, lineBB)) {
             if (skipLines == 0) {
                 row.parseFrom(lineBB);
@@ -324,8 +333,7 @@ public class TermWikiCrawler {
                     }
                     // http: //
                     // en.termwiki.com/api.php?action=twsearch&search=additifs&namespace=FR&source=additives+%E2%82%83&limit=50
-                    count++;
-                    Helper.writeStatsFile(IN_STATUS, count);
+                    Helper.writeStatsFile(IN_STATUS, ++count);
                 }
             } else {
                 skipLines--;
