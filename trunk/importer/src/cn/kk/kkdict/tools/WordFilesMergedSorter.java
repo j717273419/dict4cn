@@ -23,6 +23,7 @@ package cn.kk.kkdict.tools;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -288,21 +289,11 @@ public class WordFilesMergedSorter {
         long totalSize = 0;
         for (String inFile : inFiles) {
             if (new File(inFile).isFile()) {
-                FileChannel fileChannel = new RandomAccessFile(inFile, "r").getChannel();
-                long size = fileChannel.size();
-                if (size > Integer.MAX_VALUE) {
-                    System.err.println("文件不能超过2GB：" + inFile);
-                    return;
+                long size = loadFile(i, inFile);
+                if (size != -1) {
+                    totalSize += size;
+                    i++;
                 }
-                ByteBuffer bb = ByteBuffer.allocate((int) size);
-                if (DEBUG) {
-                    System.out.println("导入文件'" + inFile + "'，文件大小：" + Helper.formatSpace(bb.limit()));
-                }
-                fileChannel.read(bb);
-                bb.rewind();
-                rawBytes[i++] = bb;
-                totalSize += size;
-                fileChannel.close();
             } else {
                 System.err.println("文件不存在（不可读）'" + inFile + "'");
             }
@@ -394,6 +385,24 @@ public class WordFilesMergedSorter {
         } else {
             System.err.println("排序失败。输入文件为空！");
         }
+    }
+
+    private long loadFile(int i, String inFile) throws FileNotFoundException, IOException {
+        FileChannel fileChannel = new RandomAccessFile(inFile, "r").getChannel();
+        long size = fileChannel.size();
+        if (size > Integer.MAX_VALUE) {
+            System.err.println("文件不能超过2GB：" + inFile);
+            return -1L;
+        }
+        ByteBuffer bb = ByteBuffer.allocate((int) size);
+        if (DEBUG) {
+            System.out.println("导入文件'" + inFile + "'，文件大小：" + Helper.formatSpace(bb.limit()));
+        }
+        fileChannel.read(bb);
+        bb.rewind();
+        fileChannel.close();
+        rawBytes[i] = bb;
+        return size;
     }
 
     private final void sort(final int x[], final int off, final int len) throws UnsupportedEncodingException {

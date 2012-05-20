@@ -18,21 +18,13 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
  *  THE SOFTWARE.  
  */
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+package cn.kk.kkdict.types;
 
-public class DatabaseTest {
-    // jdbc:hsqldb:file:C:/usr/db
-    public static void main(String[] a) throws Exception {
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:file:C:/usr/kkdictdb;IFEXISTS=TRUE,create=true",
-                "kkdict", "");
-        PreparedStatement ps2 = conn.prepareStatement("SHOW TABLES;");
-        // ResultSet rs = ps2.executeQuery();
+import cn.kk.kkdict.utils.Helper;
 
-        // add application code here
-        conn.close();
-    }
+public enum Example {
+    ;
+
+    public static final String TYPE_ID = "例";
+    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
 }

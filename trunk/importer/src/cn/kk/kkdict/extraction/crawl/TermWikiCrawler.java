@@ -58,16 +58,18 @@ public class TermWikiCrawler {
         // added
         WORD_TYPES_MAP.put("pronoun", WordType.PRONOUN);
         WORD_TYPES_MAP.put("interjection", WordType.INTERJECTION);
-    		WORD_TYPES_MAP.put("article", WordType.ARTICLE);
-    		WORD_TYPES_MAP.put("numeral", WordType.NUMERAL);
-    		WORD_TYPES_MAP.put("particle", WordType.PARTICLE);
-    		WORD_TYPES_MAP.put("contraction", WordType.CONTRACTION);    		
+        WORD_TYPES_MAP.put("article", WordType.ARTICLE);
+        WORD_TYPES_MAP.put("numeral", WordType.NUMERAL);
+        WORD_TYPES_MAP.put("particle", WordType.PARTICLE);
+        WORD_TYPES_MAP.put("contraction", WordType.CONTRACTION);
     }
 
     private static final Map<String, Category> CAT_MAPPER = new TreeMap<String, Category>();
+
     public TermWikiCrawler() {
-    	new File(OUT_DIR_FINISHED).mkdirs();
+        new File(OUT_DIR_FINISHED).mkdirs();
     }
+
     static {
         final File termwikiCategories = Helper.findResource("termwiki_categories.txt");
         System.out.println("导入类型文件：" + termwikiCategories.getAbsolutePath());
@@ -228,7 +230,7 @@ public class TermWikiCrawler {
             for (File f : files) {
                 final long start = System.currentTimeMillis();
                 final int skipLines = (int) Helper.readStatsFile(IN_STATUS);
-                System.out.print("分析'" + f + " ["+skipLines+"] ... ");
+                System.out.print("分析'" + f + " [" + skipLines + "] ... ");
                 final File outFile = new File(OUT_DIR, f.getName());
                 final File outFileDescription = new File(OUT_DIR,
                         Helper.appendFileName(f.getName(), SUFFIX_DESCRIPTION));
@@ -256,7 +258,8 @@ public class TermWikiCrawler {
                 HttpURLConnection conn = (HttpURLConnection) new URL(URL_TERMWIKI + "/Home").openConnection();
                 Helper.appendCookies(cookie, conn);
                 Helper.putConnectionHeader("Cookie", cookie.toString());
-
+                conn.disconnect();
+                
                 int counter = crawl(f, out, outDesc, outSyms, outRelsJson, outRelsSeeAlso, skipLines);
                 out.close();
                 outDesc.close();
@@ -333,7 +336,14 @@ public class TermWikiCrawler {
                     }
                     // http: //
                     // en.termwiki.com/api.php?action=twsearch&search=additifs&namespace=FR&source=additives+%E2%82%83&limit=50
-                    Helper.writeStatsFile(IN_STATUS, ++count);
+                    if (count > 0 && count % 100 == 0) {
+                        out.flush();
+                        outDesc.flush();
+                        outRels.flush();
+                        outRelsSeeAlso.flush();
+                        outSyms.flush();
+                        Helper.writeStatsFile(IN_STATUS, ++count);
+                    }
                 }
             } else {
                 skipLines--;
@@ -413,7 +423,7 @@ public class TermWikiCrawler {
                                     if (cat != null) {
                                         sb.append(Helper.SEP_ATTRIBUTE);
                                         sb.append(Category.TYPE_ID);
-                                        sb.append(cat.keyBytes);
+                                        sb.append(ArrayHelper.toString(cat.keyBytes));
                                     }
                                     if (wordType != null) {
                                         sb.append(Helper.SEP_ATTRIBUTE);
@@ -471,11 +481,14 @@ public class TermWikiCrawler {
                                 idx = t.indexOf("\",\"", catStart);
                                 final String category = Helper.unescapeCode(t.substring(catStart, idx));
                                 final Category targetCat = CAT_MAPPER.get(category.toUpperCase());
+                                final boolean containsCat = CAT_MAPPER.containsKey(category.toUpperCase());
                                 if (DEBUG) {
                                     if (targetCat != null) {
                                         System.out.println("title: " + title + ", cat: " + targetCat.key);
-                                    } else if (!CAT_MAPPER.containsKey(category.toUpperCase())) {
-                                        System.out.println("title: " + title + ", ?cat?: " + category);
+                                    } else {
+                                        if (!containsCat) {
+                                            System.out.println("title: " + title + ", ?cat?: " + category);
+                                        }
                                     }
                                 }
                                 if (first) {
@@ -530,7 +543,7 @@ public class TermWikiCrawler {
             case PARSE_DEFINITION:
             case PARSE_DEFINITION_FULL:
                 if ((idx = line.indexOf("</p>")) != -1) {
-                    appendDefinition(state, sb, line.substring(0, idx));
+                    state = appendDefinition(state, sb, line.substring(0, idx));
                     final String abstractText = sb.toString().trim().replaceAll("[\\t ]+", " ");
                     if (DEBUG) {
                         System.out.println("def: " + abstractText);
@@ -544,7 +557,7 @@ public class TermWikiCrawler {
                     outDesc.write(Helper.SEP_NEWLINE_BYTES);
                     state = State.PARSE;
                 } else {
-                    appendDefinition(state, sb, line);
+                    state = appendDefinition(state, sb, line);
                 }
                 break;
             case PARSE:
@@ -552,12 +565,12 @@ public class TermWikiCrawler {
                 // System.out.println(line);
                 if ((idx = line.indexOf(KEY_ABSTRACT_START)) != -1) {
                     state = State.PARSE_DEFINITION;
-                    appendDefinition(state, sb, line.substring(idx + KEY_ABSTRACT_START.length()));
+                    state = appendDefinition(state, sb, line.substring(idx + KEY_ABSTRACT_START.length()));
                 } else if ((idx = line.indexOf(">Part of Speech:<")) != -1) {
                     final String partOfSpeech = Helper.substringBetweenLast(line, "</span>", "<br");
                     if (Helper.isNotEmptyOrNull(partOfSpeech)) {
                         wordType = WORD_TYPES_MAP.get(partOfSpeech);
-                        if (wordType == null) {
+                        if (wordType == null && !WORD_TYPES_MAP.containsKey(partOfSpeech)) {
                             System.err.println("未知词类：" + partOfSpeech);
                         }
                     }
@@ -648,14 +661,15 @@ public class TermWikiCrawler {
         }
     }
 
-    private static void appendDefinition(State state, StringBuffer sb, String line) {
+    private static final State appendDefinition(final State state, final StringBuffer sb, final String line) {
         if (State.PARSE_DEFINITION == state) {
             if (sb.length() > Abstract.MAX_ABSTRACT_CHARS) {
                 sb.append(Helper.SEP_ETC);
-                state = State.PARSE_DEFINITION_FULL;
+                return State.PARSE_DEFINITION_FULL;
             } else {
                 sb.append(Helper.unescapeHtml(Helper.stripHtmlText(line, true)));
             }
         }
+        return state;
     }
 }
