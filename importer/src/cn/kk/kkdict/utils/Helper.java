@@ -1006,7 +1006,7 @@ public final class Helper {
                 } catch (IOException e) {
                     System.err.println("从JAR导出'" + resource + "'时出错：" + e.toString());
                 }
-                if (!resFile.isFile()) {
+                if (resFile != null && !resFile.isFile()) {
                     resFile = null;
                 }
             }
