@@ -47,6 +47,7 @@ import cn.kk.kkdict.utils.Helper;
 
 /**
  * 建立相关单词的双向连接。计算出现次数。
+ * 用作排序与分析。
  */
 public class WikiDictRelatedCorrector {
     public static final String IN_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKIPEDIA);
