@@ -1203,6 +1203,8 @@ public class WikiExtractorBase {
                     final int start = i + 1;
                     int stop;
                     int walls = 0;
+                    int relStart = -1;
+                    int relStop = -1;
                     for (stop = start; stop < limit; stop++) {
                         b = array[stop];
                         if (b == '|') {
@@ -1210,14 +1212,23 @@ public class WikiExtractorBase {
                             walls++;
                             if (walls == 1) {
                                 i = stop;
+                                if (relStop == -1) {
+                                	relStop = stop;
+                                }
                             }
                         } else if (b == ']') {
                             opened--;
+                            if (relStop == -1) {
+                            	relStop = stop;
+                            }
                         } else if (b == '[') {
                             opened++;
                             if (opened == 2 && stop == start + 1) {
                                 // move
                                 i = stop;
+                                if (relStart == -1) {
+                                    relStart = stop;
+                                }
                             }
                         } else if (link && b == ' ') {
                             // link title
@@ -1238,8 +1249,15 @@ public class WikiExtractorBase {
                         if (opened == 0) {
                             break;
                         }
-                    }
+                    }                    
                     if (opened == 0) {
+                    	  if (relStart != -1 && relStop != -1 && relStop > relStart && !link && writeValue && walls < 2) {
+                    	  	  final byte[] relatedBytes = ArrayHelper.toBytes(outBB, relStart, relStop - relStart);
+                    	  	  relatedWords.add(relatedBytes);
+                            if (DEBUG && TRACE) {
+                                System.out.println("相关：" + ArrayHelper.toString(relatedBytes));
+                            }                            
+                    	  }
                         if (!writeValue || link || walls > 1) {
                             i = stop;
                         }
