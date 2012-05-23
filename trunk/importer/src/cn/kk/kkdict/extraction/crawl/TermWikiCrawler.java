@@ -336,13 +336,14 @@ public class TermWikiCrawler {
                     }
                     // http: //
                     // en.termwiki.com/api.php?action=twsearch&search=additifs&namespace=FR&source=additives+%E2%82%83&limit=50
+                    count++;
                     if (count > 0 && count % 100 == 0) {
                         out.flush();
                         outDesc.flush();
                         outRels.flush();
                         outRelsSeeAlso.flush();
                         outSyms.flush();
-                        Helper.writeStatsFile(IN_STATUS, ++count);
+                        Helper.writeStatsFile(IN_STATUS, count);
                     }
                 }
             } else {
@@ -518,6 +519,9 @@ public class TermWikiCrawler {
                     break;
                 }
             }
+        } catch (Throwable t) {
+        	System.err.println("搜索相关词汇错误：" + t.toString());
+        	return false;
         } finally {
             Helper.close(reader);
         }
