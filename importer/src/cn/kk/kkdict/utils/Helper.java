@@ -284,6 +284,8 @@ public final class Helper {
             throws MalformedURLException, IOException {
         URL urlObj = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
+        conn.setConnectTimeout(15000);
+        conn.setReadTimeout(30000);
         if (post) {
             conn.setRequestMethod("POST");
         }
