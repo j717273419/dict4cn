@@ -1,5 +1,7 @@
 =General
 =Miscellaneous
+=other
+=Feminine
 =Other
 =Others
 AERIAL=Aerospace
