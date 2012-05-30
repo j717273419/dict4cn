@@ -80,8 +80,8 @@ import java.util.zip.InflaterInputStream;
  */
 public class LingoesLd2Reader {
     private static final SensitiveStringDecoder[] AVAIL_ENCODINGS = {
-            new SensitiveStringDecoder(Charset.forName("UTF-8")),
-            new SensitiveStringDecoder(Charset.forName("UTF-16LE")),
+    	      new SensitiveStringDecoder(Charset.forName("UTF-8")),
+            new SensitiveStringDecoder(Charset.forName("UTF-16LE")),            
             new SensitiveStringDecoder(Charset.forName("UTF-16BE")),
             new SensitiveStringDecoder(Charset.forName("EUC-JP")) };
 
@@ -145,8 +145,10 @@ public class LingoesLd2Reader {
         for (int j = 0; j < AVAIL_ENCODINGS.length; j++) {
             for (int k = 0; k < AVAIL_ENCODINGS.length; k++) {
                 try {
-                    readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
-                            AVAIL_ENCODINGS[k], idxData, defData, test);
+                        for (int i = 0; i < test; i++ ) {
+                        readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS[j],
+                                AVAIL_ENCODINGS[k], idxData, defData, i);
+                        }
                     System.out.println("词组编码：" + AVAIL_ENCODINGS[j].name);
                     System.out.println("XML编码：" + AVAIL_ENCODINGS[k].name);
                     return new SensitiveStringDecoder[] { AVAIL_ENCODINGS[j], AVAIL_ENCODINGS[k] };
