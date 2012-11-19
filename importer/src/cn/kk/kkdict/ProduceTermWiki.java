@@ -25,31 +25,29 @@ import cn.kk.kkdict.generators.TermWikiParser;
 import cn.kk.kkdict.utils.Helper;
 
 public class ProduceTermWiki {
-    public static final Object[] DEFAULT_ARGS = new Object[] { null };
+  public static final Object[] DEFAULT_ARGS = new Object[] { null };
 
-    /**
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        long timeStarted = System.currentTimeMillis();
+  /**
+   * @param args
+   * @throws Exception
+   */
+  public static void main(final String[] args) throws Exception {
+    final long timeStarted = System.currentTimeMillis();
 
-        runJob(TermWikiParser.class);
-        runJob(TermWikiCrawler.class);
+    ProduceTermWiki.runJob(TermWikiParser.class);
+    ProduceTermWiki.runJob(TermWikiCrawler.class);
 
-        System.out.println("\n\n======================================\n总共用时："
-                + Helper.formatDuration(System.currentTimeMillis() - timeStarted));
-        System.out.println("======================================\n");
-    }
+    System.out.println("\n\n======================================\n总共用时：" + Helper.formatDuration(System.currentTimeMillis() - timeStarted));
+    System.out.println("======================================\n");
+  }
 
-    private static void runJob(Class<?> mainClass) throws Exception {
-        long started = System.currentTimeMillis();
+  private static void runJob(final Class<?> mainClass) throws Exception {
+    final long started = System.currentTimeMillis();
 
-        System.out.println("Starting " + mainClass.getName() + " ...");
-        mainClass.getMethod("main", String[].class).invoke(mainClass, DEFAULT_ARGS);
+    System.out.println("Starting " + mainClass.getName() + " ...");
+    mainClass.getMethod("main", String[].class).invoke(mainClass, ProduceTermWiki.DEFAULT_ARGS);
 
-        System.out.println(mainClass.getName() + " finished in "
-                + Helper.formatDuration(System.currentTimeMillis() - started) + "\n\n");
-    }
+    System.out.println(mainClass.getName() + " finished in " + Helper.formatDuration(System.currentTimeMillis() - started) + "\n\n");
+  }
 
 }

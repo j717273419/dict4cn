@@ -23,48 +23,52 @@ package cn.kk.kkdict.beans;
 import java.util.Arrays;
 
 public class IntArray implements Comparable<IntArray> {
-    private int[] data;
+  private int[] data;
 
-    public IntArray() {
-    }
+  public IntArray() {
+  }
 
-    public IntArray(int[] data) {
-        this.data = data;
-    }
+  public IntArray(final int[] data) {
+    this.data = data;
+  }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Arrays.hashCode(data);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = (prime * result) + Arrays.hashCode(this.data);
+    return result;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        IntArray other = (IntArray) obj;
-        if (!Arrays.equals(data, other.data))
-            return false;
-        return true;
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
     }
+    if (obj == null) {
+      return false;
+    }
+    if (this.getClass() != obj.getClass()) {
+      return false;
+    }
+    final IntArray other = (IntArray) obj;
+    if (!Arrays.equals(this.data, other.data)) {
+      return false;
+    }
+    return true;
+  }
 
-    @Override
-    public int compareTo(IntArray o) {
-        return Arrays.hashCode(data) - Arrays.hashCode(o.data);
-    }
+  @Override
+  public int compareTo(final IntArray o) {
+    return Arrays.hashCode(this.data) - Arrays.hashCode(o.data);
+  }
 
-    public int[] getData() {
-        return data;
-    }
+  public int[] getData() {
+    return this.data;
+  }
 
-    public IntArray setData(int[] data) {
-        this.data = data;
-        return this;
-    }
+  public IntArray setData(final int[] data) {
+    this.data = data;
+    return this;
+  }
 }

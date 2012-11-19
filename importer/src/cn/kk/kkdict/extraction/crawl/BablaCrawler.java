@@ -32,27 +32,31 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.DictByteBufferRow;
-import cn.kk.kkdict.types.Abstract;
 import cn.kk.kkdict.types.Category;
+import cn.kk.kkdict.types.Example;
 import cn.kk.kkdict.types.Gender;
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.types.Related;
+import cn.kk.kkdict.types.Synonym;
 import cn.kk.kkdict.types.TranslationSource;
 import cn.kk.kkdict.types.UriLocation;
 import cn.kk.kkdict.types.Usage;
 import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ArrayHelper;
-import cn.kk.kkdict.utils.ChineseHelper;
-import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 /**
@@ -99,676 +103,552 @@ import cn.kk.kkdict.utils.Helper;
  * </pre>
  */
 public class BablaCrawler {
-	public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS
-			.getPath(Source.WORD_BABLA);
+  public static final String                 IN_DIR           = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BABLA);
 
-	public static final String IN_STATUS = Configuration.IMPORTER_FOLDER_SELECTED_WORDS
-			.getFile(Source.WORD_BABLA, "babla_extractor_status.txt");
+  public static final String                 IN_STATUS        = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_BABLA,
+                                                                  "babla_extractor_status.txt");
 
-	public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_CRAWLED
-			.getPath(Source.WORD_BABLA);
+  public static final String                 OUT_DIR          = Configuration.IMPORTER_FOLDER_EXTRACTED_CRAWLED.getPath(Source.WORD_BABLA);
 
-	public static final String OUT_DIR_FINISHED = OUT_DIR + "/finished";
+  public static final String                 OUT_DIR_FINISHED = BablaCrawler.OUT_DIR + "/finished";
 
-	private static final String URL = "http://en.bab.la/";
+  private static final String                URL              = "http://en.bab.la";
 
-	private static final boolean DEBUG = false;
+  private static final boolean               DEBUG            = false;
 
-	private static final Map<String, WordType> WORD_TYPES_MAP = new HashMap<String, WordType>();
+  private static final Map<String, WordType> WORD_TYPES_MAP   = new HashMap<>();
 
-	private static final Map<String, Gender> GENDER_MAP = new HashMap<String, Gender>();
+  private static final Map<String, Gender>   GENDER_MAP       = new HashMap<>();
 
-	private static final Map<String, Usage> USAGE_MAP = new HashMap<String, Usage>();
+  private static final Map<String, Usage>    USAGE_MAP        = new HashMap<>();
 
-	private static final String SUFFIX_EXAMPLES = "_examples";
+  private static final String                SUFFIX_EXAMPLES  = "_examples";
 
-	private static final String SUFFIX_RELATED = "_related";
-	static {
-		WORD_TYPES_MAP.put("noun", WordType.NOUN);
-		WORD_TYPES_MAP.put("verb", WordType.VERB);
-		WORD_TYPES_MAP.put("adjective", WordType.ADJECTIVE);
-		WORD_TYPES_MAP.put("adverb", WordType.ADVERB);
-		WORD_TYPES_MAP.put("preposition", WordType.PREPOSITION);
-		WORD_TYPES_MAP.put("conjunction", WordType.CONJUNCTION);
-		WORD_TYPES_MAP.put("pronoun", WordType.PRONOUN);
-		WORD_TYPES_MAP.put("interjection", WordType.INTERJECTION);
-		WORD_TYPES_MAP.put("article", WordType.ARTICLE);
-		WORD_TYPES_MAP.put("numeral", WordType.NUMERAL);
-		WORD_TYPES_MAP.put("particle", WordType.PARTICLE);
-		WORD_TYPES_MAP.put("contraction", WordType.CONTRACTION);
+  private static final String                SUFFIX_RELATED   = "_related";
 
-		WORD_TYPES_MAP.put("only singular", WordType.SINGULAR);
-		WORD_TYPES_MAP.put("plural", WordType.PLURAL);
-		WORD_TYPES_MAP.put("only plural", WordType.PLURAL);
-		WORD_TYPES_MAP.put("proper noun", WordType.PROPER_NOUN);
+  private static final String                SUFFIX_SYNONYM   = "_synonym";
 
-		WORD_TYPES_MAP.put("transitive verb", WordType.VERB_TRANSITIVE);
-		WORD_TYPES_MAP.put("intransitive verb", WordType.VERB_INTRANSITIVE);
-		WORD_TYPES_MAP.put("reflexive verb", WordType.VERB_REFLEXIVE);
-		WORD_TYPES_MAP.put("past participle", WordType.VERB_PAST_PARTICIPLE);
-		WORD_TYPES_MAP.put("gerund", WordType.VERB_GERUND);
+  static {
+    BablaCrawler.WORD_TYPES_MAP.put("noun", WordType.NOUN);
+    BablaCrawler.WORD_TYPES_MAP.put("verb", WordType.VERB);
+    BablaCrawler.WORD_TYPES_MAP.put("adjective", WordType.ADJECTIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("adverb", WordType.ADVERB);
+    BablaCrawler.WORD_TYPES_MAP.put("preposition", WordType.PREPOSITION);
+    BablaCrawler.WORD_TYPES_MAP.put("conjunction", WordType.CONJUNCTION);
+    BablaCrawler.WORD_TYPES_MAP.put("pronoun", WordType.PRONOUN);
+    BablaCrawler.WORD_TYPES_MAP.put("interjection", WordType.INTERJECTION);
+    BablaCrawler.WORD_TYPES_MAP.put("article", WordType.ARTICLE);
+    BablaCrawler.WORD_TYPES_MAP.put("numeral", WordType.NUMERAL);
+    BablaCrawler.WORD_TYPES_MAP.put("particle", WordType.PARTICLE);
+    BablaCrawler.WORD_TYPES_MAP.put("contraction", WordType.CONTRACTION);
 
-		WORD_TYPES_MAP.put("comparative", WordType.AD_COMPARATIVE);
-		WORD_TYPES_MAP.put("superlative", WordType.AD_SUPERLATIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("only singular", WordType.SINGULAR);
+    BablaCrawler.WORD_TYPES_MAP.put("plural", WordType.PLURAL);
+    BablaCrawler.WORD_TYPES_MAP.put("only plural", WordType.PLURAL);
+    BablaCrawler.WORD_TYPES_MAP.put("proper noun", WordType.PROPER_NOUN);
 
-		WORD_TYPES_MAP.put("abbreviation", WordType.ABBREVIATION);
-		WORD_TYPES_MAP.put("proverb", WordType.PROVERB);
-		WORD_TYPES_MAP.put("idiom", WordType.IDIOM);
-		WORD_TYPES_MAP.put("compound word", WordType.COMPOUND_WORD);
-		WORD_TYPES_MAP.put("example", WordType.EXAMPLE);
+    BablaCrawler.WORD_TYPES_MAP.put("transitive verb", WordType.VERB_TRANSITIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("intransitive verb", WordType.VERB_INTRANSITIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("reflexive verb", WordType.VERB_REFLEXIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("past participle", WordType.VERB_PAST_PARTICIPLE);
+    BablaCrawler.WORD_TYPES_MAP.put("gerund", WordType.VERB_GERUND);
 
-		GENDER_MAP.put("masculine", Gender.MASCULINE);
-		GENDER_MAP.put("feminine", Gender.FEMININE);
-		GENDER_MAP.put("neuter", Gender.NEUTER);
+    BablaCrawler.WORD_TYPES_MAP.put("comparative", WordType.AD_COMPARATIVE);
+    BablaCrawler.WORD_TYPES_MAP.put("superlative", WordType.AD_SUPERLATIVE);
 
-		USAGE_MAP.put("archaic", Usage.OBSOLETE);
-		USAGE_MAP.put("children's language", Usage.CHILDRENS);
-		USAGE_MAP.put("colloquial", Usage.COLLOQUIAL);
-		USAGE_MAP.put("dialect", Usage.DIALECT);
-		USAGE_MAP.put("diminutive", Usage.DIMINUTIVE);
-		USAGE_MAP.put("elevated", Usage.ELEVATED);
-		USAGE_MAP.put("familiar", Usage.FAMILIAR);
-		USAGE_MAP.put("figurative", Usage.FIGURATIVE);
-		USAGE_MAP.put("formal", Usage.FORMAL);
-		USAGE_MAP.put("humble", Usage.HUMBLE);
-		USAGE_MAP.put("humorous", Usage.HUMOROUS);
-		USAGE_MAP.put("ironical", Usage.METAPHORICAL);
-		USAGE_MAP.put("literal", Usage.FORMAL);
-		USAGE_MAP.put("obsolete", Usage.OBSOLETE);
-		USAGE_MAP.put("old spelling", Usage.OBSOLETE);
-		USAGE_MAP.put("old-fashioned", Usage.OBSOLETE);
-		USAGE_MAP.put("pejorative", Usage.PEJORATIVE);
-		USAGE_MAP.put("poetic", Usage.POETIC);
-		USAGE_MAP.put("polite", Usage.POLITE);
-		USAGE_MAP.put("rare", Usage.RARE);
-		USAGE_MAP.put("respectful", Usage.RESPECTFUL);
-		USAGE_MAP.put("slang", Usage.SLANG);
-		USAGE_MAP.put("taboo", Usage.TABOO);
-		USAGE_MAP.put("vulgar", Usage.VULGAR);
-	}
+    BablaCrawler.WORD_TYPES_MAP.put("abbreviation", WordType.ABBREVIATION);
+    BablaCrawler.WORD_TYPES_MAP.put("proverb", WordType.PROVERB);
+    BablaCrawler.WORD_TYPES_MAP.put("idiom", WordType.IDIOM);
+    BablaCrawler.WORD_TYPES_MAP.put("compound word", WordType.COMPOUND_WORD);
+    BablaCrawler.WORD_TYPES_MAP.put("example", WordType.EXAMPLE);
 
-	private static final Map<String, Category> CAT_MAPPER = new TreeMap<String, Category>();
+    BablaCrawler.GENDER_MAP.put("masculine", Gender.MASCULINE);
+    BablaCrawler.GENDER_MAP.put("feminine", Gender.FEMININE);
+    BablaCrawler.GENDER_MAP.put("neuter", Gender.NEUTER);
 
-	static {
-		final File termwikiCategories = Helper
-				.findResource("babla_categories.txt");
-		System.out.println("导入类型文件：" + termwikiCategories.getAbsolutePath());
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(
-					termwikiCategories));
-			String line;
-			while (null != (line = safeReadLine(reader))) {
-				String[] parts = line.split("=");
-				if (parts.length == 2) {
-					if (Helper.isNotEmptyOrNull(parts[0])
-							&& Helper.isNotEmptyOrNull(parts[1])) {
-						if (DEBUG) {
-							System.out.println("类：" + parts[1] + " -> "
-									+ Category.valueOf(parts[0]).key);
-						}
-						CAT_MAPPER.put(parts[1].toUpperCase(),
-								Category.valueOf(parts[0]));
-					} else {
-						if (DEBUG) {
-							System.out.println("类：" + parts[1] + " -> null");
-						}
-						CAT_MAPPER.put(parts[1].toUpperCase(), null);
-					}
-				}
-			}
-			reader.close();
-		} catch (Exception e) {
-			System.err.println("导入错误：" + e.toString());
-		}
-	}
+    BablaCrawler.USAGE_MAP.put("archaic", Usage.OBSOLETE);
+    BablaCrawler.USAGE_MAP.put("children's language", Usage.CHILDRENS);
+    BablaCrawler.USAGE_MAP.put("colloquial", Usage.COLLOQUIAL);
+    BablaCrawler.USAGE_MAP.put("dialect", Usage.DIALECT);
+    BablaCrawler.USAGE_MAP.put("diminutive", Usage.DIMINUTIVE);
+    BablaCrawler.USAGE_MAP.put("elevated", Usage.ELEVATED);
+    BablaCrawler.USAGE_MAP.put("familiar", Usage.FAMILIAR);
+    BablaCrawler.USAGE_MAP.put("figurative", Usage.FIGURATIVE);
+    BablaCrawler.USAGE_MAP.put("formal", Usage.FORMAL);
+    BablaCrawler.USAGE_MAP.put("humble", Usage.HUMBLE);
+    BablaCrawler.USAGE_MAP.put("humorous", Usage.HUMOROUS);
+    BablaCrawler.USAGE_MAP.put("ironical", Usage.METAPHORICAL);
+    BablaCrawler.USAGE_MAP.put("literal", Usage.FORMAL);
+    BablaCrawler.USAGE_MAP.put("obsolete", Usage.OBSOLETE);
+    BablaCrawler.USAGE_MAP.put("old spelling", Usage.OBSOLETE);
+    BablaCrawler.USAGE_MAP.put("old-fashioned", Usage.OBSOLETE);
+    BablaCrawler.USAGE_MAP.put("pejorative", Usage.PEJORATIVE);
+    BablaCrawler.USAGE_MAP.put("poetic", Usage.POETIC);
+    BablaCrawler.USAGE_MAP.put("polite", Usage.POLITE);
+    BablaCrawler.USAGE_MAP.put("rare", Usage.RARE);
+    BablaCrawler.USAGE_MAP.put("respectful", Usage.RESPECTFUL);
+    BablaCrawler.USAGE_MAP.put("slang", Usage.SLANG);
+    BablaCrawler.USAGE_MAP.put("taboo", Usage.TABOO);
+    BablaCrawler.USAGE_MAP.put("vulgar", Usage.VULGAR);
+  }
 
-	private WordType wordType = null;
+  private static final Map<String, Category> CAT_MAPPER       = new TreeMap<>();
 
-	public BablaCrawler() {
-		new File(OUT_DIR_FINISHED).mkdirs();
-	}
+  static {
+    final File bablaCategories = Helper.findResource("babla_categories.txt");
+    System.out.print("导入类型文件：" + bablaCategories.getAbsolutePath() + " ... ");
+    int counter = 0;
+    try (final BufferedReader reader = new BufferedReader(new FileReader(bablaCategories));) {
+      String line;
+      while (null != (line = BablaCrawler.safeReadLine(reader))) {
+        final String[] parts = line.split("=");
+        if (parts.length == 2) {
+          if (Helper.isNotEmptyOrNull(parts[0]) && Helper.isNotEmptyOrNull(parts[1])) {
+            if (BablaCrawler.DEBUG) {
+              System.out.println("类：" + parts[1] + " -> " + Category.valueOf(parts[0]).key);
+            }
+            BablaCrawler.CAT_MAPPER.put(parts[1], Category.valueOf(parts[0]));
+            counter++;
+          } else {
+            if (BablaCrawler.DEBUG) {
+              System.out.println("类：" + parts[1] + " -> null");
+            }
+            BablaCrawler.CAT_MAPPER.put(parts[1], null);
+          }
+        }
+      }
+      System.out.println(counter);
+    } catch (final Exception e) {
+      System.err.println("导入错误：" + e.toString());
+    }
+  }
 
-	public static void main(String[] args) throws IOException {
-		BablaCrawler extractor = new BablaCrawler();
-		extractor.extract();
-	}
+  public BablaCrawler() {
+    new File(BablaCrawler.OUT_DIR_FINISHED).mkdirs();
+  }
 
-	public void extract() throws IOException {
-		File directory = new File(IN_DIR);
-		if (directory.isDirectory()) {
-			System.out.print("搜索babla词组文件'" + IN_DIR + "' ... ");
+  public static void main(final String[] args) throws IOException {
+    final BablaCrawler extractor = new BablaCrawler();
+    BablaCrawler.extract();
+  }
 
-			File[] files = directory.listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.endsWith("." + TranslationSource.BABLA.key)
-							&& name.startsWith("words_");
-				}
-			});
-			System.out.println(files.length);
+  public static void extract() throws IOException {
+    final File directory = new File(BablaCrawler.IN_DIR);
+    if (directory.isDirectory()) {
+      System.out.print("搜索babla词组文件'" + BablaCrawler.IN_DIR + "' ... ");
 
-			long total = 0;
-			for (File f : files) {
-				final long start = System.currentTimeMillis();
-				final int skipLines = (int) Helper.readStatsFile(IN_STATUS);
-				System.out.print("分析'" + f + " [" + skipLines + "] ... ");
-				final File outFile = new File(OUT_DIR, f.getName());
-				final File outFileExamples = new File(OUT_DIR,
-						Helper.appendFileName(f.getName(), SUFFIX_EXAMPLES));
-				final File outFileSynonyms = new File(OUT_DIR,
-						Helper.appendFileName(f.getName(), SUFFIX_RELATED));
-				if (DEBUG) {
-					System.out.println("写出：" + outFile + "（同义词： "
-							+ outFileSynonyms + "，相关词：" + outFileExamples
-							+ "） 。。。");
-				}
-				BufferedOutputStream out = new BufferedOutputStream(
-						new FileOutputStream(outFile, skipLines > 0),
-						Helper.BUFFER_SIZE);
-				BufferedOutputStream outSyms = new BufferedOutputStream(
-						new FileOutputStream(outFileSynonyms, skipLines > 0),
-						Helper.BUFFER_SIZE);
-				BufferedOutputStream outExamples = new BufferedOutputStream(
-						new FileOutputStream(outFileExamples, skipLines > 0),
-						Helper.BUFFER_SIZE);
+      final File[] files = directory.listFiles(new FilenameFilter() {
+        @Override
+        public boolean accept(final File dir, final String name) {
+          return name.endsWith("." + TranslationSource.BABLA.key) && name.startsWith("words_");
+        }
+      });
+      System.out.println(files.length);
 
+      long total = 0;
+      for (final File f : files) {
+        final long start = System.currentTimeMillis();
+        final int skipLines = (int) Helper.readStatsFile(BablaCrawler.IN_STATUS);
+        System.out.print("分析'" + f + " [" + skipLines + "] ... ");
+        final File outFile = new File(BablaCrawler.OUT_DIR, f.getName());
+        final File outFileExamples = new File(BablaCrawler.OUT_DIR, Helper.appendFileName(f.getName(), BablaCrawler.SUFFIX_EXAMPLES));
+        final File outFileRelated = new File(BablaCrawler.OUT_DIR, Helper.appendFileName(f.getName(), BablaCrawler.SUFFIX_RELATED));
+        final File outFileSynonyms = new File(BablaCrawler.OUT_DIR, Helper.appendFileName(f.getName(), BablaCrawler.SUFFIX_SYNONYM));
+        if (BablaCrawler.DEBUG) {
+          System.out.println("写出：" + outFile + "（同义词： " + outFileRelated + "，相关词：" + outFileExamples + "） 。。。");
+        }
+        int counter = 0;
+        try (final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile, skipLines > 0), Helper.BUFFER_SIZE);
+            final BufferedOutputStream outRelated = new BufferedOutputStream(new FileOutputStream(outFileRelated, skipLines > 0), Helper.BUFFER_SIZE);
+            final BufferedOutputStream outSynonyms = new BufferedOutputStream(new FileOutputStream(outFileSynonyms, skipLines > 0), Helper.BUFFER_SIZE);
+            final BufferedOutputStream outExamples = new BufferedOutputStream(new FileOutputStream(outFileExamples, skipLines > 0), Helper.BUFFER_SIZE);) {
 
-                int retries = 0;
-                boolean success = false;
-                int counter = 0;
-                while (retries++ < 5 && !success) {
-                    try {
-                        counter = crawl(f, out, outDesc, outSyms, outRelsJson, outRelsSeeAlso, skipLines);
-                        success = true;
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                        try {
-                            Thread.sleep(10 * 1000);
-                        } catch (InterruptedException e1) {
-                            // ignore
-                        }
-                    }
+          int retries = 0;
+          boolean success = false;
+          while ((retries++ < 5) && !success) {
+            try {
+              counter = BablaCrawler.crawl(f, out, outRelated, outExamples, outSynonyms, skipLines);
+              success = true;
+            } catch (final Throwable e) {
+              e.printStackTrace();
+              try {
+                Thread.sleep(10 * 1000);
+              } catch (final InterruptedException e1) {
+                // ignore
+              }
+            }
+          }
+
+        }
+        System.out.println(counter + "，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
+        total += counter;
+        f.renameTo(new File(BablaCrawler.OUT_DIR_FINISHED, f.getName()));
+        Helper.writeStatsFile(BablaCrawler.IN_STATUS, 0L);
+      }
+
+      System.out.println("\n=====================================");
+      System.out.println("成功读取了" + files.length + "个termwiki文件");
+      System.out.println("总共单词：" + total);
+      System.out.println("=====================================");
+    }
+  }
+
+  private static enum State {
+    PARSE,
+    PARSE_EXAMPLE,
+    PARSE_DEFINITION,
+    PARSE_SYNONYM
+  }
+
+  private static int crawl(final File f, final BufferedOutputStream out, final BufferedOutputStream outRels, final BufferedOutputStream outExamples,
+      BufferedOutputStream outSynonyms, final int skipLines) throws IOException {
+    int toSkip = skipLines;
+    if (toSkip < 0) {
+      toSkip = 0;
+    }
+    int count = toSkip;
+    final String[] lngs = f.getName().substring("words_".length(), f.getName().length() - ".babla".length()).split("_");
+    final Language srcLng = Language.fromKey(lngs[0]);
+    final Language tgtLng = Language.fromKey(lngs[1]);
+    try (final BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);) {
+      final ByteBuffer lineBB = ArrayHelper.borrowByteBufferSmall();
+      final DictByteBufferRow row = new DictByteBufferRow();
+      while (-1 != ArrayHelper.readLineTrimmed(in, lineBB)) {
+        if (toSkip == 0) {
+          row.parseFrom(lineBB);
+          if (row.size() == 1) {
+            // final Language srcLng = Language.fromKey(ArrayHelper.toStringP(row.getLanguage(0)));
+            // final Language tgtLng = Language.fromKey(ArrayHelper.toStringP(row.getLanguage(1)));
+            final String name = ArrayHelper.toStringP(row.getValue(0, 0));
+            final byte[] nameBytes = ArrayHelper.toBytesP(row.getValue(0, 0));
+            String path = ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, UriLocation.TYPE_ID_BYTES));
+            final int sep = path.lastIndexOf('/');
+            path = path.substring(0, sep + 1) + URLEncoder.encode(path.substring(sep + 1), Helper.CHARSET_UTF8.name());
+            final Category cat = Category.fromKey(ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, Category.TYPE_ID_BYTES)));
+            if (BablaCrawler.DEBUG) {
+              System.out.println("语言：" + srcLng.key + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
+            }
+
+            // this.parseMainHtml(out, outExamples, outSyms, srcLng, tgtLng, nameBytes, path);
+
+            int retries = 0;
+            boolean success = false;
+            while ((retries++ < 5) && !success) {
+              try {
+                BablaCrawler.parseMainHtml(out, outExamples, outRels, outSynonyms, srcLng, tgtLng, nameBytes, path);
+                success = true;
+              } catch (Exception e) {
+                if (retries > 3) {
+                  e.printStackTrace();
                 }
-                
-				out.close();
-				outSyms.close();
-				outExamples.close();
-				System.out.println(counter
-						+ "，用时："
-						+ Helper.formatDuration(System.currentTimeMillis()
-								- start));
-				total += counter;
-				f.renameTo(new File(OUT_DIR_FINISHED, f.getName()));
-				Helper.writeStatsFile(IN_STATUS, 0L);
-			}
+                System.err.println("错误：" + e.toString());
+                try {
+                  TimeUnit.SECONDS.sleep(10);
+                } catch (InterruptedException e1) {
+                  // silent
+                }
+              }
+            }
+            count++;
+            if ((count > 0) && ((count % 100) == 0)) {
+              out.flush();
+              outExamples.flush();
+              outSynonyms.flush();
+              outRels.flush();
+              Helper.writeStatsFile(BablaCrawler.IN_STATUS, count);
+            }
+          }
+        } else {
+          toSkip--;
+        }
+      }
+      ArrayHelper.giveBack(lineBB);
+    }
+    return count;
+  }
 
-			System.out.println("\n=====================================");
-			System.out.println("成功读取了" + files.length + "个termwiki文件");
-			System.out.println("总共单词：" + total);
-			System.out.println("=====================================");
-		}
-	}
+  // private Map<String, String> parseMainHtml(final BufferedOutputStream out, BufferedOutputStream outExamples, BufferedOutputStream outSyms, final Language
+  // lng,
+  // Language tgtLng, final byte[] nameBytes, final String path) throws MalformedURLException, IOException {
+  //
+  // String urlPath = BablaCrawler.URL + path;
+  // try (final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("d:\\temp\\苹果.htm"), Helper.CHARSET_UTF8));) {
+  // return this.parseMainHtml(reader, out, outExamples, outSyms, lng, tgtLng, nameBytes);
+  // }
+  // }
 
-	private static enum State {
-		PARSE, PARSE_DEFINITION, PARSE_DEFINITION_FULL
-	}
+  private static Map<String, String> parseMainHtml(final BufferedOutputStream out, BufferedOutputStream outExamples, BufferedOutputStream outRels,
+      BufferedOutputStream outSynonyms, final Language lng, Language tgtLng, final byte[] nameBytes, final String path) throws MalformedURLException,
+      IOException {
+    Helper.putConnectionHeader("X-Requested-With", null);
+    Helper.putConnectionHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    Helper.putConnectionHeader("Content-Type", null);
+    // HttpURLConnection.setFollowRedirects(true);
 
-	private int crawl(final File f, final BufferedOutputStream out,
-			BufferedOutputStream outSyms, BufferedOutputStream outExamples,
-			int skipLines) throws IOException {
-		if (skipLines < 0) {
-			skipLines = 0;
-		}
-		final String[] lngs = f
-				.getName()
-				.substring("words_".length(),
-						f.getName().length() - ".babla".length()).split("_");
-		final BufferedInputStream in = new BufferedInputStream(
-				new FileInputStream(f), Helper.BUFFER_SIZE);
-		ByteBuffer lineBB = ArrayHelper.borrowByteBufferSmall();
-		DictByteBufferRow row = new DictByteBufferRow();
-		int count = skipLines;
-		while (-1 != ArrayHelper.readLineTrimmed(in, lineBB)) {
-			if (skipLines == 0) {
-				row.parseFrom(lineBB);
-				if (row.size() == 1) {
-					final Language srcLng = Language.fromKey(ArrayHelper
-							.toStringP(row.getLanguage(0)));
-					final String name = ArrayHelper.toStringP(row
-							.getValue(0, 0));
-					final byte[] nameBytes = ArrayHelper.toBytesP(row.getValue(
-							0, 0));
-					String path = ArrayHelper.toStringP(row
-							.getFirstAttributeValue(0, 0,
-									UriLocation.TYPE_ID_BYTES));
-					path = "/"
-							+ URLEncoder.encode(path.substring(1),
-									Helper.CHARSET_UTF8.name());
-					final Category cat = Category.fromKey(ArrayHelper
-							.toStringP(row.getFirstAttributeValue(0, 0,
-									Category.TYPE_ID_BYTES)));
-					if (DEBUG) {
-						System.out.println("语言："
-								+ srcLng.key
-								+ "，单词："
-								+ name
-								+ "，地址："
-								+ path
-								+ (cat != null ? "，类别：" + cat.key
-										: Helper.EMPTY_STRING));
-					}
-					clear();
-					final Map<String, String> params = parseMainHtml(outSyms,
-							srcLng, nameBytes, path);
+    String urlPath = BablaCrawler.URL + path;
+    final HttpURLConnection conn = Helper.getUrlConnection(urlPath);
+    // System.out.println("Connecting to: " + urlPath);
+    conn.connect();
+    try (final BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), Helper.CHARSET_UTF8));) {
+      return BablaCrawler.parseMainHtml(reader, out, outExamples, outRels, outSynonyms, lng, tgtLng, nameBytes);
+    } finally {
+      conn.disconnect();
+    }
+  }
 
-					// System.out.println(params.get("st_term"));
-					// System.out.println(params.get("wgCanonicalNamespace"));
-					// System.out.println(params.get("wgTitle"));
+  private static Map<String, String> parseMainHtml(BufferedReader reader, BufferedOutputStream out, BufferedOutputStream outExamples,
+      BufferedOutputStream outRelated, BufferedOutputStream outSynonyms, Language lng, Language tgtLng, byte[] nameBytes) throws IOException {
+    final Map<String, String> params = new HashMap<>();
 
-					final String term = URLEncoder.encode(
-							params.get("st_term"), Helper.CHARSET_UTF8.name());
-					final String ns = URLEncoder.encode(
-							params.get("wgCanonicalNamespace"),
-							Helper.CHARSET_UTF8.name());
-					final String src = URLEncoder.encode(params.get("wgTitle"),
-							Helper.CHARSET_UTF8.name());
-					boolean success = false;
-					int retries = 0;
-					while (!success && retries++ < 3) {
-						success = parseRelatedJson(URL
-								+ "/api.php?action=twsearch&search=" + term
-								+ "&namespace=" + ns + "&source=" + src
-								+ "&limit=50", outExamples, srcLng, name,
-								nameBytes, cat);
-					}
+    String line;
+    State state = State.PARSE;
+    final StringBuffer sb = new StringBuffer();
 
-					final String pageName = URLEncoder.encode(
-							params.get("wgPageName"),
-							Helper.CHARSET_UTF8.name());
-					success = false;
-					retries = 0;
-					while (!success && retries++ < 3) {
-						success = parseLanguagesAjax(URL
-								+ "/index.php/Special:LanguageBarAjax",
-								pageName, out, srcLng, name, nameBytes, cat);
-					}
-					// http: //
-					// en.termwiki.com/api.php?action=twsearch&search=additifs&namespace=FR&source=additives+%E2%82%83&limit=50
-					count++;
-					if (count > 0 && count % 100 == 0) {
-						out.flush();
-						outExamples.flush();
-						outSyms.flush();
-						Helper.writeStatsFile(IN_STATUS, count);
-					}
-				}
-			} else {
-				skipLines--;
-			}
-		}
-		ArrayHelper.giveBack(lineBB);
-		in.close();
-		return count;
-	}
+    String srcVal = null;
+    WordType srcWordType = null;
+    Category srcCategory = null;
+    Set<String> srcExamples = new HashSet<>();
+    Set<String> srcRelatives = new HashSet<>();
+    Set<String> srcSynonyms = new HashSet<>();
+    String tgtVal = null;
+    Category tgtCategory = null;
+    WordType tgtWordType = null;
 
-	private void clear() {
-		wordType = null;
-	}
+    while (null != (line = BablaCrawler.safeReadLine(reader))) {
+      if (line.contains("Sorry, no exact translations found.")) {
+        throw new RuntimeException("No translation found: " + ArrayHelper.toString(nameBytes));
+      } else if (line.contains(">Results:")) {
+        state = State.PARSE_DEFINITION;
+      } else if (state == State.PARSE_EXAMPLE) {
+        if (line.contains("</section>")) {
+          state = State.PARSE;
+        }
+      }
 
-	private boolean parseLanguagesAjax(String url, String pageName,
-			BufferedOutputStream out, Language srcLng, String name,
-			byte[] nameBytes, Category cat) throws IOException {
-		if (DEBUG) {
-			System.out.println("搜索翻译：" + url);
-		}
-		BufferedReader reader = null;
-		try {
-			Helper.putConnectionHeader("X-Requested-With", "XMLHttpRequest");
-			Helper.putConnectionHeader("Accept", "*/*");
-			Helper.putConnectionHeader("Content-Type",
-					"application/x-www-form-urlencoded; charset=UTF-8");
+      if (line.contains(" result-left\"><p ") || line.contains("Usage examples</h4>")) {
+        state = State.PARSE_EXAMPLE;
+      } else if (line.contains("Synonyms</h4>")) {
+        state = State.PARSE_SYNONYM;
+      }
 
-			reader = new BufferedReader(new InputStreamReader(
-					Helper.openUrlInputStream(url, true,
-							"act=makeotherlanguages&fullpagename=" + pageName),
-					Helper.CHARSET_UTF8));
-			String line;
-			int idx;
-			boolean first = true;
-			StringBuffer sb = new StringBuffer(256);
-			while (null != (line = safeReadLine(reader))) {
-				if (-1 != line.indexOf("Exception:")) {
-					System.err.println("服务器方错误：" + line);
-					return false;
-				}
-				idx = line.indexOf(" href=\"");
-				if (idx != -1) {
-					line = line.substring(idx + " href=\"".length());
-					if (line.length() > 3) {
-						final String language = line.substring(1, 3);
-						final Language targetLng = LNG_MAPPER.get(language
-								.toUpperCase());
-						if (targetLng != null && targetLng != srcLng) {
-							idx = line.indexOf("\">", 3);
-							if (idx != -1) {
-								final String href = line.substring(0, idx);
-								final int translationStart = idx
-										+ "\">".length();
-								idx = line.indexOf("</a>", translationStart);
-								if (idx != -1) {
-									String translation = line.substring(
-											translationStart, idx);
-									if (targetLng == Language.ZH) {
-										translation = ChineseHelper
-												.toSimplifiedChinese(translation);
-									}
-									if (DEBUG) {
-										System.out.println(targetLng.key + "="
-												+ translation + ", " + href);
-									}
-									if (first) {
-										first = false;
-										sb.append(srcLng.key);
-										sb.append(Helper.SEP_DEFINITION);
-										sb.append(name);
-										if (cat != null) {
-											sb.append(Helper.SEP_ATTRIBUTE);
-											sb.append(Category.TYPE_ID);
-											sb.append(cat.key);
-										}
-										if (wordType != null) {
-											sb.append(Helper.SEP_ATTRIBUTE);
-											sb.append(WordType.TYPE_ID);
-											sb.append(wordType.key);
-										}
-									}
-									sb.append(Helper.SEP_LIST);
-									sb.append(targetLng.key);
-									sb.append(Helper.SEP_DEFINITION);
-									sb.append(translation);
-									if (cat != null) {
-										sb.append(Helper.SEP_ATTRIBUTE);
-										sb.append(Category.TYPE_ID);
-										sb.append(cat.keyBytes);
-									}
-									if (wordType != null) {
-										sb.append(Helper.SEP_ATTRIBUTE);
-										sb.append(WordType.TYPE_ID);
-										sb.append(wordType.key);
-									}
-								} else {
-									System.err.println("ajax: " + line);
-								}
-							} else {
-								System.err.println("ajax: " + line);
-							}
-						}
-					}
-				}
-			}
-			if (!first) {
-				out.write(sb.toString().getBytes(Helper.CHARSET_UTF8));
-				out.write(Helper.SEP_NEWLINE_BYTES);
-			}
-		} finally {
-			Helper.close(reader);
-		}
-		return true;
-	}
+      if (state == State.PARSE) {
+        continue;
+      }
+      switch (state) {
+        case PARSE_DEFINITION:
+          if (line.contains(" result-left")) {
+            srcVal = Helper.substringBetweenNarrow(line, ">", "</strong></a><span>");
+            srcWordType = BablaCrawler.parseWordType(line);
+            srcCategory = BablaCrawler.parseCategory(line);
+            BablaCrawler.parseAlso(srcRelatives, line);
 
-	private boolean parseRelatedJson(String url,
-			BufferedOutputStream outRelsJson, Language lng, String name,
-			byte[] nameBytes, Category cat) throws IOException {
-		if (DEBUG) {
-			System.out.println("搜索相关词汇：" + url);
-		}
-		BufferedReader reader = null;
-		try {
-			Helper.putConnectionHeader("X-Requested-With", "XMLHttpRequest");
-			Helper.putConnectionHeader("Accept",
-					"application/json, text/javascript, */*");
-			Helper.putConnectionHeader("Content-Type",
-					"application/x-www-form-urlencoded");
+          } else if (line.contains(" result-right")) {
+            tgtVal = Helper.substringBetweenNarrow(line, ">", "</a><span>");
+            tgtWordType = BablaCrawler.parseWordType(line);
+            tgtCategory = BablaCrawler.parseCategory(line);
+            if ((srcVal != null) && (tgtVal != null)) {
+              if (BablaCrawler.DEBUG) {
+                System.out.println("def: " + srcVal);
+                // System.out.println("srcVal: " + srcVal);
+                // System.out.println("srcWordType: " + srcWordType);
+                // System.out.println("srcCategory: " + srcCategory);
+                // System.out.println("tgtVal: " + tgtVal);
+                // System.out.println("tgtWordType: " + tgtWordType);
+                // System.out.println("tgtCategory: " + tgtCategory);
+              }
 
-			reader = new BufferedReader(new InputStreamReader(
-					Helper.openUrlInputStream(url), Helper.CHARSET_UTF8));
-			String line;
-			int idx;
-			while (null != (line = safeReadLine(reader))) {
-				if (-1 != line.indexOf("Exception:")) {
-					System.err.println("服务器方错误：" + line);
-					return false;
-				} else if ((idx = line.indexOf("\"title\":")) != -1) {
-					line = line.substring(idx + "\"title\":".length());
-					final String[] titles = line.split("\"title\":");
-					boolean first = true;
-					for (String t : titles) {
-						idx = t.indexOf("\",\"industry\":\"");
-						if (idx != -1) {
-							final String title = Helper.unescapeCode(t
-									.substring(1, idx));
-							if (!name.equals(title)) {
-								final int catStart = idx
-										+ "\",\"industry\":\"".length();
-								idx = t.indexOf("\",\"", catStart);
-								final String category = Helper.unescapeCode(t
-										.substring(catStart, idx));
-								final Category targetCat = CAT_MAPPER
-										.get(category.toUpperCase());
-								if (DEBUG) {
-									if (targetCat != null) {
-										System.out.println("title: " + title
-												+ ", cat: " + targetCat.key);
-									} else if (!CAT_MAPPER.containsKey(category
-											.toUpperCase())) {
-										System.out.println("title: " + title
-												+ ", ?cat?: " + category);
-									}
-								}
-								if (first) {
-									first = false;
-									outRelsJson.write(lng.keyBytes);
-									outRelsJson
-											.write(Helper.SEP_DEFINITION_BYTES);
-									outRelsJson.write(nameBytes);
-									if (cat != null) {
-										outRelsJson
-												.write(Helper.SEP_ATTRS_BYTES);
-										outRelsJson
-												.write(Category.TYPE_ID_BYTES);
-										outRelsJson.write(cat.keyBytes);
-									}
-								}
-								outRelsJson.write(Helper.SEP_WORDS_BYTES);
-								outRelsJson.write(title
-										.getBytes(Helper.CHARSET_UTF8));
-								if (targetCat != null) {
-									outRelsJson.write(Helper.SEP_ATTRS_BYTES);
-									outRelsJson.write(Category.TYPE_ID_BYTES);
-									outRelsJson.write(targetCat.keyBytes);
-								}
-							}
-						}
-					}
-					if (!first) {
-						outRelsJson.write(Helper.SEP_NEWLINE_BYTES);
-					}
-					break;
-				}
-			}
-		} finally {
-			Helper.close(reader);
-		}
-		return true;
-	}
+              sb.append(lng.key);
+              sb.append(Helper.SEP_DEFINITION);
+              sb.append(srcVal);
+              if (srcCategory != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(Category.TYPE_ID);
+                sb.append(srcCategory.key);
+              }
+              if (srcWordType != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(WordType.TYPE_ID);
+                sb.append(srcWordType.key);
+              }
+              if (srcCategory != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(Category.TYPE_ID);
+                sb.append(srcCategory.key);
+              }
+              sb.append(Helper.SEP_LIST);
+              sb.append(tgtLng.key);
+              sb.append(Helper.SEP_DEFINITION);
+              sb.append(tgtVal);
+              if (tgtCategory != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(Category.TYPE_ID);
+                sb.append(tgtCategory.key);
+              }
+              if (tgtWordType != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(WordType.TYPE_ID);
+                sb.append(tgtWordType.key);
+              }
+              if (tgtCategory != null) {
+                sb.append(Helper.SEP_ATTRIBUTE);
+                sb.append(Category.TYPE_ID);
+                sb.append(tgtCategory.key);
+              }
+              sb.append(Helper.SEP_NEWLINE_CHAR);
+              out.write(sb.toString().getBytes(Helper.CHARSET_UTF8));
+            }
 
-	private Map<String, String> parseMainHtml(BufferedOutputStream outSyms,
-			final Language lng, final byte[] nameBytes, final String path)
-			throws MalformedURLException, IOException {
-		Helper.putConnectionHeader("X-Requested-With", null);
-		Helper.putConnectionHeader("Accept",
-				"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-		Helper.putConnectionHeader("Content-Type", null);
+            // clear
+            srcVal = null;
+            srcWordType = null;
+            srcCategory = null;
+            tgtVal = null;
+            tgtWordType = null;
+            tgtCategory = null;
+          }
+          break;
+        case PARSE_EXAMPLE:
+          if (line.contains(" result-left")) {
+            String rel = Helper.substringBetweenNarrow(line, "muted-link\">", "</a>");
+            if (Helper.isEmptyOrNull(rel)) {
+              rel = Helper.substringBetweenNarrow(line, "<p>", "</p></div>");
+            }
+            if (Helper.isEmptyOrNull(rel)) {
+              rel = Helper.substringBetweenNarrow(line, "\">", "</p></div>");
+            }
+            if (Helper.isNotEmptyOrNull(rel)) {
+              if (!rel.contains("<span>")) {
+                rel = rel.replaceAll("(\\(.+\\))?", "").replaceAll("(（.+）)?", "");
+                // System.out.println(rel);
+                if (rel.contains("<b>")) {
+                  rel = rel.replace("<b>", "").replace("</b>", "");
+                  srcExamples.add(rel);
+                } else {
+                  srcRelatives.add(rel);
+                }
+              }
+            }
+          }
+          break;
+        case PARSE_SYNONYM:
+          final String lngSyn = Helper.substringBetween(line, "Synonyms (", ")");
+          if (Helper.isNotEmptyOrNull(lngSyn)) {
+            srcVal = Helper.substringBetween(line, " for \"", "\":");
+            final StringTokenizer st = new StringTokenizer(line, "·");
+            while (st.hasMoreTokens()) {
+              String syn = Helper.substringBetweenLast(st.nextToken(), ">", "</a>&nbsp");
+              if (Helper.isNotEmptyOrNull(syn)) {
+                srcSynonyms.add(syn);
+                // srcAlsos.add(syn);
+              }
+            }
+            break;
+          }
+          break;
+        case PARSE:
+          // silent
+          break;
+        default:
+          // silent
+      }
+    }
 
-		final Map<String, String> params = new HashMap<String, String>();
-		HttpURLConnection conn = Helper.getUrlConnection(URL + path);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				conn.getInputStream(), Helper.CHARSET_UTF8));
-		String line;
-		State state = State.PARSE;
-		StringBuffer sb = new StringBuffer();
-		int idx;
-		HTML: while (null != (line = safeReadLine(reader))) {
-			switch (state) {
-			case PARSE_DEFINITION:
-			case PARSE_DEFINITION_FULL:
-				if ((idx = line.indexOf("</p>")) != -1) {
-					appendDefinition(state, sb, line.substring(0, idx));
-					final String abstractText = sb.toString().trim()
-							.replaceAll("[\\t ]+", " ");
-					if (DEBUG) {
-						System.out.println("def: " + abstractText);
-					}
-					outDesc.write(lng.keyBytes);
-					outDesc.write(Helper.SEP_DEFINITION_BYTES);
-					outDesc.write(nameBytes);
-					outDesc.write(Helper.SEP_ATTRS_BYTES);
-					outDesc.write(Abstract.TYPE_ID_BYTES);
-					outDesc.write(abstractText.getBytes(Helper.CHARSET_UTF8));
-					outDesc.write(Helper.SEP_NEWLINE_BYTES);
-					state = State.PARSE;
-				} else {
-					appendDefinition(state, sb, line);
-				}
-				break;
-			case PARSE:
-			default:
-				// System.out.println(line);
-				if ((idx = line.indexOf(KEY_ABSTRACT_START)) != -1) {
-					state = State.PARSE_DEFINITION;
-					appendDefinition(state, sb,
-							line.substring(idx + KEY_ABSTRACT_START.length()));
-				} else if ((idx = line.indexOf(">Part of Speech:<")) != -1) {
-					final String partOfSpeech = Helper.substringBetweenLast(
-							line, "</span>", "<br");
-					if (Helper.isNotEmptyOrNull(partOfSpeech)) {
-						wordType = WORD_TYPES_MAP.get(partOfSpeech);
-						if (wordType == null
-								&& !WORD_TYPES_MAP.containsKey(partOfSpeech)) {
-							System.err.println("未知词类：" + partOfSpeech);
-						}
-					}
-				} else if ((idx = line.indexOf(">Synonym(s):<")) != -1) {
-					String synonyms = Helper.substringBetweenLast(line,
-							"</span>", "<br");
-					if (Helper.isNotEmptyOrNull(synonyms)) {
-						if (DEBUG) {
-							System.out.println("syms: " + synonyms);
-						}
-						if ((idx = synonyms.indexOf(" href=\"")) != -1) {
-							final int hrefStart = idx + " href=\"".length();
-							synonyms = synonyms.substring(hrefStart);
-							final String[] syms = synonyms.split(" href=\"");
-							outSyms.write(lng.keyBytes);
-							outSyms.write(Helper.SEP_DEFINITION_BYTES);
-							outSyms.write(nameBytes);
-							for (String s : syms) {
-								final String href = s.substring(0,
-										(idx = s.indexOf("\">")));
-								final int titleStart = idx + "\">".length();
-								final String title = s.substring(titleStart,
-										s.indexOf("</a>", titleStart));
-								outSyms.write(Helper.SEP_WORDS_BYTES);
-								outSyms.write(title
-										.getBytes(Helper.CHARSET_UTF8));
-								outSyms.write(Helper.SEP_ATTRS_BYTES);
-								outSyms.write(UriLocation.TYPE_ID_BYTES);
-								outSyms.write(href
-										.getBytes(Helper.CHARSET_UTF8));
-							}
-							outSyms.write(Helper.SEP_NEWLINE_BYTES);
-						}
-					}
-				} else if ((idx = line.indexOf(">See Also:<")) != -1) {
-					String seeAlsos = Helper.substringBetweenLast(line,
-							"</span>", "<br");
-					if (Helper.isNotEmptyOrNull(seeAlsos)) {
-						System.out.println("see also: " + seeAlsos);
-						if ((idx = seeAlsos.indexOf(" href=\"")) != -1) {
-							final int hrefStart = idx + " href=\"".length();
-							seeAlsos = seeAlsos.substring(hrefStart);
-							final String[] sees = seeAlsos.split(" href=\"");
-							outRelsSeeAlso.write(lng.keyBytes);
-							outRelsSeeAlso.write(Helper.SEP_DEFINITION_BYTES);
-							outRelsSeeAlso.write(nameBytes);
-							for (String s : sees) {
-								final String href = s.substring(0,
-										(idx = s.indexOf("\">")));
-								final int titleStart = idx + "\">".length();
-								final String title = s.substring(titleStart,
-										s.indexOf("</a>", titleStart));
-								outRelsSeeAlso.write(Helper.SEP_WORDS_BYTES);
-								outRelsSeeAlso.write(title
-										.getBytes(Helper.CHARSET_UTF8));
-								outRelsSeeAlso.write(Helper.SEP_ATTRS_BYTES);
-								outRelsSeeAlso.write(UriLocation.TYPE_ID_BYTES);
-								outRelsSeeAlso.write(href
-										.getBytes(Helper.CHARSET_UTF8));
-							}
-							outRelsSeeAlso.write(Helper.SEP_NEWLINE_BYTES);
-						}
-					}
-				} else if (line.endsWith(";")) {
-					// find parameter
-					line = line.trim();
-					if (line.startsWith("var ")
-							&& (line.indexOf('"') != -1 || line.indexOf('\'') != -1)) {
-						String[] parts = line.split(" ");
-						if (parts.length > 3) {
-							final String key = parts[1];
-							String val = parts[3];
-							if (val.length() > 0 && val.indexOf('"') == 0) {
-								val = Helper.substringBetweenEnclose(line,
-										"\"", "\"");
-							} else if (val.length() > 0
-									&& val.indexOf('\'') == 0) {
-								val = Helper.substringBetweenEnclose(line, "'",
-										"'");
-							}
-							if (val != null) {
-								val = Helper.unescapeCode(val);
-								// System.out.println(key + "=" + val);
-								params.put(key, val);
-							}
-						}
-					}
-				} else if (line.indexOf("id=\"recently_talks_id\"") != -1) {
-					break HTML;
-				}
-			}
-		}
-		reader.close();
-		return params;
-	}
+    if (!srcRelatives.isEmpty()) {
+      outRelated.write(lng.keyBytes);
+      outRelated.write(Helper.SEP_DEFINITION_BYTES);
+      outRelated.write(nameBytes);
+      outRelated.write(Helper.SEP_ATTRS_BYTES);
+      outRelated.write(Related.TYPE_ID_BYTES);
+      boolean first = true;
+      for (final String s : srcRelatives) {
+        if (first) {
+          first = false;
+        } else {
+          outRelated.write(Helper.SEP_WORDS_BYTES);
+        }
+        outRelated.write(s.getBytes(Helper.CHARSET_UTF8));
+      }
+      outRelated.write(Helper.SEP_NEWLINE_BYTES);
+    }
 
-	private static String safeReadLine(BufferedReader reader)
-			throws IOException {
-		try {
-			return reader.readLine();
-		} catch (IOException e) {
-			return Helper.EMPTY_STRING;
-		}
-	}
+    if (!srcExamples.isEmpty()) {
+      outExamples.write(lng.keyBytes);
+      outExamples.write(Helper.SEP_DEFINITION_BYTES);
+      outExamples.write(nameBytes);
+      outExamples.write(Helper.SEP_ATTRS_BYTES);
+      outExamples.write(Example.TYPE_ID_BYTES);
+      boolean first = true;
+      for (final String s : srcExamples) {
+        if (first) {
+          first = false;
+        } else {
+          outExamples.write(Helper.SEP_WORDS_BYTES);
+        }
+        outExamples.write(s.getBytes(Helper.CHARSET_UTF8));
+      }
+      outExamples.write(Helper.SEP_NEWLINE_BYTES);
+    }
 
-	private static void appendDefinition(State state, StringBuffer sb,
-			String line) {
-		if (State.PARSE_DEFINITION == state) {
-			if (sb.length() > Abstract.MAX_ABSTRACT_CHARS) {
-				sb.append(Helper.SEP_ETC);
-				state = State.PARSE_DEFINITION_FULL;
-			} else {
-				sb.append(Helper.unescapeHtml(Helper.stripHtmlText(line, true)));
-			}
-		}
-	}
+    if (!srcSynonyms.isEmpty()) {
+      outSynonyms.write(lng.keyBytes);
+      outSynonyms.write(Helper.SEP_DEFINITION_BYTES);
+      outSynonyms.write(nameBytes);
+      outSynonyms.write(Helper.SEP_ATTRS_BYTES);
+      outSynonyms.write(Synonym.TYPE_ID_BYTES);
+      boolean first = true;
+      for (final String s : srcSynonyms) {
+        if (first) {
+          first = false;
+        } else {
+          outSynonyms.write(Helper.SEP_WORDS_BYTES);
+        }
+        outSynonyms.write(s.getBytes(Helper.CHARSET_UTF8));
+      }
+      outSynonyms.write(Helper.SEP_NEWLINE_BYTES);
+    }
+    return params;
+
+  }
+
+  private static void parseAlso(Collection<String> alsoSet, String line) {
+    final String alsoText = Helper.substringBetweenNarrow(line, " (also: ", ")");
+    if (alsoText != null) {
+      StringTokenizer st = new StringTokenizer(alsoText, ", ");
+
+      while (st.hasMoreTokens()) {
+        String token = st.nextToken();
+        alsoSet.add(token);
+      }
+    }
+  }
+
+  private static WordType parseWordType(String line) {
+    WordType wordType = null;
+    for (String key : BablaCrawler.WORD_TYPES_MAP.keySet()) {
+      if (line.contains("{<abbr title=\"" + key + "\"")) {
+        wordType = BablaCrawler.WORD_TYPES_MAP.get(key);
+        break;
+      }
+    }
+    return wordType;
+  }
+
+  private static Category parseCategory(String line) {
+    Category cat = null;
+    for (String key : BablaCrawler.CAT_MAPPER.keySet()) {
+      if (line.contains("[<abbr title=\"" + key + "\"") || line.contains("[<abbr title=\"" + key + "&")) {
+        cat = BablaCrawler.CAT_MAPPER.get(key);
+        break;
+      }
+    }
+    return cat;
+  }
+
+  private static String safeReadLine(final BufferedReader reader) {
+    try {
+      return reader.readLine();
+    } catch (final IOException e) {
+      return Helper.EMPTY_STRING;
+    }
+  }
 }

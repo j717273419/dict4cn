@@ -28,200 +28,200 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WiktContentState {
 
-    private ByteBuffer line;
-    private String name;
-    private String sourceLanguage;
-    private String targetLanguage;
-    private String sourceWordType;
-    private String sourceGender;
-    private String targetWordType;
-    private String targetGender;
-    private Map<String, String> languages;
-    private Set<String> categories;
-    private boolean translationContent;
-    private final String fileLanguage;
+  private ByteBuffer                line;
+  private String                    name;
+  private String                    sourceLanguage;
+  private String                    targetLanguage;
+  private String                    sourceWordType;
+  private String                    sourceGender;
+  private String                    targetWordType;
+  private String                    targetGender;
+  private final Map<String, String> languages;
+  private Set<String>               categories;
+  private boolean                   translationContent;
+  private final String              fileLanguage;
 
-    public WiktContentState(String lng) {
-        this.fileLanguage = lng;
-        languages = new FormattedTreeMap<String, String>();
-        categories = new FormattedTreeSet<String>();
-        invalidate();
+  public WiktContentState(final String lng) {
+    this.fileLanguage = lng;
+    this.languages = new FormattedTreeMap<>();
+    this.categories = new FormattedTreeSet<>();
+    this.invalidate();
+  }
+
+  public String getSourceLanguage() {
+    return this.sourceLanguage;
+  }
+
+  public void setSourceLanguage(final String sourceLanguage) {
+    this.sourceLanguage = sourceLanguage;
+  }
+
+  public void putTranslation(final String key, final String val) {
+    String v1 = null;
+    if ((v1 = this.languages.get(key)) != null) {
+      this.languages.put(key, v1 + Helper.SEP_SAME_MEANING + val);
+    } else {
+      this.languages.put(key, val);
     }
+  }
 
-    public String getSourceLanguage() {
-        return sourceLanguage;
+  private void clear() {
+    this.languages.clear();
+    this.sourceWordType = Helper.EMPTY_STRING;
+    this.sourceGender = Helper.EMPTY_STRING;
+    this.targetWordType = Helper.EMPTY_STRING;
+    this.targetGender = Helper.EMPTY_STRING;
+  }
+
+  public String getName() {
+    return this.name;
+  }
+
+  public boolean hasTranslations() {
+    if (this.languages.isEmpty()) {
+      return false;
+    } else if (this.languages.size() > 1) {
+      return true;
+    } else {
+      return this.languages.get(this.sourceLanguage) == null;
     }
+  }
 
-    public void setSourceLanguage(String sourceLanguage) {
-        this.sourceLanguage = sourceLanguage;
+  public String getTranslations() {
+    return this.languages.toString();
+  }
+
+  public void invalidate() {
+    this.name = null;
+    this.sourceLanguage = null;
+    this.targetLanguage = null;
+
+    this.clear();
+  }
+
+  public void init(final String n) {
+    this.name = n;
+    this.clear();
+  }
+
+  public boolean isValid() {
+    return this.name != null;
+  }
+
+  public String getTargetLanguage() {
+    return this.targetLanguage;
+  }
+
+  public void setTargetLanguage(final String targetLanguage) {
+    this.targetLanguage = targetLanguage;
+  }
+
+  public boolean isTranslationContent() {
+    return this.translationContent;
+  }
+
+  public void setTranslationContent(final boolean translationContent) {
+    this.translationContent = translationContent;
+    if (translationContent) {
+      this.setSourceGender(Helper.EMPTY_STRING);
     }
+  }
 
-    public void putTranslation(String key, String val) {
-        String v1 = null;
-        if ((v1 = languages.get(key)) != null) {
-            this.languages.put(key, v1 + Helper.SEP_SAME_MEANING + val);
-        } else {
-            this.languages.put(key, val);
-        }
-    }
+  public String getSourceWordType() {
+    return this.sourceWordType;
+  }
 
-    private void clear() {
-        languages.clear();
-        sourceWordType = Helper.EMPTY_STRING;
-        sourceGender = Helper.EMPTY_STRING;
-        targetWordType = Helper.EMPTY_STRING;
-        targetGender = Helper.EMPTY_STRING;
-    }
+  public void setSourceWordType(final String sourceWordType) {
+    this.sourceWordType = sourceWordType;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getSourceGender() {
+    return this.sourceGender;
+  }
 
-    public boolean hasTranslations() {
-        if (languages.isEmpty()) {
-            return false;
-        } else if (languages.size() > 1) {
-            return true;
-        } else {
-            return languages.get(sourceLanguage) == null;
-        }
-    }
+  public void setSourceGender(final String sourceGender) {
+    this.sourceGender = sourceGender;
+  }
 
-    public String getTranslations() {
-        return this.languages.toString();
-    }
+  public String getTargetWordType() {
+    return this.targetWordType;
+  }
 
-    public void invalidate() {
-        this.name = null;
-        sourceLanguage = null;
-        targetLanguage = null;
+  public void setTargetWordType(final String targetWordType) {
+    this.targetWordType = targetWordType;
+  }
 
-        clear();
-    }
+  public String getTargetGender() {
+    return this.targetGender;
+  }
 
-    public void init(String n) {
-        this.name = n;
-        clear();
-    }
+  public void setTargetGender(final String targetGender) {
+    this.targetGender = targetGender;
+  }
 
-    public boolean isValid() {
-        return name != null;
-    }
+  public void clearTargetAttributes() {
+    this.targetGender = Helper.EMPTY_STRING;
+    this.targetWordType = Helper.EMPTY_STRING;
+  }
 
-    public String getTargetLanguage() {
-        return targetLanguage;
-    }
+  public boolean hasTargetGender() {
+    return !this.targetGender.isEmpty();
+  }
 
-    public void setTargetLanguage(String targetLanguage) {
-        this.targetLanguage = targetLanguage;
-    }
+  public boolean hasTargetWordType() {
+    return !this.targetWordType.isEmpty();
+  }
 
-    public boolean isTranslationContent() {
-        return translationContent;
-    }
+  public void clearSourceAttributes() {
+    this.sourceGender = Helper.EMPTY_STRING;
+    this.sourceWordType = Helper.EMPTY_STRING;
+  }
 
-    public void setTranslationContent(boolean translationContent) {
-        this.translationContent = translationContent;
-        if (translationContent) {
-            setSourceGender(Helper.EMPTY_STRING);
-        }
-    }
+  public String getFileLanguage() {
+    return this.fileLanguage;
+  }
 
-    public String getSourceWordType() {
-        return sourceWordType;
-    }
+  public Set<String> getCategories() {
+    return this.categories;
+  }
 
-    public void setSourceWordType(String sourceWordType) {
-        this.sourceWordType = sourceWordType;
-    }
+  public void setCategories(final Set<String> categories) {
+    this.categories = categories;
+  }
 
-    public String getSourceGender() {
-        return sourceGender;
-    }
+  public void addCategory(final String category) {
+    this.categories.add(category);
+  }
 
-    public void setSourceGender(String sourceGender) {
-        this.sourceGender = sourceGender;
-    }
+  public boolean hasCategories() {
+    return !this.categories.isEmpty();
+  }
 
-    public String getTargetWordType() {
-        return targetWordType;
-    }
+  public boolean hasSourceGender() {
+    return !this.sourceGender.isEmpty();
+  }
 
-    public void setTargetWordType(String targetWordType) {
-        this.targetWordType = targetWordType;
-    }
+  public boolean hasSourceWordType() {
+    return !this.sourceWordType.isEmpty();
+  }
 
-    public String getTargetGender() {
-        return targetGender;
-    }
+  public Map<String, String> getLanguages() {
+    return this.languages;
+  }
 
-    public void setTargetGender(String targetGender) {
-        this.targetGender = targetGender;
-    }
+  public String getTranslation(final String targetLng) {
+    return this.languages.get(targetLng);
+  }
 
-    public void clearTargetAttributes() {
-        this.targetGender = Helper.EMPTY_STRING;
-        this.targetWordType = Helper.EMPTY_STRING;
-    }
+  public void setTranslation(final String targetLng, final String trans) {
+    this.languages.put(targetLng, trans);
+  }
 
-    public boolean hasTargetGender() {
-        return !this.targetGender.isEmpty();
-    }
+  public ByteBuffer getLine() {
+    return this.line;
+  }
 
-    public boolean hasTargetWordType() {
-        return !this.targetWordType.isEmpty();
-    }
-
-    public void clearSourceAttributes() {
-        this.sourceGender = Helper.EMPTY_STRING;
-        this.sourceWordType = Helper.EMPTY_STRING;
-    }
-
-    public String getFileLanguage() {
-        return fileLanguage;
-    }
-
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
-
-    public void addCategory(String category) {
-        this.categories.add(category);
-    }
-
-    public boolean hasCategories() {
-        return !this.categories.isEmpty();
-    }
-
-    public boolean hasSourceGender() {
-        return !this.sourceGender.isEmpty();
-    }
-
-    public boolean hasSourceWordType() {
-        return !this.sourceWordType.isEmpty();
-    }
-
-    public Map<String, String> getLanguages() {
-        return languages;
-    }
-
-    public String getTranslation(String targetLng) {
-        return languages.get(targetLng);
-    }
-
-    public void setTranslation(String targetLng, String trans) {
-        languages.put(targetLng, trans);
-    }
-
-    public ByteBuffer getLine() {
-        return line;
-    }
-
-    public void setLine(ByteBuffer line) {
-        this.line = line;
-    }
+  public void setLine(final ByteBuffer line) {
+    this.line = line;
+  }
 }

@@ -32,35 +32,35 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class FilesAppender {
-    public final String outFile;
-    public final String[] inFiles;
+  public final String   outFile;
+  public final String[] inFiles;
 
-    public FilesAppender(String outFile, String... inFiles) {
-        this.outFile = outFile;
-        this.inFiles = inFiles;
-    }
+  public FilesAppender(final String outFile, final String... inFiles) {
+    this.outFile = outFile;
+    this.inFiles = inFiles;
+  }
 
-    public void append() throws IOException {
-        long size = Helper.getFilesSize(inFiles);
-        System.out.println("合并" + inFiles.length + "文件（" + Helper.formatSpace(size) + "）至'" + outFile + "'。。。");
-        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile), Helper.BUFFER_SIZE);
-        ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
-        byte[] array = bb.array();
-        for (String f : inFiles) {
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);
-            int l;
-            int lastChar = -1;
-            while (-1 != (l = in.read(array))) {
-                lastChar = array[l - 1];
-                out.write(array, 0, l);
-            }
-            if (lastChar != Helper.SEP_NEWLINE_CHAR) {
-                out.write(Helper.SEP_NEWLINE_CHAR);
-            }
-            in.close();
+  public void append() throws IOException {
+    final long size = Helper.getFilesSize(this.inFiles);
+    System.out.println("合并" + this.inFiles.length + "文件（" + Helper.formatSpace(size) + "）至'" + this.outFile + "'。。。");
+    final ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
+    try (final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(this.outFile), Helper.BUFFER_SIZE);) {
+      final byte[] array = bb.array();
+      for (final String f : this.inFiles) {
+        try (final BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);) {
+          int l;
+          int lastChar = -1;
+          while (-1 != (l = in.read(array))) {
+            lastChar = array[l - 1];
+            out.write(array, 0, l);
+          }
+          if (lastChar != Helper.SEP_NEWLINE_CHAR) {
+            out.write(Helper.SEP_NEWLINE_CHAR);
+          }
         }
-        out.close();
-        ArrayHelper.giveBack(bb);
-        System.out.println("合并成功。合并后文件：'" + outFile + "'（" + Helper.formatSpace(new File(outFile).length()) + "）");
+      }
     }
+    ArrayHelper.giveBack(bb);
+    System.out.println("合并成功。合并后文件：'" + this.outFile + "'（" + Helper.formatSpace(new File(this.outFile).length()) + "）");
+  }
 }

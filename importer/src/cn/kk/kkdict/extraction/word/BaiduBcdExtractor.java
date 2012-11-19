@@ -42,91 +42,87 @@ import cn.kk.kkdict.utils.Helper;
 import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class BaiduBcdExtractor {
-    public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BAIDU);
-    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_BAIDU,
-            "output-words." + WordSource.BAIDU_BDICT.key);
+  public static final String IN_DIR   = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BAIDU);
+  public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_BAIDU, "output-words." + WordSource.BAIDU_BDICT.key);
 
-    public static void main(String[] args) throws IOException {
-        File directory = new File(IN_DIR);
-        if (directory.isDirectory()) {
-            System.out.print("搜索百度BCD文件'" + IN_DIR + "' ... ");
-            BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
-
-            File[] files = directory.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".bcd");
-                }
-            });
-            System.out.println(files.length);
-
-            int total = 0;
-            String tmp;
-            for (File f : files) {
-                System.out.print("读取BCD文件'" + f + "' ... ");
-                Set<String> categories = Collections.emptySet();
-                if (null != (tmp = Helper.substringBetween(f.getName(), "_", ".bcd"))) {
-                    categories = Category.parseValid(tmp.split("_"));
-                }
-                int counter = extractBdictToFile(f, writer, categories);
-                System.out.println(counter);
-                total += counter;
-            }
-
-            writer.close();
-            System.out.println("\n=====================================");
-            System.out.println("总共读取了" + files.length + "个百度BCD文件");
-            System.out.println("有效词组：" + total);
-            System.out.println("=====================================");
+  public static void main(final String[] args) throws IOException {
+    final File directory = new File(BaiduBcdExtractor.IN_DIR);
+    if (directory.isDirectory()) {
+      System.out.print("搜索百度BCD文件'" + BaiduBcdExtractor.IN_DIR + "' ... ");
+      final File[] files = directory.listFiles(new FilenameFilter() {
+        @Override
+        public boolean accept(final File dir, final String name) {
+          return name.endsWith(".bcd");
         }
-    }
-
-    private static int extractBdictToFile(File bcdFile, BufferedWriter writer, Set<String> categories)
-            throws IOException {
-        int counter = 0;
-
-        // read bcds into byte array
-        FileChannel fChannel = new RandomAccessFile(bcdFile, "r").getChannel();
-        ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
-        fChannel.read(dataRawBytes);
-        fChannel.close();
-        dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
-        dataRawBytes.rewind();
-
-        byte[] buf = new byte[1024];
-        int total = dataRawBytes.getInt(0x250);
-        // dictionary offset
-        dataRawBytes.position(0x350);
-        for (int i = 0; i < total; i++) {
-            int length = dataRawBytes.getShort();
-            dataRawBytes.getShort();
-            boolean first = true;
-            StringBuilder pinyin = new StringBuilder();
-            for (int j = 0; j < length; j++) {
-                if (first) {
-                    first = false;
-                } else {
-                    pinyin.append('\'');
-                }
-                pinyin.append(PhoneticTranscriptionHelper.FEN_MU[dataRawBytes.get()]
-                        + PhoneticTranscriptionHelper.YUN_MU[dataRawBytes.get()]);
-            }
-            dataRawBytes.get(buf, 0, 2 * length);
-            String word = new String(buf, 0, 2 * length, "UTF-16LE");
-
-            writer.write(Language.ZH.key);
-            writer.write(Helper.SEP_DEFINITION);
-            writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(word), categories));
-            writer.write(Helper.SEP_ATTRIBUTE);
-            writer.write(WordSource.TYPE_ID);
-            writer.write(WordSource.BAIDU_BDICT.key);
-            writer.write(Helper.SEP_PARTS);
-            writer.write(pinyin.toString());
-            writer.write(Helper.SEP_NEWLINE);
-
-            counter++;
+      });
+      System.out.println(files.length);
+      int total = 0;
+      try (final BufferedWriter writer = new BufferedWriter(new FileWriter(BaiduBcdExtractor.OUT_FILE), Helper.BUFFER_SIZE);) {
+        String tmp;
+        for (final File f : files) {
+          System.out.print("读取BCD文件'" + f + "' ... ");
+          Set<String> categories = Collections.emptySet();
+          if (null != (tmp = Helper.substringBetween(f.getName(), "_", ".bcd"))) {
+            categories = Category.parseValid(tmp.split("_"));
+          }
+          final int counter = BaiduBcdExtractor.extractBdictToFile(f, writer, categories);
+          System.out.println(counter);
+          total += counter;
         }
-        return counter;
+
+      }
+      System.out.println("\n=====================================");
+      System.out.println("总共读取了" + files.length + "个百度BCD文件");
+      System.out.println("有效词组：" + total);
+      System.out.println("=====================================");
     }
+  }
+
+  private static int extractBdictToFile(final File bcdFile, final BufferedWriter writer, final Set<String> categories) throws IOException {
+    int counter = 0;
+
+    // read bcds into byte array
+    try (RandomAccessFile f = new RandomAccessFile(bcdFile, "r"); final FileChannel fChannel = f.getChannel();) {
+      final ByteBuffer dataRawBytes = ByteBuffer.allocate((int) fChannel.size());
+      fChannel.read(dataRawBytes);
+      fChannel.close();
+      dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+      dataRawBytes.rewind();
+
+      final byte[] buf = new byte[1024];
+      final int total = dataRawBytes.getInt(0x250);
+      // dictionary offset
+      dataRawBytes.position(0x350);
+      for (int i = 0; i < total; i++) {
+        final int length = dataRawBytes.getShort();
+        dataRawBytes.getShort();
+        boolean first = true;
+        final StringBuilder pinyin = new StringBuilder();
+        for (int j = 0; j < length; j++) {
+          if (first) {
+            first = false;
+          } else {
+            pinyin.append('\'');
+          }
+          pinyin.append(PhoneticTranscriptionHelper.FEN_MU[dataRawBytes.get()] + PhoneticTranscriptionHelper.YUN_MU[dataRawBytes.get()]);
+        }
+        dataRawBytes.get(buf, 0, 2 * length);
+        final String word = new String(buf, 0, 2 * length, "UTF-16LE");
+
+        writer.write(Language.ZH.key);
+        writer.write(Helper.SEP_DEFINITION);
+        writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(word), categories));
+        writer.write(Helper.SEP_ATTRIBUTE);
+        writer.write(WordSource.TYPE_ID);
+        writer.write(WordSource.BAIDU_BDICT.key);
+        writer.write(Helper.SEP_PARTS);
+        writer.write(pinyin.toString());
+        writer.write(Helper.SEP_NEWLINE);
+
+        counter++;
+      }
+    }
+    return counter;
+  }
 
 }

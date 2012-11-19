@@ -28,39 +28,37 @@ import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 
 public class LongestLineFinder {
-    private static final String FILE = "C:\\usr\\kkdict\\out\\dicts\\wiki\\work\\output-dict_xtr-result.wiki";
-    private static final double showQuantile = 0.5;
+  private static final double showQuantile = 0.5;
 
-    public static void main(String[] args) throws IOException {
-        findLongestLines(Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_EDICT,
-                "output-dict_zh_de.edict_hande"), showQuantile);
+  public static void main(final String[] args) throws IOException {
+    LongestLineFinder.findLongestLines(Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_EDICT, "output-dict_zh_de.edict_hande"),
+        LongestLineFinder.showQuantile);
+  }
+
+  /**
+   * 
+   * @param file
+   * @param quantileOfLongest
+   *          0=all, anything between, 1=only longest
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public static void findLongestLines(final String file, final double quantileOfLongest) throws FileNotFoundException, IOException {
+    int max = 0;
+    String l = null;
+    try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+      while ((l = reader.readLine()) != null) {
+        max = Math.max(l.length(), max);
+      }
     }
+    System.out.println("最长行字符：" + max);
 
-    /**
-     * 
-     * @param file
-     * @param quantileOfLongest
-     *            0=all, anything between, 1=only longest
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    public static void findLongestLines(final String file, final double quantileOfLongest)
-            throws FileNotFoundException, IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String l = null;
-        int max = 0;
-        while ((l = reader.readLine()) != null) {
-            max = Math.max(l.length(), max);
+    try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+      while ((l = reader.readLine()) != null) {
+        if (l.length() >= (max * quantileOfLongest)) {
+          System.out.println(l);
         }
-        reader.close();
-        System.out.println("最长行字符：" + max);
-
-        reader = new BufferedReader(new FileReader(file));
-        while ((l = reader.readLine()) != null) {
-            if (l.length() >= max * quantileOfLongest) {
-                System.out.println(l);
-            }
-        }
-        reader.close();
+      }
     }
+  }
 }

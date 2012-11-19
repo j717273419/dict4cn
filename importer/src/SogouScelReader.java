@@ -55,74 +55,74 @@ import java.nio.channels.FileChannel;
  * 
  * </pre>
  * 
- * @author keke
  */
 public class SogouScelReader {
-    public static void main(String[] args) throws IOException {
-        // download from http://pinyin.sogou.com/dict
-        String scelFile = "X:\\kkdict\\in\\words\\sogou\\四十万汉语大词库.scel";
+  public static void main(final String[] args) throws IOException {
+    // download from http://pinyin.sogou.com/dict
+    final String scelFile = "X:\\kkdict\\in\\words\\sogou\\四十万汉语大词库.scel";
 
-        // read scel into byte array
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
-        FileChannel fChannel = new RandomAccessFile(scelFile, "r").getChannel();
-        fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
-        fChannel.close();
+    // read scel into byte array
+    final ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
 
-        // scel as bytes
-        ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
-        dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
-
-        System.out.println("文件: " + scelFile);
-
-        byte[] buf = new byte[1024];
-        String[] pyDict = new String[512];
-
-        int totalWords = dataRawBytes.getInt(0x120);
-
-        // pinyin offset
-        dataRawBytes.position(dataRawBytes.getInt());
-        int totalPinyin = dataRawBytes.getInt();
-        for (int i = 0; i < totalPinyin; i++) {
-            int idx = dataRawBytes.getShort();
-            int len = dataRawBytes.getShort();
-            dataRawBytes.get(buf, 0, len);
-            pyDict[idx] = new String(buf, 0, len, "UTF-16LE");
-        }
-
-        // extract dictionary
-        int counter = 0;
-        for (int i = 0; i < totalWords; i++) {
-            StringBuilder py = new StringBuilder();
-            StringBuilder word = new StringBuilder();
-
-            int alternatives = dataRawBytes.getShort();
-            int pyLength = dataRawBytes.getShort() / 2;
-            boolean first = true;
-            while (pyLength-- > 0) {
-                int key = dataRawBytes.getShort();
-                if (first) {
-                    first = false;
-                } else {
-                    py.append('\'');
-                }
-                py.append(pyDict[key]);
-            }
-            first = true;
-            while (alternatives-- > 0) {
-                if (first) {
-                    first = false;
-                } else {
-                    word.append(", ");
-                }
-                int wordlength = dataRawBytes.getShort();
-                dataRawBytes.get(buf, 0, wordlength);
-                word.append(new String(buf, 0, wordlength, "UTF-16LE"));
-                // skip bytes
-                dataRawBytes.get(buf, 0, dataRawBytes.getShort());
-            }
-            System.out.println(word.toString() + "\t" + py.toString());
-            counter++;
-        }
-        System.out.println("\n读出词汇'" + scelFile + "': " + counter);
+    try (RandomAccessFile file = new RandomAccessFile(scelFile, "r"); final FileChannel fChannel = file.getChannel();) {
+      fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
     }
+
+    // scel as bytes
+    final ByteBuffer dataRawBytes = ByteBuffer.wrap(dataOut.toByteArray());
+    dataRawBytes.order(ByteOrder.LITTLE_ENDIAN);
+
+    System.out.println("文件: " + scelFile);
+
+    final byte[] buf = new byte[1024];
+    final String[] pyDict = new String[512];
+
+    final int totalWords = dataRawBytes.getInt(0x120);
+
+    // pinyin offset
+    dataRawBytes.position(dataRawBytes.getInt());
+    final int totalPinyin = dataRawBytes.getInt();
+    for (int i = 0; i < totalPinyin; i++) {
+      final int idx = dataRawBytes.getShort();
+      final int len = dataRawBytes.getShort();
+      dataRawBytes.get(buf, 0, len);
+      pyDict[idx] = new String(buf, 0, len, "UTF-16LE");
+    }
+
+    // extract dictionary
+    int counter = 0;
+    for (int i = 0; i < totalWords; i++) {
+      final StringBuilder py = new StringBuilder();
+      final StringBuilder word = new StringBuilder();
+
+      int alternatives = dataRawBytes.getShort();
+      int pyLength = dataRawBytes.getShort() / 2;
+      boolean first = true;
+      while (pyLength-- > 0) {
+        final int key = dataRawBytes.getShort();
+        if (first) {
+          first = false;
+        } else {
+          py.append('\'');
+        }
+        py.append(pyDict[key]);
+      }
+      first = true;
+      while (alternatives-- > 0) {
+        if (first) {
+          first = false;
+        } else {
+          word.append(", ");
+        }
+        final int wordlength = dataRawBytes.getShort();
+        dataRawBytes.get(buf, 0, wordlength);
+        word.append(new String(buf, 0, wordlength, "UTF-16LE"));
+        // skip bytes
+        dataRawBytes.get(buf, 0, dataRawBytes.getShort());
+      }
+      System.out.println(word.toString() + "\t" + py.toString());
+      counter++;
+    }
+    System.out.println("\n读出词汇'" + scelFile + "': " + counter);
+  }
 }

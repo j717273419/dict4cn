@@ -25,48 +25,52 @@ import java.util.Arrays;
 import cn.kk.kkdict.utils.ArrayHelper;
 
 public class ByteArray implements Comparable<ByteArray> {
-    private byte[] data;
+  private byte[] data;
 
-    public ByteArray() {
-    }
+  public ByteArray() {
+  }
 
-    public ByteArray(byte[] data) {
-        this.data = data;
-    }
+  public ByteArray(final byte[] data) {
+    this.data = data;
+  }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Arrays.hashCode(data);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = (prime * result) + Arrays.hashCode(this.data);
+    return result;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ByteArray other = (ByteArray) obj;
-        if (!Arrays.equals(data, other.data))
-            return false;
-        return true;
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
     }
+    if (obj == null) {
+      return false;
+    }
+    if (this.getClass() != obj.getClass()) {
+      return false;
+    }
+    final ByteArray other = (ByteArray) obj;
+    if (!Arrays.equals(this.data, other.data)) {
+      return false;
+    }
+    return true;
+  }
 
-    @Override
-    public int compareTo(ByteArray o2) {
-        return ArrayHelper.compareTo(data, 0, data.length, o2.data, 0, o2.data.length);
-    }
+  @Override
+  public int compareTo(final ByteArray o2) {
+    return ArrayHelper.compareTo(this.data, 0, this.data.length, o2.data, 0, o2.data.length);
+  }
 
-    public byte[] getData() {
-        return data;
-    }
+  public byte[] getData() {
+    return this.data;
+  }
 
-    public ByteArray setData(byte[] data) {
-        this.data = data;
-        return this;
-    }
+  public ByteArray setData(final byte[] data) {
+    this.data = data;
+    return this;
+  }
 }

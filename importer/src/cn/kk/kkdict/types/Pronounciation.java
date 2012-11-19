@@ -21,6 +21,6 @@
 package cn.kk.kkdict.types;
 
 public enum Pronounciation {
-    ;
-    public static final String TYPE_ID = "音";
+  ;
+  public static final String TYPE_ID = "音";
 }

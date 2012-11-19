@@ -32,63 +32,58 @@ import cn.kk.kkdict.types.GoogleLanguage;
 
 public final class TranslationHelper {
 
-    private static final int MAX_RESULTS = 3;
+  private static final int MAX_RESULTS = 3;
 
-    /**
-     * Available languages: zh-CN, de, en, it, ja, ko, ru, fr, la (see
-     * https://code.google.com/apis/language/translate/v2/using_rest.html#language-params)
-     * 
-     * @param source
-     * @param target
-     * @param input
-     * @return
-     */
-    public static List<String> getGoogleTranslations(final GoogleLanguage source, final GoogleLanguage target,
-            final String input) {
-        BufferedReader reader = null;
-        List<String> translations = null;
+  /**
+   * Available languages: zh-CN, de, en, it, ja, ko, ru, fr, la (see https://code.google.com/apis/language/translate/v2/using_rest.html#language-params)
+   * 
+   * @param source
+   * @param target
+   * @param input
+   * @return
+   */
+  public static List<String> getGoogleTranslations(final GoogleLanguage source, final GoogleLanguage target, final String input) {
+    BufferedReader reader = null;
+    List<String> translations = null;
+    try {
+      final URL url = new URL("http://translate.google.com/translate_a/t?client=t&text=" + input + "&sl=" + source.key + "&tl=" + target.key);
+      final URLConnection conn = url.openConnection();
+      conn.addRequestProperty("User-Agent", "Mozilla/5.0");
+      reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      final String line = reader.readLine();
+      // System.out.println(line);
+      if (line != null) {
+        final String translationRaw = Helper.substringBetween(line, "]],[[\"", "]]");
+        final String[] translationParts = translationRaw.split("[\\[\\],\"]+");
+        // System.out.println(Arrays.toString(translationParts));
+        if ((translationParts.length > 5) && input.replaceAll("\\b+", Helper.EMPTY_STRING).equals(translationParts[0].replace(" ", Helper.EMPTY_STRING))) {
+          translations = new FormattedArrayList<>(TranslationHelper.MAX_RESULTS);
+          for (int i = 2; i < translationParts.length; i += 4) {
+            if (Integer.parseInt(translationParts[i + 1]) > 0) {
+              translations.add(translationParts[i]);
+            }
+            if (translations.size() == TranslationHelper.MAX_RESULTS) {
+              break;
+            }
+          }
+        }
+      }
+    } catch (final Throwable e) {
+      System.err.println("Failed to get google translations '" + input + "': " + e.toString());
+    } finally {
+      if (reader != null) {
         try {
-            URL url = new URL("http://translate.google.com/translate_a/t?client=t&text=" + input + "&sl=" + source.key
-                    + "&tl=" + target.key);
-            URLConnection conn = url.openConnection();
-            conn.addRequestProperty("User-Agent", "Mozilla/5.0");
-            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line = reader.readLine();
-            // System.out.println(line);
-            if (line != null) {
-                String translationRaw = Helper.substringBetween(line, "]],[[\"", "]]");
-                String[] translationParts = translationRaw.split("[\\[\\],\"]+");
-                // System.out.println(Arrays.toString(translationParts));
-                if (translationParts.length > 5
-                        && input.replaceAll("\\b+", Helper.EMPTY_STRING).equals(
-                                translationParts[0].replace(" ", Helper.EMPTY_STRING))) {
-                    translations = new FormattedArrayList<String>(MAX_RESULTS);
-                    for (int i = 2; i < translationParts.length; i += 4) {
-                        if (Integer.parseInt(translationParts[i + 1]) > 0) {
-                            translations.add(translationParts[i]);
-                        }
-                        if (translations.size() == MAX_RESULTS) {
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            System.err.println("Failed to get google translations '" + input + "': " + e.toString());
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // silently ignore
-                }
-            }
+          reader.close();
+        } catch (final IOException e) {
+          // silently ignore
         }
-        if (translations != null && !translations.isEmpty()) {
-            return translations;
-        } else {
-            return Helper.EMPTY_STRING_LIST;
-        }
+      }
     }
+    if ((translations != null) && !translations.isEmpty()) {
+      return translations;
+    } else {
+      return Helper.EMPTY_STRING_LIST;
+    }
+  }
 
 }

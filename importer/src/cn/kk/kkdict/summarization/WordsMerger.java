@@ -30,42 +30,40 @@ import cn.kk.kkdict.tools.WordFilesMergedSorter;
 import cn.kk.kkdict.utils.Helper;
 
 public class WordsMerger {
-    private static final Configuration IN_DIR_PARENT = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS;
-    private static final Configuration OUT_DIR_PARENT = Configuration.IMPORTER_FOLDER_MERGED_WORDS;
+  private static final Configuration IN_DIR_PARENT = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS;
 
-    /**
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        File parent = new File(IN_DIR_PARENT.getPath(Source.NULL));
-        if (parent.isDirectory()) {
-            for (Source src : Source.WORDS) {
-                File directory = new File(IN_DIR_PARENT.getPath(src));
-                if (directory.isDirectory()) {
-                    System.out.print("搜索词组文件'" + directory.getAbsolutePath() + "' ... ");
-                    File[] files = directory.listFiles(new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return name.startsWith("output-words.");
-                        }
-                    });
-                    System.out.println(files.length);
-                    if (files.length > 0) {
-                        String[] filePaths = Helper.getFileNames(files);
-                        File f = new File(Helper.appendFileName(filePaths[0], "_merged"));
-                        WordFilesMergedSorter sorter = new WordFilesMergedSorter(f.getPath(), f.getName(), false,
-                                false, filePaths);
-                        sorter.sort();
-
-                        System.out.println("总共读取词语文件：" + files.length + "，" + "词语数目：" + sorter.getTotalSorted());
-                    } else {
-                        System.err.println("没有找到单词文件：" + directory.getAbsolutePath());
-                    }
-                } else {
-                    System.err.println("文件夹不可读：" + directory.getAbsolutePath());
-                }
+  /**
+   * @param args
+   * @throws IOException
+   */
+  public static void main(final String[] args) throws IOException {
+    final File parent = new File(WordsMerger.IN_DIR_PARENT.getPath(Source.NULL));
+    if (parent.isDirectory()) {
+      for (final Source src : Source.WORDS) {
+        final File directory = new File(WordsMerger.IN_DIR_PARENT.getPath(src));
+        if (directory.isDirectory()) {
+          System.out.print("搜索词组文件'" + directory.getAbsolutePath() + "' ... ");
+          final File[] files = directory.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(final File dir, final String name) {
+              return name.startsWith("output-words.");
             }
+          });
+          System.out.println(files.length);
+          if (files.length > 0) {
+            final String[] filePaths = Helper.getFileNames(files);
+            final File f = new File(Helper.appendFileName(filePaths[0], "_merged"));
+            final WordFilesMergedSorter sorter = new WordFilesMergedSorter(f.getPath(), f.getName(), false, false, filePaths);
+            sorter.sort();
+
+            System.out.println("总共读取词语文件：" + files.length + "，" + "词语数目：" + sorter.getTotalSorted());
+          } else {
+            System.err.println("没有找到单词文件：" + directory.getAbsolutePath());
+          }
+        } else {
+          System.err.println("文件夹不可读：" + directory.getAbsolutePath());
         }
+      }
     }
+  }
 }

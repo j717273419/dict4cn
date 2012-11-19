@@ -47,62 +47,61 @@ import cn.kk.kkdict.utils.Helper;
  * @author keke
  */
 public class SogouSgimCoreBinExtractor {
-    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_SOGOU,
-            "sgim_core.bin");
-    public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_SOGOU,
-            "output-words." + WordSource.SOGOU_CORE.key);
+  public static final String IN_FILE  = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_SOGOU, "sgim_core.bin");
+  public static final String OUT_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_WORDS.getFile(Source.WORD_SOGOU, "output-words." + WordSource.SOGOU_CORE.key);
 
-    public static void main(String[] args) throws IOException {
-        // read scel into byte array
-        FileChannel fChannel = new RandomAccessFile(IN_FILE, "r").getChannel();
-        ByteBuffer bb = ByteBuffer.allocate((int) fChannel.size());
-        fChannel.read(bb);
-        fChannel.close();
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.rewind();
+  public static void main(final String[] args) throws IOException {
+    // read scel into byte array
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(OUT_FILE), Helper.BUFFER_SIZE);
-        int words = bb.getInt(0xC);
-        System.out.println("读入文件: " + IN_FILE + "，单词：" + words);
+    try (RandomAccessFile f = new RandomAccessFile(SogouSgimCoreBinExtractor.IN_FILE, "r");
+        final FileChannel fChannel = f.getChannel();
+        final BufferedWriter writer = new BufferedWriter(new FileWriter(SogouSgimCoreBinExtractor.OUT_FILE), Helper.BUFFER_SIZE);) {
+      final ByteBuffer bb = ByteBuffer.allocate((int) fChannel.size());
+      fChannel.read(bb);
+      fChannel.close();
+      bb.order(ByteOrder.LITTLE_ENDIAN);
+      bb.rewind();
 
-        int i;
-        int startPos = -1;
-        while (bb.hasRemaining()) {
-            i = bb.getInt();
-            if (i == 0x554a0002) { // core, 6.1.0.6700
-                startPos = bb.position() - 4;
-                break;
-            }
+      int words = bb.getInt(0xC);
+      System.out.println("读入文件: " + SogouSgimCoreBinExtractor.IN_FILE + "，单词：" + words);
+
+      int i;
+      int startPos = -1;
+      while (bb.hasRemaining()) {
+        i = bb.getInt();
+        if (i == 0x554a0002) { // core, 6.1.0.6700
+          startPos = bb.position() - 4;
+          break;
         }
+      }
 
-        if (startPos > -1) {
-            short s;
-            int counter = 0;
-            ByteBuffer buffer = ByteBuffer.allocate(Short.MAX_VALUE);
-            System.out.println("单词起始位置：0x" + Integer.toHexString(startPos));
-            bb.position(startPos);
-            while (bb.hasRemaining() && words-- > 0) {
-                s = bb.getShort();
-                bb.get(buffer.array(), 0, s);
-                String str = new String(buffer.array(), 0, s, "UTF-16LE");
-                if (ChineseHelper.containsChinese(str)) {
-                    writer.write(Language.ZH.key);
-                    writer.write(Helper.SEP_DEFINITION);
-                    writer.write(ChineseHelper.toSimplifiedChinese(str));
-                    writer.write(Helper.SEP_ATTRIBUTE);
-                    writer.write(WordSource.TYPE_ID);
-                    writer.write(WordSource.SOGOU_CORE.key);
-                    writer.write(Helper.SEP_NEWLINE);
-                    counter++;
-                }
-            }
-            int endPos = bb.position();
-            int diff = endPos - startPos;
-            System.out.println("读出单词'" + IN_FILE + "'：" + counter);
-            System.out.println("单词结尾位置：0x" + Integer.toHexString(endPos));
-            System.out.println("单词词典长度：0x" + Integer.toHexString(diff) + "，" + diff + " bytes。");
+      if (startPos > -1) {
+        short s;
+        int counter = 0;
+        final ByteBuffer buffer = ByteBuffer.allocate(Short.MAX_VALUE);
+        System.out.println("单词起始位置：0x" + Integer.toHexString(startPos));
+        bb.position(startPos);
+        while (bb.hasRemaining() && (words-- > 0)) {
+          s = bb.getShort();
+          bb.get(buffer.array(), 0, s);
+          final String str = new String(buffer.array(), 0, s, "UTF-16LE");
+          if (ChineseHelper.containsChinese(str)) {
+            writer.write(Language.ZH.key);
+            writer.write(Helper.SEP_DEFINITION);
+            writer.write(ChineseHelper.toSimplifiedChinese(str));
+            writer.write(Helper.SEP_ATTRIBUTE);
+            writer.write(WordSource.TYPE_ID);
+            writer.write(WordSource.SOGOU_CORE.key);
+            writer.write(Helper.SEP_NEWLINE);
+            counter++;
+          }
         }
-
-        writer.close();
+        final int endPos = bb.position();
+        final int diff = endPos - startPos;
+        System.out.println("读出单词'" + SogouSgimCoreBinExtractor.IN_FILE + "'：" + counter);
+        System.out.println("单词结尾位置：0x" + Integer.toHexString(endPos));
+        System.out.println("单词词典长度：0x" + Integer.toHexString(diff) + "，" + diff + " bytes。");
+      }
     }
+  }
 }

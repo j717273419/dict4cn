@@ -24,57 +24,57 @@ import java.util.List;
 
 public class ListStat implements Comparable<ListStat> {
 
-    @Override
-    public String toString() {
-        return "[counter=" + counter + ", " + (values != null ? "values=" + values : "") + "]";
-    }
+  @Override
+  public String toString() {
+    return "[counter=" + this.counter + ", " + (this.values != null ? "values=" + this.values : "") + "]";
+  }
 
-    public void add(ListStat s) {
-        this.counter += s.counter;
-        this.values.addAll(s.values);
-    }
+  public void add(final ListStat s) {
+    this.counter += s.counter;
+    this.values.addAll(s.values);
+  }
 
-    private int counter;
-    private List<String> values;
+  private int          counter;
+  private List<String> values;
 
-    public ListStat(int counter, String firstVal) {
-        this.counter = counter;
-        this.values = new FormattedArrayList<String>();
-        this.values.add(firstVal);
-    }
+  public ListStat(final int counter, final String firstVal) {
+    this.counter = counter;
+    this.values = new FormattedArrayList<>();
+    this.values.add(firstVal);
+  }
 
-    public ListStat(int counter, List<String> values) {
-        this.counter = counter;
-        this.values = values;
-    }
+  public ListStat(final int counter, final List<String> values) {
+    this.counter = counter;
+    this.values = values;
+  }
 
-    @Override
-    public int compareTo(ListStat o) {
-        // changed to descending order for performance optimization
-        return o.counter - this.counter;
-    }
+  @Override
+  public int compareTo(final ListStat o) {
+    // changed to descending order for performance optimization
+    return o.counter - this.counter;
+  }
 
-    /**
-     * @return the counter
-     */
-    public int getCounter() {
-        return counter;
-    }
+  /**
+   * @return the counter
+   */
+  public int getCounter() {
+    return this.counter;
+  }
 
-    /**
-     * @param counter
-     *            the counter to set
-     */
-    public void setCounter(int counter) {
-        this.counter = counter;
-    }
+  /**
+   * @param counter
+   *          the counter to set
+   */
+  public void setCounter(final int counter) {
+    this.counter = counter;
+  }
 
-    public List<String> getValues() {
-        return values;
-    }
+  public List<String> getValues() {
+    return this.values;
+  }
 
-    public void setValues(List<String> values) {
-        this.values = values;
-    }
+  public void setValues(final List<String> values) {
+    this.values = values;
+  }
 
 }
