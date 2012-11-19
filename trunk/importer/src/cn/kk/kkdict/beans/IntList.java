@@ -21,114 +21,115 @@
 package cn.kk.kkdict.beans;
 
 public class IntList {
-    public int ints[] = null;
-    public int num = 0;
-    private int growBy = 0;
+  public int  ints[] = null;
+  public int  num    = 0;
+  private int growBy = 0;
 
-    public IntList() {
-        this(10, 10);
+  public IntList() {
+    this(10, 10);
+  }
+
+  public IntList(final int size) {
+    this(size, 10);
+  }
+
+  public IntList(final int size, final int growBy) {
+    this.growBy = growBy;
+    this.ints = new int[size];
+  }
+
+  public IntList(final int[] ints) {
+    this(ints, ints.length);
+  }
+
+  public IntList(final int[] theInts, final int length) {
+    this(length, 0);
+    System.arraycopy(theInts, 0, this.ints, 0, length);
+    this.num = length;
+  }
+
+  public final void add(final int o) {
+    if ((this.num >= this.ints.length) && (this.growBy > 0)) {
+      final int[] temp = new int[this.ints.length + this.growBy];
+      System.arraycopy(this.ints, 0, temp, 0, this.num);
+      this.ints = temp;
     }
+    this.ints[this.num] = o;
+    ++this.num;
+  }
 
-    public IntList(final int size) {
-        this(size, 10);
+  public final void removeIndex(final int i) {
+    if (i < this.num) {
+      --this.num;
+      this.ints[i] = this.ints[this.num];
+    } else {
+      throw new IllegalArgumentException("Index " + i + " should within " + this.num + "!");
     }
+  }
 
-    public IntList(final int size, final int growBy) {
-        this.growBy = growBy;
-        ints = new int[size];
+  public final int get(final int i) {
+    if (i < this.num) {
+      return this.ints[i];
+    } else {
+      throw new IllegalArgumentException("Index " + i + " should within " + this.num + "!");
     }
+  }
 
-    public IntList(final int[] ints) {
-        this(ints, ints.length);
+  public final int getLast() {
+    if (this.num > 0) {
+      return this.ints[this.num - 1];
+    } else {
+      throw new IllegalArgumentException("List is empty!");
     }
+  }
 
-    public IntList(final int[] theInts, final int length) {
-        this(length, 0);
-        System.arraycopy(theInts, 0, ints, 0, length);
-        num = length;
+  public final void set(final int i, final int o) {
+    if (i < this.num) {
+      this.ints[i] = o;
+    } else {
+      throw new IllegalArgumentException("Index " + i + " should within " + this.num + "!");
     }
+  }
 
-    public final void add(final int o) {
-        if (num >= ints.length && growBy > 0) {
-            int[] temp = new int[ints.length + growBy];
-            System.arraycopy(ints, 0, temp, 0, num);
-            ints = temp;
+  public final int find(final int o) {
+    for (int i = 0; i < this.num; ++i) {
+      if (this.ints[i] == o) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public final int removeDuplicates() {
+    int count = 0;
+    for (int i = 0; i < this.num; ++i) {
+      for (int j = i + 1; j < this.num; ++j) {
+        if (this.ints[j] == this.ints[i]) {
+          this.removeIndex(j);
+          --j;
+          ++count;
         }
-        ints[num] = o;
-        ++num;
+      }
     }
+    return count;
+  }
 
-    public final void removeIndex(final int i) {
-        if (i < num) {
-            --num;
-            ints[i] = ints[num];
-        } else {
-            throw new IllegalArgumentException("Index " + i + " should within " + num + "!");
-        }
-    }
+  public final int size() {
+    return this.num;
+  }
 
-    public final int get(final int i) {
-        if (i < num) {
-            return ints[i];
-        } else {
-            throw new IllegalArgumentException("Index " + i + " should within " + num + "!");
-        }
+  public final IntList size(final int size) {
+    if (this.ints.length <= size) {
+      final int[] temp = new int[size];
+      System.arraycopy(this.ints, 0, temp, 0, this.num);
+      this.ints = temp;
+      this.num = size;
     }
+    this.num = size;
+    return this;
+  }
 
-    public final int getLast() {
-        if (num > 0) {
-            return ints[num - 1];
-        } else {
-            throw new IllegalArgumentException("List is empty!");
-        }
-    }
-
-    public final void set(final int i, final int o) {
-        if (i < num) {
-            ints[i] = o;
-        } else {
-            throw new IllegalArgumentException("Index " + i + " should within " + num + "!");
-        }
-    }
-
-    public final int find(final int o) {
-        for (int i = 0; i < num; ++i) {
-            if (ints[i] == o)
-                return i;
-        }
-        return -1;
-    }
-
-    public final int removeDuplicates() {
-        int count = 0;
-        for (int i = 0; i < num; ++i) {
-            for (int j = i + 1; j < num; ++j) {
-                if (ints[j] == ints[i]) {
-                    removeIndex(j);
-                    --j;
-                    ++count;
-                }
-            }
-        }
-        return count;
-    }
-
-    public final int size() {
-        return num;
-    }
-
-    public final IntList size(final int size) {
-        if (ints.length <= size) {
-            int[] temp = new int[size];
-            System.arraycopy(ints, 0, temp, 0, num);
-            ints = temp;
-            num = size;
-        }
-        num = size;
-        return this;
-    }
-
-    public final void clear() {
-        num = 0;
-    }
+  public final void clear() {
+    this.num = 0;
+  }
 }

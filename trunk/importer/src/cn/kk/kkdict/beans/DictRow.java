@@ -25,55 +25,54 @@ import java.util.Map;
 import java.util.Set;
 
 public class DictRow {
-    private static final Map<String, String> EMPTY_TREE_MAP = Collections
-            .unmodifiableMap(new FormattedTreeMap<String, String>());
-    private static final Set<String> EMPTY_TREE_SET = Collections.unmodifiableSet(new FormattedTreeSet<String>());
-    private String name;
-    private String pronounciation;
-    private Set<String> categories;
-    private Map<String, String> translations;
+  private static final Map<String, String> EMPTY_TREE_MAP = Collections.unmodifiableMap(new FormattedTreeMap<String, String>());
+  private static final Set<String>         EMPTY_TREE_SET = Collections.unmodifiableSet(new FormattedTreeSet<String>());
+  private String                           name;
+  private String                           pronounciation;
+  private Set<String>                      categories;
+  private Map<String, String>              translations;
 
-    public DictRow() {
-        this.categories = EMPTY_TREE_SET;
-        this.translations = EMPTY_TREE_MAP;
-    }
+  public DictRow() {
+    this.categories = DictRow.EMPTY_TREE_SET;
+    this.translations = DictRow.EMPTY_TREE_MAP;
+  }
 
-    public DictRow(String name, Set<String> categories, Map<String, String> translations) {
-        super();
-        this.name = name;
-        this.categories = categories;
-        this.translations = translations;
-    }
+  public DictRow(final String name, final Set<String> categories, final Map<String, String> translations) {
+    super();
+    this.name = name;
+    this.categories = categories;
+    this.translations = translations;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(final String name) {
+    this.name = name;
+  }
 
-    public Set<String> getCategories() {
-        return categories;
-    }
+  public Set<String> getCategories() {
+    return this.categories;
+  }
 
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
+  public void setCategories(final Set<String> categories) {
+    this.categories = categories;
+  }
 
-    public Map<String, String> getTranslations() {
-        return translations;
-    }
+  public Map<String, String> getTranslations() {
+    return this.translations;
+  }
 
-    public void setTranslations(Map<String, String> translations) {
-        this.translations = translations;
-    }
+  public void setTranslations(final Map<String, String> translations) {
+    this.translations = translations;
+  }
 
-    public String getPronounciation() {
-        return pronounciation;
-    }
+  public String getPronounciation() {
+    return this.pronounciation;
+  }
 
-    public void setPronounciation(String pronounciation) {
-        this.pronounciation = pronounciation;
-    }
+  public void setPronounciation(final String pronounciation) {
+    this.pronounciation = pronounciation;
+  }
 }

@@ -23,10 +23,10 @@ package cn.kk.kkdict.types;
 import cn.kk.kkdict.utils.Helper;
 
 public enum Abstract {
-    ;
-    public static final int MIN_ABSTRACT_CHARS = 255;
-    public static final int MAX_ABSTRACT_CHARS = 1024;
+  ;
+  public static final int    MIN_ABSTRACT_CHARS = 255;
+  public static final int    MAX_ABSTRACT_CHARS = 1024;
 
-    public static final String TYPE_ID = "概";
-    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
+  public static final String TYPE_ID            = "概";
+  public static final byte[] TYPE_ID_BYTES      = Abstract.TYPE_ID.getBytes(Helper.CHARSET_UTF8);
 }

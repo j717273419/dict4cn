@@ -26,60 +26,59 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class LongestLineFinder {
-    private static final boolean DEBUG = false;
-    private double showQuantile = 1;
-    private int lines = 1;
-    private String file;
+  private static final boolean DEBUG        = false;
+  private double               showQuantile = 1;
+  private int                  lines        = 1;
+  private final String         file;
 
-    public LongestLineFinder(String file) {
-        this(1, 1, file);
+  public LongestLineFinder(final String file) {
+    this(1, 1, file);
+  }
+
+  public LongestLineFinder(final double showQuantile, final int lines, final String file) {
+    super();
+    this.showQuantile = showQuantile;
+    this.lines = lines;
+    this.file = file;
+  }
+
+  public static void main(final String[] args) throws IOException {
+    final LongestLineFinder finder = new LongestLineFinder("O:\\kkdict\\out\\dicts\\wiki\\output-dict_categories-merged_mrg-tmp.wiki");
+    System.out.println(finder.find());
+  }
+
+  public String find() throws IOException {
+    String l = null;
+    int max = 0;
+    try (BufferedReader reader = new BufferedReader(new FileReader(this.file));) {
+      while ((l = reader.readLine()) != null) {
+        max = Math.max(l.length(), max);
+      }
+      if (LongestLineFinder.DEBUG) {
+        System.out.println("找到最长行：" + max + "字符");
+      }
     }
 
-    public LongestLineFinder(double showQuantile, int lines, String file) {
-        super();
-        this.showQuantile = showQuantile;
-        this.lines = lines;
-        this.file = file;
-    }
-
-    public static void main(String[] args) throws IOException {
-        LongestLineFinder finder = new LongestLineFinder(
-                "O:\\kkdict\\out\\dicts\\wiki\\output-dict_categories-merged_mrg-tmp.wiki");
-        System.out.println(finder.find());
-    }
-
-    public String find() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String l = null;
-        int max = 0;
-        while ((l = reader.readLine()) != null) {
-            max = Math.max(l.length(), max);
+    String result = null;
+    try (BufferedReader reader = new BufferedReader(new FileReader(this.file));) {
+      int i = 0;
+      while ((l = reader.readLine()) != null) {
+        if (l.length() == max) {
+          result = l;
         }
-        if (DEBUG) {
-            System.out.println("找到最长行：" + max + "字符");
-        }
-        reader.close();
-
-        reader = new BufferedReader(new FileReader(file));
-        int i = 0;
-        String result = null;
-        while ((l = reader.readLine()) != null) {
-            if (l.length() == max) {
-                result = l;
+        if (LongestLineFinder.DEBUG) {
+          if (l.length() >= (max * this.showQuantile)) {
+            if (i++ < this.lines) {
+              System.out.println(l.length() + "字符：" + l);
+            } else {
+              break;
             }
-            if (DEBUG) {
-                if (l.length() >= max * showQuantile) {
-                    if (i++ < lines) {
-                        System.out.println(l.length() + "字符：" + l);
-                    } else {
-                        break;
-                    }
-                }
-            } else if (result != null) {
-                break;
-            }
+          }
+        } else if (result != null) {
+          break;
         }
-        reader.close();
-        return result;
+      }
     }
+    return result;
+  }
 }

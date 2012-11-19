@@ -23,15 +23,13 @@ package cn.kk.kkdict.types;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import cn.kk.kkdict.utils.Helper;
 
-public enum Language
-{
+public enum Language {
   AA("aa", LanguageFamily.NONE),
   AAK("aak", LanguageFamily.NONE),
   AAO("aao", LanguageFamily.ARABIC),
@@ -743,65 +741,51 @@ public enum Language
   ZWA("zwa", LanguageFamily.NONE),
   ZZA("zza", LanguageFamily.NONE), ;
 
-  public static final String TYPE_ID = "语";
+  public static final String                 TYPE_ID = "语";
 
-  public final int id;
+  public final int                           id;
 
-  public final String key;
+  public final String                        key;
 
-  public final byte[] keyBytes;
+  public final byte[]                        keyBytes;
 
-  public final LanguageFamily family;
+  public final LanguageFamily                family;
 
   private static final Map<String, Language> KEYS_MAP;
-  static
-  {
+  static {
     Language[] values = Language.values();
-    KEYS_MAP = new TreeMap<String, Language>();
-    for (Language c : values)
-    {
-      KEYS_MAP.put(c.key, c);
+    KEYS_MAP = new TreeMap<>();
+    for (Language c : values) {
+      Language.KEYS_MAP.put(c.key, c);
     }
   }
 
-
-  public static final Language fromKey(final String key)
-  {
-    return KEYS_MAP.get(key);
+  public static final Language fromKey(final String key) {
+    return Language.KEYS_MAP.get(key);
   }
 
-
-  Language(final String key, final LanguageFamily family)
-  {
+  Language(final String key, final LanguageFamily family) {
     this(key, family, -1);
   }
 
-
-  Language(final String key, final LanguageFamily family, final int id)
-  {
+  Language(final String key, final LanguageFamily family, final int id) {
     this.id = id;
     this.key = key;
     this.family = family;
     this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
   }
 
-
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
     List<Language> lngs = Arrays.asList(Language.values());
-    Collections.sort(lngs, new Comparator<Language>()
-    {
+    Collections.sort(lngs, new Comparator<Language>() {
       @Override
-      public int compare(Language o1, Language o2)
-      {
+      public int compare(Language o1, Language o2) {
         return o1.id - o2.id;
       }
     });
 
-    for (Language lng : lngs)
-    {
-      if (lng.id > 0)
-      {
+    for (Language lng : lngs) {
+      if (lng.id > 0) {
         System.out.println(lng.id + "=" + lng.key);
       }
     }

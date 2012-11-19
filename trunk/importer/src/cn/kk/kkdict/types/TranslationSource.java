@@ -28,8 +28,7 @@ import java.util.StringTokenizer;
 
 import cn.kk.kkdict.utils.Helper;
 
-public enum TranslationSource
-{
+public enum TranslationSource {
   USER_INPUT("usr", 1),
   EDICT_JA_EN("edict_je", 4),
   EDICT_ZH_DE("edict_hande", 4),
@@ -501,41 +500,33 @@ public enum TranslationSource
   WIKT_ZH("wikt_zh", 3),
   WIKT_ZH_MIN_NAN("wikt_zh_min_nan", 3),
   WIKT_ZU("wikt_zu", 3), ;
-  public static final String TYPE_ID = "源";
+  public static final String TYPE_ID       = "源";
 
-  public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
+  public static final byte[] TYPE_ID_BYTES = TranslationSource.TYPE_ID.getBytes(Helper.CHARSET_UTF8);
 
-  public final int id;
+  public final int           id;
 
-  public final String key;
+  public final String        key;
 
-  public final byte[] keyBytes;
+  public final byte[]        keyBytes;
 
-
-  TranslationSource(final String key, final int id)
-  {
+  TranslationSource(final String key, final int id) {
     this.id = id;
     this.key = key;
     this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
   }
 
-
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
     List<TranslationSource> srcs = Arrays.asList(TranslationSource.values());
-    Collections.sort(srcs, new Comparator<TranslationSource>()
-    {
+    Collections.sort(srcs, new Comparator<TranslationSource>() {
       @Override
-      public int compare(TranslationSource o1, TranslationSource o2)
-      {
+      public int compare(TranslationSource o1, TranslationSource o2) {
         return o1.id - o2.id;
       }
     });
     int lastId = -1;
-    for (TranslationSource src : srcs)
-    {
-      if (lastId != src.id)
-      {
+    for (TranslationSource src : srcs) {
+      if (lastId != src.id) {
         lastId = src.id;
         System.out.println(src.id + "=" + new StringTokenizer(src.key, "_").nextToken());
       }

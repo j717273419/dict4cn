@@ -23,8 +23,8 @@ package cn.kk.kkdict.types;
 import cn.kk.kkdict.utils.Helper;
 
 public enum Antonym {
-    ;
+  ;
 
-    public static final String TYPE_ID = "反";
-    public static final byte[] TYPE_ID_BYTES = TYPE_ID.getBytes(Helper.CHARSET_UTF8);
+  public static final String TYPE_ID       = "反";
+  public static final byte[] TYPE_ID_BYTES = Antonym.TYPE_ID.getBytes(Helper.CHARSET_UTF8);
 }

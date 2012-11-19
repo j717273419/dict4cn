@@ -34,29 +34,29 @@ import cn.kk.kkdict.utils.ArrayHelper;
  * 显示词典文件
  */
 public class DictReader {
-    // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
-    // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";
-    public static final String IN_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_WIKIPEDIA,
-            "output-dict.wiki_ak");
+  // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_de.handedict_u8";
+  // public static final String IN_FILE = "O:\\handedict\\output-dict_zh_en.cedict_u8";
+  public static final String IN_FILE = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getFile(Source.DICT_WIKIPEDIA, "output-dict.wiki_ak");
 
-    /**
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(IN_FILE));
-        ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
+  /**
+   * @param args
+   * @throws IOException
+   */
+  public static void main(final String[] args) throws IOException {
+    try (final BufferedInputStream in = new BufferedInputStream(new FileInputStream(DictReader.IN_FILE));) {
+      final ByteBuffer bb = ArrayHelper.borrowByteBufferLarge();
 
-        DictByteBufferRow row = new DictByteBufferRow();
-        while (-1 != ArrayHelper.readLine(in, bb)) {
-            row.parseFrom(bb);
+      final DictByteBufferRow row = new DictByteBufferRow();
+      while (-1 != ArrayHelper.readLine(in, bb)) {
+        row.parseFrom(bb);
 
-            for (int defIdx = 0; defIdx < row.size(); defIdx++) {
-                System.out.println(row.toString(defIdx));
-            }
-
-            System.out.println();
+        for (int defIdx = 0; defIdx < row.size(); defIdx++) {
+          System.out.println(row.toString(defIdx));
         }
+
+        System.out.println();
+      }
     }
+  }
 
 }

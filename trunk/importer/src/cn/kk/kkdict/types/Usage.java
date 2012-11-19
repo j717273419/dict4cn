@@ -21,36 +21,35 @@
 package cn.kk.kkdict.types;
 
 public enum Usage {
-	// Indication of Usage
-	CHILDRENS("童"),
-	COLLOQUIAL("口"),
-	DIMINUTIVE("压"),
-	ELEVATED("夸"),
-	DATED("古"),
-	FAMILIAR("俗"),
-	FIGURATIVE("谚"),
-	METAPHORICAL("转"),
-	FORMAL("书"),
-	HUMOROUS("谑"),
-	OBSOLETE("过"),
-	HUMBLE("谦"),
-	PEJORATIVE("贬"),
-	POETIC("诗"),
-	RARE("罕"),
-	JUDICIAL("咒"),
-	DIALECT("方"),
-	VULGAR("粗"),
-	POLITE("友"),
-	SLANG("俚"),
-	RESPECTFUL("敬"),
-	TABOO("禁"),
-	;
-	public static final String	TYPE_ID	= "用";
+  // Indication of Usage
+  CHILDRENS("童"),
+  COLLOQUIAL("口"),
+  DIMINUTIVE("压"),
+  ELEVATED("夸"),
+  DATED("古"),
+  FAMILIAR("俗"),
+  FIGURATIVE("谚"),
+  METAPHORICAL("转"),
+  FORMAL("书"),
+  HUMOROUS("谑"),
+  OBSOLETE("过"),
+  HUMBLE("谦"),
+  PEJORATIVE("贬"),
+  POETIC("诗"),
+  RARE("罕"),
+  JUDICIAL("咒"),
+  DIALECT("方"),
+  VULGAR("粗"),
+  POLITE("友"),
+  SLANG("俚"),
+  RESPECTFUL("敬"),
+  TABOO("禁"), ;
+  public static final String TYPE_ID = "用";
 
-	public final String					key;
+  public final String        key;
 
-	Usage(String key) {
-		this.key = key;
-	}
+  Usage(final String key) {
+    this.key = key;
+  }
 
 }

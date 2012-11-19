@@ -23,67 +23,71 @@ package cn.kk.kkdict.beans;
 import java.util.Arrays;
 
 public class IndexedByteArray implements Comparable<IndexedByteArray> {
-    private byte[] data;
-    private int idx;
-    private int weight;
+  private byte[] data;
+  private int    idx;
+  private int    weight;
 
-    public IndexedByteArray() {
-    }
+  public IndexedByteArray() {
+  }
 
-    public IndexedByteArray(int idx, byte[] data) {
-        this.idx = idx;
-        this.data = data;
-    }
+  public IndexedByteArray(final int idx, final byte[] data) {
+    this.idx = idx;
+    this.data = data;
+  }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Arrays.hashCode(data);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = (prime * result) + Arrays.hashCode(this.data);
+    return result;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        IndexedByteArray other = (IndexedByteArray) obj;
-        if (!Arrays.equals(data, other.data))
-            return false;
-        return true;
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
     }
+    if (obj == null) {
+      return false;
+    }
+    if (this.getClass() != obj.getClass()) {
+      return false;
+    }
+    final IndexedByteArray other = (IndexedByteArray) obj;
+    if (!Arrays.equals(this.data, other.data)) {
+      return false;
+    }
+    return true;
+  }
 
-    @Override
-    public int compareTo(IndexedByteArray o) {
-        return Arrays.hashCode(data) - Arrays.hashCode(o.data);
-    }
+  @Override
+  public int compareTo(final IndexedByteArray o) {
+    return Arrays.hashCode(this.data) - Arrays.hashCode(o.data);
+  }
 
-    public byte[] getData() {
-        return data;
-    }
+  public byte[] getData() {
+    return this.data;
+  }
 
-    public IndexedByteArray setData(byte[] data) {
-        this.data = data;
-        return this;
-    }
+  public IndexedByteArray setData(final byte[] data) {
+    this.data = data;
+    return this;
+  }
 
-    public int getIdx() {
-        return idx;
-    }
+  public int getIdx() {
+    return this.idx;
+  }
 
-    public void setIdx(int idx) {
-        this.idx = idx;
-    }
+  public void setIdx(final int idx) {
+    this.idx = idx;
+  }
 
-    public int getWeight() {
-        return weight;
-    }
+  public int getWeight() {
+    return this.weight;
+  }
 
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
+  public void setWeight(final int weight) {
+    this.weight = weight;
+  }
 }
