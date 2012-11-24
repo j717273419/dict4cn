@@ -71,7 +71,7 @@ public class WikipediaDumpPagesMetaCurrentXmlDownloader {
                 successCounter.incrementAndGet();
               }
             } else {
-              System.out.println("跳过：" + url + "，文件已存在。");
+              System.out.println("跳过：" + file + " （" + url + "）。文件已存在。");
             }
           } catch (final Throwable e) {
             System.err.println("下载'" + url + "'失败：" + e.toString());

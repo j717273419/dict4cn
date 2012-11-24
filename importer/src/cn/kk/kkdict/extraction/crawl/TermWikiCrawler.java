@@ -55,8 +55,7 @@ import cn.kk.kkdict.utils.Helper;
 public class TermWikiCrawler {
   private static final String                KEY_ABSTRACT_START     = "field=\"Definition\"";
   public static final String                 IN_DIR                 = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_TERMWIKI);
-  public static final String                 IN_STATUS              = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getFile(Source.WORD_TERMWIKI,
-                                                                        "termwiki_extractor_status.txt");
+  public static final String                 IN_STATUS_SUFFIX       = "_status.txt";
   public static final String                 OUT_DIR                = Configuration.IMPORTER_FOLDER_EXTRACTED_CRAWLED.getPath(Source.WORD_TERMWIKI);
   public static final String                 OUT_DIR_FINISHED       = TermWikiCrawler.OUT_DIR + "/finished";
   private static final String                URL_TERMWIKI           = "http://en.termwiki.com";
@@ -247,7 +246,8 @@ public class TermWikiCrawler {
       long total = 0;
       for (final File f : files) {
         final long start = System.currentTimeMillis();
-        final int skipLines = (int) Helper.readStatsFile(TermWikiCrawler.IN_STATUS);
+        final String statusFile = f.getAbsolutePath() + TermWikiCrawler.IN_STATUS_SUFFIX;
+        final int skipLines = (int) Helper.readStatsFile(statusFile);
         System.out.print("分析'" + f + " [" + skipLines + "] ... ");
         final File outFile = new File(TermWikiCrawler.OUT_DIR, f.getName());
         final File outFileDescription = new File(TermWikiCrawler.OUT_DIR, Helper.appendFileName(f.getName(), TermWikiCrawler.SUFFIX_DESCRIPTION));
@@ -277,12 +277,12 @@ public class TermWikiCrawler {
           boolean success = false;
           while ((retries++ < 5) && !success) {
             try {
-              counter = this.crawl(f, out, outDesc, outSyms, outRelsJson, outRelsSeeAlso, skipLines);
+              counter = this.crawl(f, statusFile, out, outDesc, outSyms, outRelsJson, outRelsSeeAlso, skipLines);
               success = true;
             } catch (final Throwable e) {
               e.printStackTrace();
               try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(10 * 1000 * retries);
               } catch (final InterruptedException e1) {
                 // ignore
               }
@@ -292,7 +292,9 @@ public class TermWikiCrawler {
         System.out.println(counter + "，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
         total += counter;
         f.renameTo(new File(TermWikiCrawler.OUT_DIR_FINISHED, f.getName()));
-        Helper.writeStatsFile(TermWikiCrawler.IN_STATUS, 0L);
+        Helper.writeStatsFile(statusFile, 0L);
+        // single file
+        break;
       }
 
       System.out.println("\n=====================================");
@@ -308,8 +310,8 @@ public class TermWikiCrawler {
     PARSE_DEFINITION_FULL
   }
 
-  private int crawl(final File f, final BufferedOutputStream out, final BufferedOutputStream outDesc, final BufferedOutputStream outSyms,
-      final BufferedOutputStream outRels, final BufferedOutputStream outRelsSeeAlso, int skipLines) throws IOException {
+  private int crawl(final File f, final String statusFile, final BufferedOutputStream out, final BufferedOutputStream outDesc,
+      final BufferedOutputStream outSyms, final BufferedOutputStream outRels, final BufferedOutputStream outRelsSeeAlso, int skipLines) throws IOException {
     if (skipLines < 0) {
       skipLines = 0;
     }
@@ -323,7 +325,8 @@ public class TermWikiCrawler {
         row.parseFrom(lineBB);
         if (row.size() == 1) {
           try {
-            final Language lng = Language.fromKey(ArrayHelper.toStringP(row.getLanguage(0)));
+            ByteBuffer language = row.getLanguage(0);
+            final Language lng = Language.fromKey(ArrayHelper.toStringP(language));
             final String name = ArrayHelper.toStringP(row.getValue(0, 0));
             final byte[] nameBytes = ArrayHelper.toBytesP(row.getValue(0, 0));
             path = ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, UriLocation.TYPE_ID_BYTES));
@@ -331,6 +334,8 @@ public class TermWikiCrawler {
             final Category cat = Category.fromKey(ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, Category.TYPE_ID_BYTES)));
             if (TermWikiCrawler.DEBUG) {
               System.out.println("语言：" + lng.key + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
+            } else {
+              System.out.print(".");
             }
             this.clear();
             final Map<String, String> params = this.parseMainHtml(outDesc, outSyms, outRelsSeeAlso, lng, nameBytes, path);
@@ -358,13 +363,18 @@ public class TermWikiCrawler {
             // http: //
             // en.termwiki.com/api.php?action=twsearch&search=additifs&namespace=FR&source=additives+%E2%82%83&limit=50
             count++;
-            if ((count > 0) && ((count % 100) == 0)) {
+            if ((count > 0) && ((count % 10) == 0)) {
               out.flush();
               outDesc.flush();
               outRels.flush();
               outRelsSeeAlso.flush();
               outSyms.flush();
-              Helper.writeStatsFile(TermWikiCrawler.IN_STATUS, count);
+              Helper.writeStatsFile(statusFile, count);
+              try {
+                Thread.sleep(10 * 1000);
+              } catch (final InterruptedException e1) {
+                // ignore
+              }
             }
           } catch (final Exception e) {
             e.printStackTrace();

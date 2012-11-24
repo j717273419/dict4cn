@@ -111,11 +111,11 @@ public class DictFilesMergedSorter extends WordFilesMergedSorter {
 
     if (startIdx < endIdx) {
       for (int j = startIdx + 1; j <= endIdx; j++) {
-        System.out.println(j + "前: " + ArrayHelper.toStringP(mergeBB));
+        // System.out.println(j + "前: " + ArrayHelper.toStringP(mergeBB));
         this.otherRow.parseFrom(this.getPosBuffer(sortedPosArray, j));
         this.mainRow.parseFrom(mergeBB, true);
         DictHelper.mergeDefinitionsAndAttributes(this.mainRow, this.otherRow, mergeBB);
-        System.out.println(j + "后: " + ArrayHelper.toStringP(mergeBB));
+        // System.out.println(j + "后: " + ArrayHelper.toStringP(mergeBB));
       }
     }
     if (WordFilesMergedSorter.DEBUG) {

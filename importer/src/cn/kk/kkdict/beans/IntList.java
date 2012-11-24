@@ -87,7 +87,8 @@ public class IntList {
     if (i < this.num) {
       this.ints[i] = o;
     } else {
-      throw new IllegalArgumentException("Index " + i + " should within " + this.num + "!");
+      this.size(i + 10);
+      this.ints[i] = o;
     }
   }
 

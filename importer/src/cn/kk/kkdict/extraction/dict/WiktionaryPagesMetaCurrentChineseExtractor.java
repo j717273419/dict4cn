@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import cn.kk.kkdict.Configuration;
@@ -185,7 +184,7 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
       case ABBR:
         result = this.languageNames.findKey(this.tmpBB);
         if (result == null) {
-          System.err.println(ArrayHelper.toString(this.tmpBB));
+          // System.err.println(ArrayHelper.toString(this.tmpBB));
         }
         return result;
       default:
@@ -319,32 +318,33 @@ public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBas
     this.categoriesNames = LanguageConstants.createByteArrayPairs(LanguageConstants.getLngProperties("cat2lng_" + this.fileLng + ".txt"));
   }
 
-  @Override
-  protected void writeDefinition() throws IOException {
-    if (this.sourceLng == null) {
-      // read source lng from category
-      byte[] tmp;
-      for (final byte[] c : this.categories) {
-        if ((tmp = this.categoriesNames.findKey(c)) != null) {
-          if (this.sourceLng == null) {
-            this.sourceLng = tmp;
-          } else if (!Arrays.equals(this.sourceLng, tmp)) {
-            System.err.println("找到多种语言：" + ArrayHelper.toString(this.nameBB));
-            this.sourceLng = null;
-            break;
-          }
-        }
-      }
-    }
-    // if (DEBUG) {
-    if (this.isValid()) {
-      final String n = ArrayHelper.toString(this.nameBB);
-      if (!ChineseHelper.containsChinese(n) && (this.sourceLng == null)) {
-        System.err.println("=> 没找到源语言：" + n);
-      }
-    }
-    // }
-  }
+  //
+  // @Override
+  // protected void writeDefinition() throws IOException {
+  // if (this.sourceLng == null) {
+  // // read source lng from category
+  // byte[] tmp;
+  // for (final byte[] c : this.categories) {
+  // if ((tmp = this.categoriesNames.findKey(c)) != null) {
+  // if (this.sourceLng == null) {
+  // this.sourceLng = tmp;
+  // } else if (!Arrays.equals(this.sourceLng, tmp)) {
+  // System.err.println("找到多种语言：" + ArrayHelper.toString(this.nameBB));
+  // this.sourceLng = null;
+  // break;
+  // }
+  // }
+  // }
+  // }
+  // // if (DEBUG) {
+  // if (this.isValid()) {
+  // final String n = ArrayHelper.toString(this.nameBB);
+  // if (!ChineseHelper.containsChinese(n) && (this.sourceLng == null)) {
+  // // System.err.println("=> 没找到源语言：" + n);
+  // }
+  // }
+  // // }
+  // }
 
   public static enum ParserResult {
     NO_RESULT,

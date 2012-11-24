@@ -152,7 +152,8 @@ public class DictByteBufferRow {
   }
 
   public final int indexOfValue(final int defIdx, final ByteBuffer valBB) {
-    for (int valIdx = 0; valIdx < this.size; valIdx++) {
+    int valSize = this.valuesSize.get(defIdx);
+    for (int valIdx = 0; valIdx < valSize; valIdx++) {
       this.getValue(defIdx, valIdx);
       if (this.bb.hasRemaining() && ArrayHelper.equalsP(this.bb, valBB)) {
         return valIdx;
@@ -309,8 +310,14 @@ public class DictByteBufferRow {
 
   public final ByteBuffer getLanguage(final int defIdx) {
     if (defIdx < this.size) {
-      this.bb.limit(this.lngStopIdx.get(defIdx));
-      this.bb.position(this.lngStartIdx.get(defIdx));
+      int stop = this.lngStopIdx.get(defIdx);
+      int pos = this.lngStartIdx.get(defIdx);
+      if ((pos >= 0) && (stop > 0) && (stop < this.bb.capacity()) && (pos < stop)) {
+        this.bb.limit(stop);
+        this.bb.position(pos);
+      } else {
+        this.bb.limit(0);
+      }
     } else {
       this.bb.limit(0);
     }
@@ -329,11 +336,13 @@ public class DictByteBufferRow {
   }
 
   public final ByteBuffer getValue(final int defIdx, final int valIdx) {
-    if (defIdx < this.size) {
+    if ((defIdx < this.size) && (valIdx < this.valuesSize.get(defIdx))) {
       // System.out.println("start: " + valueStartIdx.get(i) + ", stop:" +
       // valueStopIdx.get(i));
-      this.bb.limit(this.valueStopIdx.get(defIdx).get(valIdx));
-      this.bb.position(this.valueStartIdx.get(defIdx).get(valIdx));
+      IntList valStops = this.valueStopIdx.get(defIdx);
+      this.bb.limit(valStops.get(valIdx));
+      IntList valStarts = this.valueStartIdx.get(defIdx);
+      this.bb.position(valStarts.get(valIdx));
     } else {
       this.bb.limit(0);
     }
@@ -345,7 +354,7 @@ public class DictByteBufferRow {
   }
 
   public final ByteBuffer getValueWithAttributes(final int defIdx, final int valIdx) {
-    if (defIdx < this.size) {
+    if ((defIdx < this.size) && (valIdx < this.valuesSize.get(defIdx))) {
       this.bb.limit(Math.max(this.valueStopIdx.get(defIdx).get(valIdx), this.attrsStopIdx.get(defIdx).get(valIdx)));
       this.bb.position(this.valueStartIdx.get(defIdx).get(valIdx));
     } else {
@@ -359,7 +368,7 @@ public class DictByteBufferRow {
   }
 
   public final boolean hasAttribute(final int defIdx, final int valIdx, final ByteBuffer attrBB) {
-    if (defIdx < this.size) {
+    if ((defIdx < this.size) && (valIdx < this.valuesSize.get(defIdx))) {
       final int asSize = this.getAttributesSize(defIdx, valIdx);
       for (int attrIdx = 0; attrIdx < asSize; attrIdx++) {
         this.getAttribute(defIdx, valIdx, attrIdx);
@@ -376,7 +385,7 @@ public class DictByteBufferRow {
   }
 
   public final boolean hasAttributes(final int defIdx, final int valIdx) {
-    if (defIdx < this.size) {
+    if ((defIdx < this.size) && (valIdx < this.valuesSize.get(defIdx))) {
       if (!this.attrsAnalyzed) {
         this.parseAttributes();
       }
@@ -558,7 +567,7 @@ public class DictByteBufferRow {
     return this;
   }
 
-  private void parseAttributes() {
+  public void parseAttributes() {
     if (!this.attrsAnalyzed) {
       // ensure capacity
       this.attrStartIdx.ensureCapacity(this.size);
@@ -637,11 +646,17 @@ public class DictByteBufferRow {
         if (this.bb.capacity() < rowBB.remaining()) {
           ArrayHelper.giveBack(this.bb);
           this.bb = ArrayHelper.borrowByteBuffer(rowBB.remaining());
+        } else {
+          this.bb.clear();
         }
       } else {
         this.bb = ArrayHelper.borrowByteBuffer(rowBB.remaining());
       }
-      ArrayHelper.copyP(rowBB, this.bb);
+      try {
+        ArrayHelper.copyP(rowBB, this.bb);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       this.copied = true;
     } else {
       if (this.copied) {
@@ -674,6 +689,9 @@ public class DictByteBufferRow {
 
   public DictByteBufferRow sortValues() {
     if (!this.valuesSorted) {
+      if (!this.attrsAnalyzed) {
+        this.parseAttributes();
+      }
       for (int defIdx = 0; defIdx < this.size; defIdx++) {
         final int valSize = this.getValueSize(defIdx);
         // insertion sort
@@ -698,29 +716,36 @@ public class DictByteBufferRow {
   }
 
   private void swapValue(final int defIdx, final int valIdx1, final int valIdx2) {
-    final int start = this.valueStartIdx.get(defIdx).get(valIdx1);
-    final int stop = this.valueStopIdx.get(defIdx).get(valIdx1);
-    final int asStart = this.attrsStartIdx.get(defIdx).get(valIdx1);
-    final int asStop = this.attrsStopIdx.get(defIdx).get(valIdx1);
-    final int asSize = this.attrsSize.get(defIdx).get(valIdx1);
-    final IntList aStart = this.attrStartIdx.get(defIdx).get(valIdx1);
-    final IntList aStop = this.attrStopIdx.get(defIdx).get(valIdx1);
+    IntList defValueStart = this.valueStartIdx.get(defIdx);
+    final int start = defValueStart.get(valIdx1);
+    IntList defValueStop = this.valueStopIdx.get(defIdx);
+    final int stop = defValueStop.get(valIdx1);
+    IntList defAttrsStart = this.attrsStartIdx.get(defIdx);
+    final int asStart = defAttrsStart.get(valIdx1);
+    IntList defAttrsStop = this.attrsStopIdx.get(defIdx);
+    final int asStop = defAttrsStop.get(valIdx1);
+    IntList defAttrsSize = this.attrsSize.get(defIdx);
+    final int asSize = defAttrsSize.get(valIdx1);
+    ArrayList<IntList> defAttrStart = this.attrStartIdx.get(defIdx);
+    final IntList aStart = defAttrStart.get(valIdx1);
+    ArrayList<IntList> defAttrStop = this.attrStopIdx.get(defIdx);
+    final IntList aStop = defAttrStop.get(valIdx1);
 
-    this.valueStartIdx.get(defIdx).set(valIdx1, this.valueStartIdx.get(defIdx).get(valIdx2));
-    this.valueStopIdx.get(defIdx).set(valIdx1, this.valueStopIdx.get(defIdx).get(valIdx2));
-    this.attrsStartIdx.get(defIdx).set(valIdx1, this.attrsStartIdx.get(defIdx).get(valIdx2));
-    this.attrsStopIdx.get(defIdx).set(valIdx1, this.attrsStopIdx.get(defIdx).get(valIdx2));
-    this.attrsSize.get(defIdx).set(valIdx1, this.attrsSize.get(defIdx).get(valIdx2));
-    this.attrStartIdx.get(defIdx).set(valIdx1, this.attrStartIdx.get(defIdx).get(valIdx2));
-    this.attrStopIdx.get(defIdx).set(valIdx1, this.attrStopIdx.get(defIdx).get(valIdx2));
+    defValueStart.set(valIdx1, defValueStart.get(valIdx2));
+    defValueStop.set(valIdx1, defValueStop.get(valIdx2));
+    defAttrsStart.set(valIdx1, defAttrsStart.get(valIdx2));
+    defAttrsStop.set(valIdx1, defAttrsStop.get(valIdx2));
+    defAttrsSize.set(valIdx1, defAttrsSize.get(valIdx2));
+    defAttrStart.set(valIdx1, defAttrStart.get(valIdx2));
+    defAttrStop.set(valIdx1, defAttrStop.get(valIdx2));
 
-    this.valueStartIdx.get(defIdx).set(valIdx2, start);
-    this.valueStopIdx.get(defIdx).set(valIdx2, stop);
-    this.attrsStartIdx.get(defIdx).set(valIdx2, asStart);
-    this.attrsStopIdx.get(defIdx).set(valIdx2, asStop);
-    this.attrsSize.get(defIdx).set(valIdx2, asSize);
-    this.attrStartIdx.get(defIdx).set(valIdx2, aStart);
-    this.attrStopIdx.get(defIdx).set(valIdx2, aStop);
+    defValueStart.set(valIdx2, start);
+    defValueStop.set(valIdx2, stop);
+    defAttrsStart.set(valIdx2, asStart);
+    defAttrsStop.set(valIdx2, asStop);
+    defAttrsSize.set(valIdx2, asSize);
+    defAttrStart.set(valIdx2, aStart);
+    defAttrStop.set(valIdx2, aStop);
   }
 
   public String toString(final int defIdx) {

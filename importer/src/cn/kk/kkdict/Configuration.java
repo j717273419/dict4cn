@@ -58,6 +58,7 @@ public enum Configuration {
     DICT_WIKTIONARY("wiktionary"),
     DICT_LINGOES("lingoes"),
     DICT_EDICT("edict"),
+    DICT_HELPER("helper"),
     DICT_STARDICT("stardict"),
     WORD_BAIDU("baidu"),
     WORD_QQ("qq"),

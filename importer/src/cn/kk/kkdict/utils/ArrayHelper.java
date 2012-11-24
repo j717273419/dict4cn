@@ -165,6 +165,8 @@ public final class ArrayHelper {
   public final static int copyP(final ByteBuffer from, final ByteBuffer to) {
     final int offset1 = from.position();
     final int offset2 = to.position();
+    // TODO check this
+    // final int len = Math.min(to.remaining(), from.limit() - offset1);
     final int len = from.limit() - offset1;
     return ArrayHelper.copy(from, offset1, to, offset2, len);
   }
@@ -366,19 +368,22 @@ public final class ArrayHelper {
   }
 
   public static final ByteBuffer borrowByteBuffer(final int capacity) {
+    final ByteBuffer bb;
     if (capacity >= ArrayHelper.MAX_LINE_BYTES_VERY_LARGE) {
-      return ByteBuffer.allocate(capacity);
+      bb = ByteBuffer.allocate(capacity);
     } else if (capacity >= ArrayHelper.MAX_LINE_BYTES_LARGE) {
-      return ArrayHelper.borrowByteBufferVeryLarge();
+      bb = ArrayHelper.borrowByteBufferVeryLarge();
     } else if (capacity >= ArrayHelper.MAX_LINE_BYTES_MEDIUM) {
-      return ArrayHelper.borrowByteBufferLarge();
+      bb = ArrayHelper.borrowByteBufferLarge();
     } else if (capacity >= ArrayHelper.MAX_LINE_BYTES_NORMAL) {
-      return ArrayHelper.borrowByteBufferMedium();
+      bb = ArrayHelper.borrowByteBufferMedium();
     } else if (capacity >= ArrayHelper.MAX_LINE_BYTES_SMALL) {
-      return ArrayHelper.borrowByteBufferNormal();
+      bb = ArrayHelper.borrowByteBufferNormal();
     } else {
-      return ArrayHelper.borrowByteBufferSmall();
+      bb = ArrayHelper.borrowByteBufferSmall();
     }
+    bb.clear();
+    return bb;
   }
 
   public final static ByteBuffer borrowByteBufferLarge() {
@@ -1014,7 +1019,15 @@ public final class ArrayHelper {
   }
 
   public static String toHexString(final byte[] data) {
-    return ArrayHelper.toHexString(data, 0, data.length);
+    return ArrayHelper.toHexString(data, true);
+  }
+
+  public static String toHexString(final byte[] data, boolean human) {
+    return ArrayHelper.toHexString(data, 0, data.length, human);
+  }
+
+  public static String toHexString(final byte[] data, final int offset, final int len) {
+    return ArrayHelper.toHexString(data, offset, len, true);
   }
 
   /**
@@ -1023,9 +1036,10 @@ public final class ArrayHelper {
    * @param offset
    * @param len
    *          relative
+   * @param human
    * @return
    */
-  public static String toHexString(final byte[] data, final int offset, final int len) {
+  public static String toHexString(final byte[] data, final int offset, final int len, boolean human) {
     final StringBuffer sb = new StringBuffer(len * 2);
     for (int idx = offset; idx < (offset + len); idx++) {
       final byte b = data[idx];
@@ -1033,7 +1047,11 @@ public final class ArrayHelper {
       if (i < 0xf) {
         sb.append('0');
       }
-      sb.append(Integer.toHexString(i)).append(' ');
+      if (human) {
+        sb.append(Integer.toHexString(i)).append(' ');
+      } else {
+        sb.append(Integer.toHexString(i));
+      }
     }
     return sb.toString();
   }
