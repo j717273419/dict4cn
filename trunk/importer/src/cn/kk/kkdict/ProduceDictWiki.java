@@ -23,7 +23,6 @@ package cn.kk.kkdict;
 import cn.kk.kkdict.extraction.dict.WikiPagesMetaCurrentExtractor;
 import cn.kk.kkdict.summarization.WikiDictCategoriesMerger;
 import cn.kk.kkdict.summarization.WikiDictGeoLocationCorrector;
-import cn.kk.kkdict.summarization.WikiDictImageLocationCorrector;
 import cn.kk.kkdict.summarization.WikiDictRelatedCorrector;
 import cn.kk.kkdict.summarization.WikiDictsMerger;
 import cn.kk.kkdict.utils.Helper;
@@ -42,7 +41,7 @@ public class ProduceDictWiki {
     ProduceDictWiki.runJob(WikiPagesMetaCurrentExtractor.class);
     ProduceDictWiki.runJob(WikiDictRelatedCorrector.class);
     ProduceDictWiki.runJob(WikiDictGeoLocationCorrector.class);
-    ProduceDictWiki.runJob(WikiDictImageLocationCorrector.class);
+    // ProduceDictWiki.runJob(WikiDictImageLocationCorrector.class);
     ProduceDictWiki.runJob(WikiDictCategoriesMerger.class);
     ProduceDictWiki.runJob(WikiDictsMerger.class);
 
@@ -54,8 +53,11 @@ public class ProduceDictWiki {
     final long started = System.currentTimeMillis();
 
     System.out.println("Starting " + mainClass.getName() + " ...");
-    mainClass.getMethod("main", String[].class).invoke(mainClass, ProduceDictWiki.DEFAULT_ARGS);
-
+    try {
+      mainClass.getMethod("main", String[].class).invoke(mainClass, ProduceDictWiki.DEFAULT_ARGS);
+    } catch (Exception e) {
+      System.err.println(e);
+    }
     System.out.println(mainClass.getName() + " finished in " + Helper.formatDuration(System.currentTimeMillis() - started) + "\n\n");
   }
 

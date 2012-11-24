@@ -41,7 +41,7 @@ import cn.kk.kkdict.utils.Helper;
  */
 public class SortedDictFilesMerger {
   private static boolean          noticed  = false;
-  private final static boolean    DEBUG    = true;
+  private final static boolean    DEBUG    = false;
   private final String[]          inFiles;
   private final Language          mergeLng;
   public static final String      OUT_FILE = "output-dict_mrg-result.wiki";

@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -416,7 +417,7 @@ public class WikiExtractorBase {
       this.out.close();
     }
     if (this.outSource != null) {
-      this.outRelated.close();
+      this.outSource.close();
     }
     if (this.outAttributes != null) {
       this.outAttributes.close();
@@ -537,6 +538,7 @@ public class WikiExtractorBase {
       if (this.outFileCategories != null) {
         this.catName = this.isCategory();
       }
+      ArrayHelper.copy(this.tmpBB, this.nameBB);
       if (WikiExtractorBase.DEBUG && !this.catName) {
         System.out.println("新词：" + ArrayHelper.toString(this.tmpBB));
         if ("faction".equals(ArrayHelper.toString(this.tmpBB))) {
@@ -649,7 +651,12 @@ public class WikiExtractorBase {
     if (WikiExtractorBase.INFO) {
       System.out.println("< 分析'" + f + "' （" + Helper.formatSpace(new File(f).length()) + "）。。。");
     }
-    this.fileLng = DictHelper.getWikiLanguage(f).key;
+    Language wikiLanguage = DictHelper.getWikiLanguage(f);
+    if (wikiLanguage == null) {
+      System.err.println("没找到语言：" + f);
+      throw new FileNotFoundException(f);
+    }
+    this.fileLng = wikiLanguage.key;
     this.fileLngBytes = this.fileLng.getBytes(Helper.CHARSET_UTF8);
     this.chinese = Language.ZH.key.equalsIgnoreCase(this.fileLng);
     this.translationSource = TranslationSource.valueOf(Helper.toConstantName("wiki_" + this.fileLng));

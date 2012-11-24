@@ -268,11 +268,12 @@ public class BablaCrawler {
           while ((retries++ < 5) && !success) {
             try {
               counter = BablaCrawler.crawl(f, out, outRelated, outExamples, outSynonyms, skipLines);
+
               success = true;
             } catch (final Throwable e) {
               e.printStackTrace();
               try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(10 * 1000 * retries);
               } catch (final InterruptedException e1) {
                 // ignore
               }
@@ -336,6 +337,7 @@ public class BablaCrawler {
             while ((retries++ < 5) && !success) {
               try {
                 BablaCrawler.parseMainHtml(out, outExamples, outRels, outSynonyms, srcLng, tgtLng, nameBytes, path);
+                System.out.print(".");
                 success = true;
               } catch (Exception e) {
                 if (retries > 3) {
@@ -343,14 +345,14 @@ public class BablaCrawler {
                 }
                 System.err.println("错误：" + e.toString());
                 try {
-                  TimeUnit.SECONDS.sleep(10);
+                  TimeUnit.SECONDS.sleep(10 * retries);
                 } catch (InterruptedException e1) {
                   // silent
                 }
               }
             }
             count++;
-            if ((count > 0) && ((count % 100) == 0)) {
+            if ((count > 0) && ((count % 10) == 0)) {
               out.flush();
               outExamples.flush();
               outSynonyms.flush();

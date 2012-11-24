@@ -563,13 +563,16 @@ public class WikiDictGeoLocationCorrector {
   }
 
   private static boolean isChar(final String v) {
-    final char c = v.charAt(0);
-    if ((c == 'n') || (c == 'w') || (c == 's') || (c == 'e') || (c == 'o')) {
-      return true;
+    if (v.length() > 0) {
+      final char c = v.charAt(0);
+      if ((c == 'n') || (c == 'w') || (c == 's') || (c == 'e') || (c == 'o')) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
       return false;
     }
-
   }
 
   private static char getChar(final String v, final char defaultChar) {

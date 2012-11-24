@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import cn.kk.kkdict.utils.Helper;
-
 /**
  * Tries to read Dehelper, Frhelper, Eshelper dic/combined.bin files
  * 
@@ -73,7 +71,7 @@ public class HelperDicBinReader {
 
     final int posWordsIdx = HelperDicBinReader.extractZippedDataStreams(dflFile, outputFileTranslationUnzipped);
     HelperDicBinReader.extractDefinitions(dflFile, outputFileTranslationUnzipped, outputFileFinal, posWordsIdx);
-    System.out.println("完成：" + Helper.formatTime(System.currentTimeMillis()));
+    System.out.println("完成");
   }
 
   private static void extractDefinitions(final File dflFile, final File outputFileTranslationUnzipped, final File outputFileFinal, final int posWordsIdx)
@@ -81,7 +79,7 @@ public class HelperDicBinReader {
     final long lenTrsTotal = outputFileTranslationUnzipped.length();
     System.out.println("词典数据结束位置：0x" + Integer.toHexString(posWordsIdx));
     System.out.println("词典数据解压缩后文件：" + outputFileTranslationUnzipped.getAbsolutePath());
-    System.out.println("词典数据解压缩后大小：" + Helper.formatSpace(lenTrsTotal));
+    System.out.println("词典数据解压缩后大小：" + lenTrsTotal + "B");
 
     final ByteBuffer mappingRawBytes = HelperDicBinReader.readBytes(dflFile.getAbsolutePath());
     mappingRawBytes.order(ByteOrder.LITTLE_ENDIAN);
@@ -116,16 +114,16 @@ public class HelperDicBinReader {
         final int off = idxDefDataStart + idxDefLast;
         final int len = idxDefStart - idxDefLast;
         out.write(mappingRawBytes.array(), off, len);
-        out.write(" = ".getBytes(Helper.CHARSET_UTF8));
+        out.write(" = ".getBytes("UTF-8"));
         out.write(translationRawBytes.array(), (int) idxTrs, lenTrs);
-        out.write(Helper.SEP_NEWLINE_BYTES);
+        out.write('\n');
         idxDefLast = idxDefStart;
         counter++;
       }
     } finally {
       System.out.println("结果文件单词总数：" + counter);
     }
-    System.out.println("结果文件最终大小：" + Helper.formatSpace(outputFileFinal.length()) + "。。。");
+    System.out.println("结果文件最终大小：" + outputFileFinal.length() + "B 。。。");
   }
 
   private static int extractZippedDataStreams(final File dflFile, final File outputFileFinal) throws FileNotFoundException, IOException {

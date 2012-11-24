@@ -349,8 +349,8 @@ public final class Helper {
         final HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
         conn.setDefaultUseCaches(false);
         conn.setUseCaches(false);
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(30000);
+        conn.setConnectTimeout(30000);
+        conn.setReadTimeout(60000);
 
         if (post) {
           conn.setRequestMethod("POST");
@@ -878,7 +878,7 @@ public final class Helper {
         final int nextIdx = i + 1;
         int semiColonIdx = str.indexOf(';', nextIdx);
         if (semiColonIdx == -1) {
-          while (Helper.isNumber(str.charAt(i + 1))) {
+          while (((i + 1) < len) && Helper.isNumber(str.charAt(i + 1))) {
             i++;
           }
           semiColonIdx = i + 1;

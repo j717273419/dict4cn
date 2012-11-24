@@ -80,11 +80,17 @@ public class PinyinIndexGenerator {
     }
 
     try (final BufferedWriter writer = new BufferedWriter(new FileWriter(PinyinIndexGenerator.OUT_FILE), Helper.BUFFER_SIZE);) {
+      int i = 1;
       for (final ListStat s : combinations) {
         writer.write(s.getCounter());
         writer.write(Helper.SEP_PARTS);
         writer.write(s.getValues().toString());
         writer.write(Helper.SEP_NEWLINE);
+
+        for (String str : s.getValues()) {
+          System.out.println("{ \"" + str + "\".toCharArray(), new char[] { " + i + " } },");
+        }
+        i++;
       }
     }
 

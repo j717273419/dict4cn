@@ -40,19 +40,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.FormattedTreeMap;
-import cn.kk.kkdict.types.Category;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.TranslationSource;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ArrayHelper.SensitiveStringDecoder;
-import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class LingoesLd2Extractor {
@@ -83,6 +80,7 @@ public class LingoesLd2Extractor {
       for (final File f : files) {
         final long start = System.currentTimeMillis();
         System.out.print("分析'" + f + " ... ");
+
         final int counter = LingoesLd2Extractor.extractLd2ToFile(f);
 
         System.out.println(counter + "，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
@@ -172,12 +170,9 @@ public class LingoesLd2Extractor {
     final boolean lng2Chinese = Language.ZH.key.equalsIgnoreCase(lng2);
     final Map<String, String> languages = new FormattedTreeMap<String, String>();
     final String cats = categories.toString();
-    final String sourceString = Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + TranslationSource.LINGOES_LD2.key;
+    final String sourceString = ""; // Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + TranslationSource.LINGOES_LD2.key;
     for (int i = 0; i < defTotal; i++) {
       LingoesLd2Extractor.readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, encodings[0], encodings[1], idxData, defData, i);
-
-      defData[0] = defData[0].trim();
-      defData[1] = defData[1].trim();
 
       if (defData[0].isEmpty() || defData[1].isEmpty()) {
         failCounter++;
@@ -186,26 +181,31 @@ public class LingoesLd2Extractor {
         System.err.println("??");
         System.err.println(defData[0] + " = " + defData[1]);
       }
-      if (lng1Chinese) {
-        defData[0] = ChineseHelper.toSimplifiedChinese(defData[0]);
-      }
-      if (lng2Chinese) {
-        defData[1] = ChineseHelper.toSimplifiedChinese(defData[1]);
-      }
-      defData[1] = defData[1].replaceAll("([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*.[ ]*)", Helper.SEP_SAME_MEANING);
+      // if (lng1Chinese) {
+      // defData[0] = ChineseHelper.toSimplifiedChinese(defData[0]);
+      // }
+      // if (lng2Chinese) {
+      // defData[1] = ChineseHelper.toSimplifiedChinese(defData[1]);
+      // }
+      String v = defData[1];
 
-      if (cats.isEmpty()) {
-        languages.put(lng1, defData[0] + sourceString);
-        languages.put(lng2, defData[1] + sourceString);
-      } else {
+      v = v.replaceAll("(\\(.+?\\))|( \\.\\.)|( +- +)|[①②③④⑤⑥⑦⑧⑨⑩⑾]|(1\\. )|(2\\. )|(3\\. )|(4\\. )|(,*\\s+$)", "");
+      v = v.replaceAll("(<BR>)|(<br />)|([,;；，。])", ", ");
+      v = Helper.unescapeHtml(v);
+      v = Helper.stripHtmlText(v, true);
+      v = v.replaceAll("\\s+,\\s+", ", ").replaceAll("(, *)+", ", ").replaceAll("\\s+", " ").replace(" <", "<");
+
+      if (!cats.isEmpty()) {
         // TODO
-        languages.put(lng1, defData[0] + sourceString + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
-        languages.put(lng2, defData[1] + sourceString + Helper.SEP_ATTRIBUTE + Category.TYPE_ID);
       }
 
-      outputWriter.write(languages.toString());
+      outputWriter.write(lng1);
       outputWriter.write(Helper.SEP_DEFINITION);
-      outputWriter.write(cats);
+      outputWriter.write(defData[0].trim());
+      outputWriter.write(Helper.SEP_LIST);
+      outputWriter.write(lng2);
+      outputWriter.write(Helper.SEP_DEFINITION);
+      outputWriter.write(v.trim());
       outputWriter.write(Helper.SEP_NEWLINE);
       counter++;
     }
@@ -213,24 +213,26 @@ public class LingoesLd2Extractor {
     return counter;
   }
 
-  private static final ArrayHelper.SensitiveStringDecoder[] detectEncodings(final ByteBuffer inflatedBytes, final int offsetWords, final int offsetXml,
-      final int defTotal, final int dataLen, final int[] idxData, final String[] defData) throws UnsupportedEncodingException {
-    final int test = Math.min(defTotal, 10);
-    final Pattern p = Pattern.compile("^.*[\\x00-\\x1f].*$");
-    for (final SensitiveStringDecoder element : LingoesLd2Extractor.AVAIL_ENCODINGS) {
-      for (final SensitiveStringDecoder element2 : LingoesLd2Extractor.AVAIL_ENCODINGS) {
+  private static final SensitiveStringDecoder[] detectEncodings(final ByteBuffer inflatedBytes, final int offsetWords, final int offsetXml, final int defTotal,
+      final int dataLen, final int[] idxData, final String[] defData) {
+    final int test = Math.min(defTotal, 5000);
+    for (int j = 0; j < LingoesLd2Extractor.AVAIL_ENCODINGS.length; j++) {
+      for (int k = 0; k < LingoesLd2Extractor.AVAIL_ENCODINGS.length; k++) {
         try {
-          LingoesLd2Extractor.readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, element, element2, idxData, defData, test);
-          System.out.println("词组编码：" + element.name);
-          System.out.println("XML编码：" + element2.name);
-          return new ArrayHelper.SensitiveStringDecoder[] { element, element2 };
+          for (int i = 0; i < test; i++) {
+            LingoesLd2Extractor.readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, LingoesLd2Extractor.AVAIL_ENCODINGS[j],
+                LingoesLd2Extractor.AVAIL_ENCODINGS[k], idxData, defData, i);
+          }
+          System.out.println("词组编码：" + LingoesLd2Extractor.AVAIL_ENCODINGS[j].name);
+          System.out.println("XML编码：" + LingoesLd2Extractor.AVAIL_ENCODINGS[k].name);
+          return new SensitiveStringDecoder[] { LingoesLd2Extractor.AVAIL_ENCODINGS[j], LingoesLd2Extractor.AVAIL_ENCODINGS[k] };
         } catch (final Throwable e) {
           // ignore
         }
       }
     }
     System.err.println("自动识别编码失败！选择UTF-16LE继续。");
-    return new ArrayHelper.SensitiveStringDecoder[] { LingoesLd2Extractor.AVAIL_ENCODINGS[1], LingoesLd2Extractor.AVAIL_ENCODINGS[1] };
+    return new SensitiveStringDecoder[] { LingoesLd2Extractor.AVAIL_ENCODINGS[1], LingoesLd2Extractor.AVAIL_ENCODINGS[1] };
   }
 
   private static void readDefinitionData(final ByteBuffer inflatedBytes, final int offsetWords, final int offsetXml, final int dataLen,

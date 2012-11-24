@@ -60,21 +60,21 @@ public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
     for (final String w : wikis) {
       lock.acquire();
       final String url = w;
+      final String file = WiktionaryDumpPagesMetaCurrentXmlDownloader.OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1);
       executor.execute(new Runnable() {
         @Override
         public void run() {
           try {
-            final String file = WiktionaryDumpPagesMetaCurrentXmlDownloader.OUTPUT_DIR + File.separator + url.substring(url.lastIndexOf('/') + 1);
             if (Helper.isEmptyOrNotExists(file)) {
               if (null != Helper.download(url, file, false)) {
-                System.out.println("下载'" + url + "'成功。");
+                System.out.println("下载" + file + " （" + url + "）成功。");
                 successCounter.incrementAndGet();
               }
             } else {
-              System.out.println("跳过：" + url + "，文件已存在。");
+              System.out.println("跳过：" + file + " （" + url + "）。文件已存在。");
             }
           } catch (final Throwable e) {
-            System.err.println("下载'" + url + "'失败：" + e.toString());
+            System.err.println("下载" + file + " （" + url + "）失败：" + e.toString());
             failureCounter.incrementAndGet();
           } finally {
             lock.release();
