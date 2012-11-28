@@ -20,6 +20,7 @@
  */
 package cn.kk.kkdict.types;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,7 +30,8 @@ import java.util.TreeMap;
 
 import cn.kk.kkdict.utils.Helper;
 
-public enum Language {
+// NOTICE: final version, do not change anything.
+public enum Language implements KeyType<Language> {
   AA("aa", LanguageFamily.NONE),
   AAK("aak", LanguageFamily.NONE),
   AAO("aao", LanguageFamily.ARABIC),
@@ -743,25 +745,36 @@ public enum Language {
 
   public static final String                 TYPE_ID = "语";
 
-  public final int                           id;
+  private int                                id;
 
-  public final String                        key;
+  private final String                       key;
 
-  public final byte[]                        keyBytes;
+  private final byte[]                       keyBytes;
 
   public final LanguageFamily                family;
 
   private static final Map<String, Language> KEYS_MAP;
+
+  private static final Language[]            VALUES;
   static {
-    Language[] values = Language.values();
+    List<Language> values = new ArrayList<>(Arrays.asList(Language.values()));
+    Collections.sort(values, new KeyTypeComparator<Language>());
+    VALUES = new Language[values.size()];
     KEYS_MAP = new TreeMap<>();
+    int i = 0;
     for (Language c : values) {
       Language.KEYS_MAP.put(c.key, c);
+      Language.VALUES[i++] = c;
+      c.id = i + 1;
     }
   }
 
+  public static final Language fromId(final int id) {
+    return Language.VALUES[id - 1];
+  }
+
   public static final Language fromKey(final String key) {
-    return Language.KEYS_MAP.get(key);
+    return Language.KEYS_MAP.get(key.replace('-', '_'));
   }
 
   Language(final String key, final LanguageFamily family) {
@@ -789,6 +802,25 @@ public enum Language {
         System.out.println(lng.id + "=" + lng.key);
       }
     }
+
+    for (Language lng : Language.VALUES) {
+      System.out.println(lng.id + "=" + lng.key);
+    }
+  }
+
+  @Override
+  public int getId() {
+    return this.id;
+  }
+
+  @Override
+  public String getKey() {
+    return this.key;
+  }
+
+  @Override
+  public byte[] getKeyBytes() {
+    return this.keyBytes;
   }
 
 }

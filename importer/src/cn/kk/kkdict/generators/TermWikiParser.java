@@ -187,7 +187,7 @@ public class TermWikiParser {
     for (final Language lng : lngs) {
       final long start = System.currentTimeMillis();
       final String[] urls = TermWikiParser.LNGS.get(lng);
-      final String file = TermWikiParser.OUTDIR + "/" + TermWikiParser.PREFIX + lng.key + "." + TranslationSource.TERMWIKI.key;
+      final String file = TermWikiParser.OUTDIR + "/" + TermWikiParser.PREFIX + lng.getKey() + "." + TranslationSource.TERMWIKI.key;
       if (Helper.isEmptyOrNotExists(file)) {
         System.out.print("创建文件：" + file + " 。。。 ");
         try (final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file), Helper.BUFFER_SIZE);) {
@@ -252,7 +252,7 @@ public class TermWikiParser {
                   definition = ChineseHelper.toSimplifiedChinese(definition);
                 }
 
-                out.write(lng.keyBytes);
+                out.write(lng.getKeyBytes());
                 out.write(Helper.SEP_DEFINITION_BYTES);
                 out.write(definition.getBytes(Helper.CHARSET_UTF8));
                 out.write(Helper.SEP_ATTRS_BYTES);

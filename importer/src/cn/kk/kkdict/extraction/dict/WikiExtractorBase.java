@@ -215,7 +215,7 @@ public class WikiExtractorBase {
 
   static final byte[]                 TAG_REDIRECT_BEGIN_BYTES         = "<redirect title=\"".getBytes(Helper.CHARSET_UTF8);
 
-  static final byte[]                 KEY_ZH_BYTES                     = Language.ZH.keyBytes;
+  static final byte[]                 KEY_ZH_BYTES                     = Language.ZH.getKeyBytes();
 
   static final byte[]                 PREFIX_WIKI_TAG_BYTES            = "[[".getBytes(Helper.CHARSET_UTF8);
 
@@ -656,9 +656,9 @@ public class WikiExtractorBase {
       System.err.println("没找到语言：" + f);
       throw new FileNotFoundException(f);
     }
-    this.fileLng = wikiLanguage.key;
+    this.fileLng = wikiLanguage.getKey();
     this.fileLngBytes = this.fileLng.getBytes(Helper.CHARSET_UTF8);
-    this.chinese = Language.ZH.key.equalsIgnoreCase(this.fileLng);
+    this.chinese = Language.ZH.getKey().equalsIgnoreCase(this.fileLng);
     this.translationSource = TranslationSource.valueOf(Helper.toConstantName("wiki_" + this.fileLng));
     if (f.endsWith(".bz2")) {
       this.in = new BufferedInputStream(new CBZip2InputStream((new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE))), Helper.BUFFER_SIZE);

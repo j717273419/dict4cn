@@ -82,7 +82,7 @@ public class DictFilesExtractor {
       this.outDir = outDir;
       this.extractLng = extractLng;
       this.outFile = outDir + File.separator + outFileName;
-      this.lngBB = ByteBuffer.wrap(extractLng.keyBytes);
+      this.lngBB = ByteBuffer.wrap(extractLng.getKeyBytes());
       this.writeSkipped = writeSkipped;
     } else {
       this.inFiles = null;
@@ -95,7 +95,7 @@ public class DictFilesExtractor {
   }
 
   public void extract() throws IOException {
-    System.out.println("截取含有'" + this.extractLng.key + "'的词典   。。。" + this.inFiles.length);
+    System.out.println("截取含有'" + this.extractLng.getKey() + "'的词典   。。。" + this.inFiles.length);
     if (DictFilesExtractor.DEBUG) {
       System.out.println("创建输出文件'" + this.outFile + "'。。。");
     }

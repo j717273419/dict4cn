@@ -43,11 +43,9 @@ public class DatabaseReader {
 
   private static void writeTranslation(Translation trl) {
     System.out.println(trl);
+
   }
 
   private static final String query = "SELECT trl_id, HEX(src_key), src_lng, tgt_lng, src_val, tgt_val, src_gen, src_cat, src_typ, src_use FROM translation";
 
-  private static String escape(String srcVal) {
-    return srcVal.replace("'", "\\'");
-  }
 }

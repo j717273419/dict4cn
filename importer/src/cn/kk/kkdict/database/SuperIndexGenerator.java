@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
+
 public class SuperIndexGenerator {
 
   private final static int LEN_SRC_KEY = 50;
@@ -13,7 +15,7 @@ public class SuperIndexGenerator {
    * @throws IOException
    */
   public static void main(String[] args) throws IOException {
-    String str = "(der) [die]Testt puublic static -., #+üäöüß ÄÖÜ?éÉ void mainioux+-*/%=,.:;!~^_|&#\"'´`{}()<>\\[\\]";
+    String str = "你好(der) [die]Testt puublic static -., #+üäöüß ÄÖÜ?éÉ void mainioux+-*/%=,.:;!~^_|&#\"'´`{}()<>\\[\\]";
     byte[] phoneticIdx = SuperIndexGenerator.createPhonetecIdx(str);
     System.out.println(Arrays.toString(phoneticIdx));
   }
@@ -216,15 +218,15 @@ public class SuperIndexGenerator {
     Arrays.sort(SuperIndexGenerator.pinyinEncMapping, sorter);
   }
 
-  private final static byte[] createPhonetecIdx(final String str) throws IOException {
+  public final static byte[] createPhonetecIdx(final String str) throws IOException {
     final String strSpelling = SuperIndexGenerator.toPhoneticSpelling(str);
 
     // use metaphone (soundex) algorithm to modify string
     final String strMetaphoned = SuperIndexGenerator.replaceCharacters(strSpelling, SuperIndexGenerator.getMetaphoneMapping());
     // replace pinyin phonetic codecs
-    final String strEncoded = SuperIndexGenerator.replaceCharacters(strSpelling, SuperIndexGenerator.getPinyinEncodingMapping());
+    final String strEncoded = SuperIndexGenerator.replaceCharacters(strMetaphoned, SuperIndexGenerator.getPinyinEncodingMapping());
 
-    System.out.println(strEncoded.toString());
+    // System.out.println(strEncoded.toString());
     return SuperIndexGenerator.toBytes(strEncoded.toCharArray());
   }
 
@@ -256,7 +258,7 @@ public class SuperIndexGenerator {
       if (idxFound != -1) {
         final char[] m = mapping[idxFound][0];
         final char[] r = mapping[idxFound][1];
-        System.out.println(new String(m) + " -> " + new String(r));
+        // System.out.println(new String(m) + " -> " + new String(r));
         i += m.length - 1;
         sb.append(r);
         last = (char) -1;
@@ -285,7 +287,10 @@ public class SuperIndexGenerator {
   private static String toPhoneticSpelling(String str) {
     // clean, change v here, as v is used as 'ue' later
     String s = str.replaceAll("\\s|(\\(.+?\\))|(\\[.+?\\])|[\\+\\-\\*/%=\\?,\\.:;!~^_\\|&#\"'´`{}\\(\\)<>\\[\\]\\\\]", "").toLowerCase().replace('v', 'f');
+    // System.out.println(s);
     // to pinyin
+    s = PhoneticTranscriptionHelper.getPinyin(s);
+    // System.out.println(s);
     return s;
   }
 

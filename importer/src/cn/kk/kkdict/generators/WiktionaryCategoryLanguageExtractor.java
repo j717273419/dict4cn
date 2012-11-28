@@ -128,7 +128,7 @@ public class WiktionaryCategoryLanguageExtractor {
   private static BufferedWriter getWriter(final Map<Language, BufferedWriter> writers, final Language lng, final String prefix) throws IOException {
     BufferedWriter writer = writers.get(lng);
     if (writer == null) {
-      System.err.println("没有找到写出流：" + lng.key);
+      System.err.println("没有找到写出流：" + lng.getKey());
       writer = new BufferedWriter(new FileWriter(WiktionaryCategoryLanguageExtractor.GENERATED_DIR + File.separator + prefix + lng.name() + ".txt"));
       writers.put(lng, writer);
     }
@@ -185,7 +185,7 @@ public class WiktionaryCategoryLanguageExtractor {
   private static void writeCategoryName(final BufferedWriter lngWriter, final String categoryName, final Language catLng) throws IOException {
     lngWriter.write(categoryName.replace(" ", "\\ "));
     lngWriter.write('=');
-    lngWriter.write(catLng.key);
+    lngWriter.write(catLng.getKey());
     lngWriter.write(Helper.SEP_NEWLINE_CHAR);
   }
 

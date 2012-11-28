@@ -327,7 +327,7 @@ public class BablaCrawler {
             path = path.substring(0, sep + 1) + URLEncoder.encode(path.substring(sep + 1), Helper.CHARSET_UTF8.name());
             final Category cat = Category.fromKey(ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, Category.TYPE_ID_BYTES)));
             if (BablaCrawler.DEBUG) {
-              System.out.println("语言：" + srcLng.key + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
+              System.out.println("语言：" + srcLng.getKey() + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
             }
 
             // this.parseMainHtml(out, outExamples, outSyms, srcLng, tgtLng, nameBytes, path);
@@ -459,7 +459,7 @@ public class BablaCrawler {
                 // System.out.println("tgtCategory: " + tgtCategory);
               }
 
-              sb.append(lng.key);
+              sb.append(lng.getKey());
               sb.append(Helper.SEP_DEFINITION);
               sb.append(srcVal);
               if (srcCategory != null) {
@@ -478,7 +478,7 @@ public class BablaCrawler {
                 sb.append(srcCategory.key);
               }
               sb.append(Helper.SEP_LIST);
-              sb.append(tgtLng.key);
+              sb.append(tgtLng.getKey());
               sb.append(Helper.SEP_DEFINITION);
               sb.append(tgtVal);
               if (tgtCategory != null) {
@@ -556,7 +556,7 @@ public class BablaCrawler {
     }
 
     if (!srcRelatives.isEmpty()) {
-      outRelated.write(lng.keyBytes);
+      outRelated.write(lng.getKeyBytes());
       outRelated.write(Helper.SEP_DEFINITION_BYTES);
       outRelated.write(nameBytes);
       outRelated.write(Helper.SEP_ATTRS_BYTES);
@@ -574,7 +574,7 @@ public class BablaCrawler {
     }
 
     if (!srcExamples.isEmpty()) {
-      outExamples.write(lng.keyBytes);
+      outExamples.write(lng.getKeyBytes());
       outExamples.write(Helper.SEP_DEFINITION_BYTES);
       outExamples.write(nameBytes);
       outExamples.write(Helper.SEP_ATTRS_BYTES);
@@ -592,7 +592,7 @@ public class BablaCrawler {
     }
 
     if (!srcSynonyms.isEmpty()) {
-      outSynonyms.write(lng.keyBytes);
+      outSynonyms.write(lng.getKeyBytes());
       outSynonyms.write(Helper.SEP_DEFINITION_BYTES);
       outSynonyms.write(nameBytes);
       outSynonyms.write(Helper.SEP_ATTRS_BYTES);
@@ -646,11 +646,11 @@ public class BablaCrawler {
     return cat;
   }
 
-  private static String safeReadLine(final BufferedReader reader) {
+  private static String safeReadLine(final BufferedReader reader) throws IOException {
     try {
       return reader.readLine();
     } catch (final IOException e) {
-      return Helper.EMPTY_STRING;
+      throw e;
     }
   }
 }

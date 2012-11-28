@@ -855,4 +855,30 @@ public class DictByteBufferRow {
     }
     return this.bb;
   }
+
+  /**
+   * Comma-separated list of values
+   * 
+   * @param defIdx
+   *          definition index
+   * @return all values of the given definition index
+   */
+  public String getValuesAsString(int defIdx) {
+    if (defIdx < this.size) {
+      StringBuilder sb = new StringBuilder();
+      boolean first = true;
+      final int valueSize = this.getValueSize(defIdx);
+      for (int i = 0; i < valueSize; i++) {
+        if (first) {
+          first = false;
+        } else {
+          sb.append(", ");
+        }
+        sb.append(ArrayHelper.toStringP(this.getValue(defIdx, i)));
+      }
+      return sb.toString();
+    } else {
+      return null;
+    }
+  }
 }

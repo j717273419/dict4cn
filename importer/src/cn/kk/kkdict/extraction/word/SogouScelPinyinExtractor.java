@@ -112,7 +112,7 @@ public class SogouScelPinyinExtractor {
                 word.append(new String(buf, 0, len, "UTF-16LE"));
                 fBuf.get(buf, 0, fBuf.getShort());
                 final String wordStr = word.toString();
-                writer.write(Language.ZH.key);
+                writer.write(Language.ZH.getKey());
                 writer.write(Helper.SEP_DEFINITION);
                 writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(wordStr), categories));
                 writer.write(Helper.SEP_ATTRIBUTE);

@@ -113,7 +113,7 @@ public class LanguageExtractor {
       final String displayNameEn = locale.getDisplayName(Locale.ENGLISH);
       rowInfo.put(Language.EN, displayNameEn);
       for (final Language lng : LanguageExtractor.RELEVANT_LANGUAGES) {
-        if (!displayNameEn.equals((tmp = locale.getDisplayName(new Locale(lng.key))))) {
+        if (!displayNameEn.equals((tmp = locale.getDisplayName(new Locale(lng.getKey()))))) {
           rowInfo.put(lng, tmp);
         }
       }

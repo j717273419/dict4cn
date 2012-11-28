@@ -69,7 +69,7 @@ public class SortedDictFilesJoiner {
       } else {
         this.outFile = outDir + File.separator + SortedDictFilesJoiner.OUT_FILE;
       }
-      this.lngBB = ByteBuffer.wrap(mergeLng.keyBytes);
+      this.lngBB = ByteBuffer.wrap(mergeLng.getKeyBytes());
     } else {
       this.inFiles = null;
       this.inFileMain = null;
@@ -83,7 +83,7 @@ public class SortedDictFilesJoiner {
 
   public void join() throws IOException {
     final long start = System.currentTimeMillis();
-    System.out.println("兼并含有'" + this.mergeLng.key + "'的词典  。。。" + (this.inFiles.length + 1));
+    System.out.println("兼并含有'" + this.mergeLng.getKey() + "'的词典  。。。" + (this.inFiles.length + 1));
     File f = new File(this.inFileMain);
     if (f.isFile()) {
       if (SortedDictFilesJoiner.DEBUG) {

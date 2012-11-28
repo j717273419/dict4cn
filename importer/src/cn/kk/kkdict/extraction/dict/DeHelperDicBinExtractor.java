@@ -135,12 +135,12 @@ public class DeHelperDicBinExtractor {
         def = DeHelperDicBinExtractor.transformDef(def);
         val = DeHelperDicBinExtractor.transformVal(lstCategories, lstTypes, val);
         if (ChineseHelper.containsChinese(def)) {
-          out2.write((Language.ZH.key + Helper.SEP_DEFINITION + def).getBytes(Helper.CHARSET_UTF8));
-          out2.write((Helper.SEP_LIST + Language.DE.key + Helper.SEP_DEFINITION + val).getBytes(Helper.CHARSET_UTF8));
+          out2.write((Language.ZH.getKey() + Helper.SEP_DEFINITION + def).getBytes(Helper.CHARSET_UTF8));
+          out2.write((Helper.SEP_LIST + Language.DE.getKey() + Helper.SEP_DEFINITION + val).getBytes(Helper.CHARSET_UTF8));
           out2.write(Helper.SEP_NEWLINE_BYTES);
         } else {
-          out1.write((Language.DE.key + Helper.SEP_DEFINITION + def).getBytes(Helper.CHARSET_UTF8));
-          out1.write((Helper.SEP_LIST + Language.ZH.key + Helper.SEP_DEFINITION + val).getBytes(Helper.CHARSET_UTF8));
+          out1.write((Language.DE.getKey() + Helper.SEP_DEFINITION + def).getBytes(Helper.CHARSET_UTF8));
+          out1.write((Helper.SEP_LIST + Language.ZH.getKey() + Helper.SEP_DEFINITION + val).getBytes(Helper.CHARSET_UTF8));
           out1.write(Helper.SEP_NEWLINE_BYTES);
         }
 

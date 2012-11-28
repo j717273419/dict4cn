@@ -21,7 +21,7 @@ public final class SortedDictRowFinder {
 
   public SortedDictRowFinder(final Language sortLng, final String file) {
     this.sortedDictFile = file;
-    this.lngBB = ByteBuffer.wrap(sortLng.keyBytes);
+    this.lngBB = ByteBuffer.wrap(sortLng.getKeyBytes());
   }
 
   public SortedDictRowFinder prepare() throws IOException {
