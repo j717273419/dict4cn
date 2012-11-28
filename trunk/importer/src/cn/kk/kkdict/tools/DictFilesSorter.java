@@ -79,7 +79,7 @@ public class DictFilesSorter {
     this.inFiles = inFiles;
     this.outFile = outFile;
     this.mergeSame = mergeSameDefinitions;
-    this.sortLngBB = ByteBuffer.wrap(sortLanguage.keyBytes);
+    this.sortLngBB = ByteBuffer.wrap(sortLanguage.getKeyBytes());
     if (writeIrrelevantToExtraFile) {
       this.skippedFile = Helper.appendFileName(this.outFile, DictFilesSorter.SUFFIX_SKIPPED);
     } else {

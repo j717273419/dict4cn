@@ -333,7 +333,7 @@ public class TermWikiCrawler {
             // path = "/" + URLEncoder.encode(path.substring(1), Helper.CHARSET_UTF8.name());
             final Category cat = Category.fromKey(ArrayHelper.toStringP(row.getFirstAttributeValue(0, 0, Category.TYPE_ID_BYTES)));
             if (TermWikiCrawler.DEBUG) {
-              System.out.println("语言：" + lng.key + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
+              System.out.println("语言：" + lng.getKey() + "，单词：" + name + "，地址：" + path + (cat != null ? "，类别：" + cat.key : Helper.EMPTY_STRING));
             } else {
               System.out.print(".");
             }
@@ -434,11 +434,11 @@ public class TermWikiCrawler {
                     translation = ChineseHelper.toSimplifiedChinese(translation);
                   }
                   if (TermWikiCrawler.DEBUG) {
-                    System.out.println(targetLng.key + "=" + translation + ", " + href);
+                    System.out.println(targetLng.getKey() + "=" + translation + ", " + href);
                   }
                   if (first) {
                     first = false;
-                    sb.append(lng.key);
+                    sb.append(lng.getKey());
                     sb.append(Helper.SEP_DEFINITION);
                     sb.append(name);
                     if (cat != null) {
@@ -453,7 +453,7 @@ public class TermWikiCrawler {
                     }
                   }
                   sb.append(Helper.SEP_LIST);
-                  sb.append(targetLng.key);
+                  sb.append(targetLng.getKey());
                   sb.append(Helper.SEP_DEFINITION);
                   sb.append(translation);
                   if (cat != null) {
@@ -529,7 +529,7 @@ public class TermWikiCrawler {
                 }
                 if (first) {
                   first = false;
-                  outRelsJson.write(lng.keyBytes);
+                  outRelsJson.write(lng.getKeyBytes());
                   outRelsJson.write(Helper.SEP_DEFINITION_BYTES);
                   outRelsJson.write(nameBytes);
                   if (cat != null) {
@@ -586,7 +586,7 @@ public class TermWikiCrawler {
             if (TermWikiCrawler.DEBUG) {
               System.out.println("def: " + abstractText);
             }
-            outDesc.write(lng.keyBytes);
+            outDesc.write(lng.getKeyBytes());
             outDesc.write(Helper.SEP_DEFINITION_BYTES);
             outDesc.write(nameBytes);
             outDesc.write(Helper.SEP_ATTRS_BYTES);
@@ -622,7 +622,7 @@ public class TermWikiCrawler {
                 final int hrefStart = idx + " href=\"".length();
                 synonyms = synonyms.substring(hrefStart);
                 final String[] syms = synonyms.split(" href=\"");
-                outSyms.write(lng.keyBytes);
+                outSyms.write(lng.getKeyBytes());
                 outSyms.write(Helper.SEP_DEFINITION_BYTES);
                 outSyms.write(nameBytes);
                 for (final String s : syms) {
@@ -646,7 +646,7 @@ public class TermWikiCrawler {
                 final int hrefStart = idx + " href=\"".length();
                 seeAlsos = seeAlsos.substring(hrefStart);
                 final String[] sees = seeAlsos.split(" href=\"");
-                outRelsSeeAlso.write(lng.keyBytes);
+                outRelsSeeAlso.write(lng.getKeyBytes());
                 outRelsSeeAlso.write(Helper.SEP_DEFINITION_BYTES);
                 outRelsSeeAlso.write(nameBytes);
                 for (final String s : sees) {

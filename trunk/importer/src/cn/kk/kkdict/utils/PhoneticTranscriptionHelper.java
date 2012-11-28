@@ -126,14 +126,12 @@ public class PhoneticTranscriptionHelper {
     for (int i = 0; i < input.length(); i++) {
       if (first) {
         first = false;
-      } else {
-        sb.append(Helper.SEP_PINYIN);
       }
       final String pinyin = PhoneticTranscriptionHelper.CODEPOINT_2_PINYIN_MAP.get(Integer.valueOf(input.codePointAt(i)));
       if (pinyin != null) {
         sb.append(pinyin);
       } else {
-        System.err.println("没有找到'" + input.substring(i, i + 1) + "'的拼音。");
+        sb.append(input.substring(i, i + 1));
       }
     }
     return sb.toString();

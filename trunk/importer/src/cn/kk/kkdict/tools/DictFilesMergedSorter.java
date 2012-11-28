@@ -81,14 +81,14 @@ public class DictFilesMergedSorter extends WordFilesMergedSorter {
       final String... inFiles) {
     super(outDir, outFile, skipIrrelevant, writeIrrelevant, inFiles);
     this.sortLng = sortLng;
-    this.lngBB = ByteBuffer.wrap(sortLng.keyBytes);
+    this.lngBB = ByteBuffer.wrap(sortLng.getKeyBytes());
   }
 
   public DictFilesMergedSorter(final Language sortLng, final String outDir, final boolean skipIrrelevant, final boolean writeIrrelevantFiles,
       final String... inFiles) {
     super(outDir, DictFilesMergedSorter.OUTFILE_DICT, skipIrrelevant, writeIrrelevantFiles, inFiles);
     this.sortLng = sortLng;
-    this.lngBB = ByteBuffer.wrap(sortLng.keyBytes);
+    this.lngBB = ByteBuffer.wrap(sortLng.getKeyBytes());
   }
 
   @Override
@@ -186,7 +186,7 @@ public class DictFilesMergedSorter extends WordFilesMergedSorter {
   @Override
   protected final int write(final BufferedOutputStream out, final BufferedOutputStream skippedOut, final int[] sortedPosArray, final int offset, final int limit)
       throws IOException {
-    System.out.print("，" + this.sortLng.key + "，");
+    System.out.print("，" + this.sortLng.getKey() + "，");
     return super.write(out, skippedOut, sortedPosArray, offset, limit);
   }
 

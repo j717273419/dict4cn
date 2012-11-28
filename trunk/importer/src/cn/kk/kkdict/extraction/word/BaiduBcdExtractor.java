@@ -109,7 +109,7 @@ public class BaiduBcdExtractor {
         dataRawBytes.get(buf, 0, 2 * length);
         final String word = new String(buf, 0, 2 * length, "UTF-16LE");
 
-        writer.write(Language.ZH.key);
+        writer.write(Language.ZH.getKey());
         writer.write(Helper.SEP_DEFINITION);
         writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(word), categories));
         writer.write(Helper.SEP_ATTRIBUTE);

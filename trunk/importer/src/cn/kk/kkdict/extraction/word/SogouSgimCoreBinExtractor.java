@@ -86,7 +86,7 @@ public class SogouSgimCoreBinExtractor {
           bb.get(buffer.array(), 0, s);
           final String str = new String(buffer.array(), 0, s, "UTF-16LE");
           if (ChineseHelper.containsChinese(str)) {
-            writer.write(Language.ZH.key);
+            writer.write(Language.ZH.getKey());
             writer.write(Helper.SEP_DEFINITION);
             writer.write(ChineseHelper.toSimplifiedChinese(str));
             writer.write(Helper.SEP_ATTRIBUTE);

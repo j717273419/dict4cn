@@ -128,7 +128,7 @@ public class WikiDictImageLocationCorrector {
               + Helper.appendFileName(new File(f).getName(), WikiDictImageLocationCorrector.SUFFIX_CORRECTED);
 
           final long startFile = System.currentTimeMillis();
-          final String fileTemplateName = WikiDictImageLocationCorrector.FILETEMPLATE_NAMES.get(lng.key);
+          final String fileTemplateName = WikiDictImageLocationCorrector.FILETEMPLATE_NAMES.get(lng.getKey());
           System.out.println("filetemplate前缀：" + fileTemplateName);
 
           int statValid = 0;

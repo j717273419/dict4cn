@@ -127,7 +127,7 @@ public class QQPinyinQpydExtractor {
         final String pinyin = new String(Arrays.copyOfRange(byteArray, pinyinStartAddr, pinyinStartAddr + pinyinLength), Helper.CHARSET_UTF8);
         final String word = new String(Arrays.copyOfRange(byteArray, wordStartAddr, wordStartAddr + wordLength), Helper.CHARSET_UTF16LE);
         if (PhoneticTranscriptionHelper.checkValidPinyin(pinyin)) {
-          writer.write(Language.ZH.key);
+          writer.write(Language.ZH.getKey());
           writer.write(Helper.SEP_DEFINITION);
           writer.write(Helper.appendCategories(ChineseHelper.toSimplifiedChinese(QQPinyinQpydExtractor.cleanWord(word)), categories));
           writer.write(Helper.SEP_ATTRIBUTE);

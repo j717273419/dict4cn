@@ -40,7 +40,7 @@ public class BabLaParser {
     final Language lngFrom = BabLaParser.getLanguage(from);
     final Language lngTo = BabLaParser.getLanguage(to);
     // write file
-    final String file = BabLaParser.OUTDIR + "/" + BabLaParser.PREFIX + lngFrom.key + "_" + lngTo.key + "." + TranslationSource.BABLA.key;
+    final String file = BabLaParser.OUTDIR + "/" + BabLaParser.PREFIX + lngFrom.getKey() + "_" + lngTo.getKey() + "." + TranslationSource.BABLA.key;
     if (Helper.isEmptyOrNotExists(file)) {
       final long start = System.currentTimeMillis();
       System.out.print("创建文件：" + file + " 。。。 ");
@@ -71,7 +71,7 @@ public class BabLaParser {
                         try {
                           final String substring = line.substring(nextAnchorStart, nextAnchorClose);
                           final String word = substring.trim();
-                          out.write(lngFrom.keyBytes);
+                          out.write(lngFrom.getKeyBytes());
                           out.write(Helper.SEP_DEFINITION_BYTES);
                           out.write(word.getBytes(Helper.CHARSET_UTF8));
                           out.write(Helper.SEP_ATTRS_BYTES);

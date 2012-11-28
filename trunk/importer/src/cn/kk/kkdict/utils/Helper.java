@@ -1317,4 +1317,37 @@ public final class Helper {
   public static String formatTime(long currentTimeMillis) {
     return DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(currentTimeMillis));
   }
+
+  public static boolean containsAny(String str, char... chars) {
+    final int l = str.length();
+    Arrays.sort(chars);
+    for (int i = 0; i < l; i++) {
+      final char c = str.charAt(i);
+      if (Arrays.binarySearch(chars, c) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static String escapeHtml(String str) {
+    StringBuilder buf = new StringBuilder(str.length() * 2);
+    int i;
+    for (i = 0; i < str.length(); ++i) {
+      char ch = str.charAt(i);
+      if (ch == '&') {
+        buf.append("&amp;");
+      } else {
+        if (ch > 0x7F) {
+          int intValue = ch;
+          buf.append("&#");
+          buf.append(intValue);
+          buf.append(';');
+        } else {
+          buf.append(ch);
+        }
+      }
+    }
+    return buf.toString();
+  }
 }

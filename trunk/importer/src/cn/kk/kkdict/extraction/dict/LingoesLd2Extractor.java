@@ -166,8 +166,8 @@ public class LingoesLd2Extractor {
     inflatedBytes.position(8);
     int counter = 0;
     int failCounter = 0;
-    final boolean lng1Chinese = Language.ZH.key.equalsIgnoreCase(lng1);
-    final boolean lng2Chinese = Language.ZH.key.equalsIgnoreCase(lng2);
+    final boolean lng1Chinese = Language.ZH.getKey().equalsIgnoreCase(lng1);
+    final boolean lng2Chinese = Language.ZH.getKey().equalsIgnoreCase(lng2);
     final Map<String, String> languages = new FormattedTreeMap<String, String>();
     final String cats = categories.toString();
     final String sourceString = ""; // Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + TranslationSource.LINGOES_LD2.key;

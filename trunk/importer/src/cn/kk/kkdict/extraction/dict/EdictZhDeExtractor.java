@@ -79,8 +79,8 @@ public class EdictZhDeExtractor {
     Helper.precheck(file, outDir);
     System.out.println("读取词典文件'" + file + "' 。。。");
 
-    final String dictFileName = outDir + File.separator + "output-dict_" + srcLng.key + "_" + trgLng.key + "." + translationSource.key;
-    final String srcFileName = outDir + File.separator + "output-dict_" + srcLng.key + "_" + trgLng.key + "_src." + translationSource.key;
+    final String dictFileName = outDir + File.separator + "output-dict_" + srcLng.getKey() + "_" + trgLng.getKey() + "." + translationSource.key;
+    final String srcFileName = outDir + File.separator + "output-dict_" + srcLng.getKey() + "_" + trgLng.getKey() + "_src." + translationSource.key;
     System.out.print("导出词典文件'" + dictFileName + "'。。。");
 
     int statSkipped = 0;
@@ -152,8 +152,8 @@ public class EdictZhDeExtractor {
                       }
                     }
                   }
-                  writer.write(srcLng.key + Helper.SEP_DEFINITION + tmp1);
-                  writer.write(Helper.SEP_LIST + trgLng.key + Helper.SEP_DEFINITION + tmp2);
+                  writer.write(srcLng.getKey() + Helper.SEP_DEFINITION + tmp1);
+                  writer.write(Helper.SEP_LIST + trgLng.getKey() + Helper.SEP_DEFINITION + tmp2);
                   writer.write(Helper.SEP_NEWLINE_CHAR);
                   srcWriter.write(srcLng + Helper.SEP_DEFINITION + name.trim() + Helper.SEP_ATTRIBUTE + TranslationSource.TYPE_ID + translationSource.key
                       + Helper.SEP_NEWLINE);

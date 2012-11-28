@@ -96,11 +96,11 @@ public class TranslationInfo implements Comparable<TranslationInfo> {
   }
 
   public void put(final Language lng, final String value) {
-    this.lngMap.put(lng.key, value);
+    this.lngMap.put(lng.getKey(), value);
   }
 
   public String get(final Language lng) {
-    return this.lngMap.get(lng.key);
+    return this.lngMap.get(lng.getKey());
   }
 
 }

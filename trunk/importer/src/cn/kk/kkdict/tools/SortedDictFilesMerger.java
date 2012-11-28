@@ -87,7 +87,7 @@ public class SortedDictFilesMerger {
         } else {
           this.outFile = outDir + File.separator + SortedDictFilesMerger.OUT_FILE;
         }
-        this.lngBB = ByteBuffer.wrap(mergeLng.keyBytes);
+        this.lngBB = ByteBuffer.wrap(mergeLng.getKeyBytes());
       }
     } else {
       this.inFiles = null;
@@ -101,7 +101,7 @@ public class SortedDictFilesMerger {
 
   public void merge() throws IOException {
     final long start = System.currentTimeMillis();
-    System.out.println("合并含有'" + this.mergeLng.key + "'的词典  。。。" + (this.inFiles.length + 1));
+    System.out.println("合并含有'" + this.mergeLng.getKey() + "'的词典  。。。" + (this.inFiles.length + 1));
     File f = new File(this.inFileMain);
     if (f.isFile()) {
       if (SortedDictFilesMerger.DEBUG) {

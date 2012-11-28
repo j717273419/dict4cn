@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public enum WritingSystem {
-  ARABIC("1256", Collator.getInstance(new Locale(Language.AR.key)), Character.UnicodeBlock.ARABIC),
+  ARABIC("1256", Collator.getInstance(new Locale(Language.AR.getKey())), Character.UnicodeBlock.ARABIC),
   CHINESE(
       "gb18030",
       Collator.getInstance(Locale.SIMPLIFIED_CHINESE),
@@ -22,20 +22,20 @@ public enum WritingSystem {
   // Character.UnicodeBlock.KANGXI_RADICALS,
   // Character.UnicodeBlock.IDEOGRAPHIC_DESCRIPTION_CHARACTERS,
   ),
-  CYRILLIC("1251", Collator.getInstance(new Locale(Language.RU.key)), Character.UnicodeBlock.CYRILLIC, Character.UnicodeBlock.CYRILLIC_SUPPLEMENTARY), // Belarusian,
-                                                                                                                                                       // Russian
-  DEVANAGARI("UTF-8", Collator.getInstance(new Locale(Language.HI.key)), Character.UnicodeBlock.DEVANAGARI),
-  GREEK("1253", Collator.getInstance(new Locale(Language.EL.key)), Character.UnicodeBlock.GREEK),
-  HEBREW("1255", Collator.getInstance(new Locale(Language.IW.key)), Character.UnicodeBlock.HEBREW),
+  CYRILLIC("1251", Collator.getInstance(new Locale(Language.RU.getKey())), Character.UnicodeBlock.CYRILLIC, Character.UnicodeBlock.CYRILLIC_SUPPLEMENTARY), // Belarusian,
+  // Russian
+  DEVANAGARI("UTF-8", Collator.getInstance(new Locale(Language.HI.getKey())), Character.UnicodeBlock.DEVANAGARI),
+  GREEK("1253", Collator.getInstance(new Locale(Language.EL.getKey())), Character.UnicodeBlock.GREEK),
+  HEBREW("1255", Collator.getInstance(new Locale(Language.IW.getKey())), Character.UnicodeBlock.HEBREW),
   JAPANESE("932", Collator.getInstance(Locale.JAPANESE), Character.UnicodeBlock.KATAKANA, Character.UnicodeBlock.HIRAGANA),
   KOREAN("949", Collator.getInstance(Locale.KOREAN), Character.UnicodeBlock.KANBUN),
-  LATIN_BALTIC("1257", Collator.getInstance(new Locale(Language.LV.key))), // Latvian, Lithuanian
-  LATIN_CENTRAL_EUROPEAN("1250", Collator.getInstance(new Locale(Language.PL.key))), // Czech, Hungarian, Polish
-  LATIN_MALTESE("UTF-8", Collator.getInstance(new Locale(Language.MT.key))), // Maltese
-  LATIN_TURKIC("1254", Collator.getInstance(new Locale(Language.TR.key))), // Turkish
+  LATIN_BALTIC("1257", Collator.getInstance(new Locale(Language.LV.getKey()))), // Latvian, Lithuanian
+  LATIN_CENTRAL_EUROPEAN("1250", Collator.getInstance(new Locale(Language.PL.getKey()))), // Czech, Hungarian, Polish
+  LATIN_MALTESE("UTF-8", Collator.getInstance(new Locale(Language.MT.getKey()))), // Maltese
+  LATIN_TURKIC("1254", Collator.getInstance(new Locale(Language.TR.getKey()))), // Turkish
   LATIN_WESTERN_EUROPEAN("1252", Collator.getInstance(Locale.GERMAN)), // English, French, German, Italian,
   // Spanish, Swedish
-  THAI("874", Collator.getInstance(new Locale(Language.TH.key)), Character.UnicodeBlock.THAI), ;
+  THAI("874", Collator.getInstance(new Locale(Language.TH.getKey())), Character.UnicodeBlock.THAI), ;
   private final String            encoding;
 
   private final Set<UnicodeBlock> unicodeBlocks;

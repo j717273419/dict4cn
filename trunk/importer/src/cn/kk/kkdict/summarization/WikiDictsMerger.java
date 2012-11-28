@@ -111,14 +111,14 @@ public class WikiDictsMerger {
 
       final List<String> tasks = new LinkedList<>();
       for (final Language wiki : DictHelper.TOP_LANGUAGES) {
-        tasks.add(wiki.key);
+        tasks.add(wiki.getKey());
       }
       for (final String wiki : LanguageConstants.KEYS_WIKI) {
         if (!tasks.contains(wiki)) {
           tasks.add(wiki);
         }
       }
-      tasks.remove(Language.ZH.key);
+      tasks.remove(Language.ZH.getKey());
       final File mf = new File(extractorOutFile.substring(0, extractorOutFile.lastIndexOf(File.separatorChar)) + File.separator + "output-dict_main.wiki");
       new File(extractorOutFile).renameTo(mf);
       final String mainFile = mf.getAbsolutePath();
