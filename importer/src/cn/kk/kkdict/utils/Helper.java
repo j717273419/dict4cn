@@ -72,177 +72,373 @@ import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.beans.FormattedTreeSet;
 import cn.kk.kkdict.types.Category;
 
-public final class Helper {
-  public static boolean            DEBUG                 = false;
-  public static final int          BUFFER_SIZE           = 1024 * 1024 * 4;
-  public static final Charset      CHARSET_EUCJP         = Charset.forName("EUC-JP");
-  public static final Charset      CHARSET_UTF16LE       = Charset.forName("UTF-16LE");
-  public static final Charset      CHARSET_UTF8          = Charset.forName("UTF-8");
-  public final static String       EMPTY_STRING          = "";
-  public final static List<String> EMPTY_STRING_LIST     = Collections.emptyList();
+public final class Helper
+{
+  public static boolean DEBUG = false;
 
-  private static final String[][]  HTML_ENTITIES         = { { "amp", "38" }, { "quot", "34" }, { "lt", "60" }, { "gt", "62" }, { "fnof", "402" },
-      { "Alpha", "913" }, { "Beta", "914" }, { "Gamma", "915" }, { "Delta", "916" }, { "Epsilon", "917" }, { "Zeta", "918" }, { "Eta", "919" },
-      { "Theta", "920" }, { "Iota", "921" }, { "Kappa", "922" }, { "Lambda", "923" }, { "Mu", "924" }, { "Nu", "925" }, { "Xi", "926" }, { "Omicron", "927" },
-      { "Pi", "928" }, { "Rho", "929" }, { "Sigma", "931" }, { "Tau", "932" }, { "Upsilon", "933" }, { "Phi", "934" }, { "Chi", "935" }, { "Psi", "936" },
-      { "Omega", "937" }, { "alpha", "945" }, { "beta", "946" }, { "gamma", "947" }, { "delta", "948" }, { "epsilon", "949" }, { "zeta", "950" },
-      { "eta", "951" }, { "theta", "952" }, { "iota", "953" }, { "kappa", "954" }, { "lambda", "955" }, { "mu", "956" }, { "nu", "957" }, { "xi", "958" },
-      { "omicron", "959" }, { "pi", "960" }, { "rho", "961" }, { "sigmaf", "962" }, { "sigma", "963" }, { "tau", "964" }, { "upsilon", "965" },
-      { "phi", "966" }, { "chi", "967" }, { "psi", "968" }, { "omega", "969" }, { "thetasym", "977" }, { "upsih", "978" }, { "piv", "982" },
-      { "bull", "8226" }, { "hellip", "8230" }, { "prime", "8242" }, { "Prime", "8243" }, { "oline", "8254" }, { "frasl", "8260" }, { "weierp", "8472" },
-      { "image", "8465" }, { "real", "8476" }, { "trade", "8482" }, { "alefsym", "8501" }, { "larr", "8592" }, { "uarr", "8593" }, { "rarr", "8594" },
-      { "darr", "8595" }, { "harr", "8596" }, { "crarr", "8629" }, { "lArr", "8656" }, { "uArr", "8657" }, { "rArr", "8658" }, { "dArr", "8659" },
-      { "hArr", "8660" }, { "forall", "8704" }, { "part", "8706" }, { "exist", "8707" }, { "empty", "8709" }, { "nabla", "8711" }, { "isin", "8712" },
-      { "notin", "8713" }, { "ni", "8715" }, { "prod", "8719" }, { "sum", "8721" }, { "minus", "8722" }, { "lowast", "8727" }, { "radic", "8730" },
-      { "prop", "8733" }, { "infin", "8734" }, { "ang", "8736" }, { "and", "8743" }, { "or", "8744" }, { "cap", "8745" }, { "cup", "8746" }, { "int", "8747" },
-      { "there4", "8756" }, { "sim", "8764" }, { "cong", "8773" }, { "asymp", "8776" }, { "ne", "8800" }, { "equiv", "8801" }, { "le", "8804" },
-      { "ge", "8805" }, { "sub", "8834" }, { "sup", "8835" }, { "sube", "8838" }, { "supe", "8839" }, { "oplus", "8853" }, { "otimes", "8855" },
-      { "perp", "8869" }, { "sdot", "8901" }, { "lceil", "8968" }, { "rceil", "8969" }, { "lfloor", "8970" }, { "rfloor", "8971" }, { "lang", "9001" },
-      { "rang", "9002" }, { "loz", "9674" }, { "spades", "9824" }, { "clubs", "9827" }, { "hearts", "9829" }, { "diams", "9830" }, { "OElig", "338" },
-      { "oelig", "339" }, { "Scaron", "352" }, { "scaron", "353" }, { "Yuml", "376" }, { "circ", "710" }, { "tilde", "732" }, { "ensp", "8194" },
-      { "emsp", "8195" }, { "thinsp", "8201" }, { "zwnj", "8204" }, { "zwj", "8205" }, { "lrm", "8206" }, { "rlm", "8207" }, { "ndash", "8211" },
-      { "mdash", "8212" }, { "lsquo", "8216" }, { "rsquo", "8217" }, { "sbquo", "8218" }, { "ldquo", "8220" }, { "rdquo", "8221" }, { "bdquo", "8222" },
-      { "dagger", "8224" }, { "Dagger", "8225" }, { "permil", "8240" }, { "lsaquo", "8249" }, { "rsaquo", "8250" }, { "euro", "8364" }, };
-  private static final String[]    HTML_KEYS;
+  public static final int BUFFER_SIZE = 1024 * 1024 * 4;
 
-  private static final int[]       HTML_VALS;
-  public final static int          MAX_CONNECTIONS       = 2;
+  public static final Charset CHARSET_EUCJP = Charset.forName("EUC-JP");
 
-  public final static String       SEP_ATTRIBUTE         = "‹";
+  public static final Charset CHARSET_UTF16LE = Charset.forName("UTF-16LE");
 
-  public final static String       SEP_DEFINITION        = "═";
+  public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 
-  public final static String       SEP_LIST              = "▫";
+  public final static String EMPTY_STRING = "";
 
-  public final static String       SEP_NEWLINE           = "\n";
+  public final static List<String> EMPTY_STRING_LIST = Collections.emptyList();
 
-  public final static char         SEP_NEWLINE_CHAR      = '\n';
+  private static final String[][] HTML_ENTITIES =
+  {
+  {"amp", "38"},
+  {"quot", "34"},
+  {"lt", "60"},
+  {"gt", "62"},
+  {"fnof", "402"},
+  {"Alpha", "913"},
+  {"Beta", "914"},
+  {"Gamma", "915"},
+  {"Delta", "916"},
+  {"Epsilon", "917"},
+  {"Zeta", "918"},
+  {"Eta", "919"},
+  {"Theta", "920"},
+  {"Iota", "921"},
+  {"Kappa", "922"},
+  {"Lambda", "923"},
+  {"Mu", "924"},
+  {"Nu", "925"},
+  {"Xi", "926"},
+  {"Omicron", "927"},
+  {"Pi", "928"},
+  {"Rho", "929"},
+  {"Sigma", "931"},
+  {"Tau", "932"},
+  {"Upsilon", "933"},
+  {"Phi", "934"},
+  {"Chi", "935"},
+  {"Psi", "936"},
+  {"Omega", "937"},
+  {"alpha", "945"},
+  {"beta", "946"},
+  {"gamma", "947"},
+  {"delta", "948"},
+  {"epsilon", "949"},
+  {"zeta", "950"},
+  {"eta", "951"},
+  {"theta", "952"},
+  {"iota", "953"},
+  {"kappa", "954"},
+  {"lambda", "955"},
+  {"mu", "956"},
+  {"nu", "957"},
+  {"xi", "958"},
+  {"omicron", "959"},
+  {"pi", "960"},
+  {"rho", "961"},
+  {"sigmaf", "962"},
+  {"sigma", "963"},
+  {"tau", "964"},
+  {"upsilon", "965"},
+  {"phi", "966"},
+  {"chi", "967"},
+  {"psi", "968"},
+  {"omega", "969"},
+  {"thetasym", "977"},
+  {"upsih", "978"},
+  {"piv", "982"},
+  {"bull", "8226"},
+  {"hellip", "8230"},
+  {"prime", "8242"},
+  {"Prime", "8243"},
+  {"oline", "8254"},
+  {"frasl", "8260"},
+  {"weierp", "8472"},
+  {"image", "8465"},
+  {"real", "8476"},
+  {"trade", "8482"},
+  {"alefsym", "8501"},
+  {"larr", "8592"},
+  {"uarr", "8593"},
+  {"rarr", "8594"},
+  {"darr", "8595"},
+  {"harr", "8596"},
+  {"crarr", "8629"},
+  {"lArr", "8656"},
+  {"uArr", "8657"},
+  {"rArr", "8658"},
+  {"dArr", "8659"},
+  {"hArr", "8660"},
+  {"forall", "8704"},
+  {"part", "8706"},
+  {"exist", "8707"},
+  {"empty", "8709"},
+  {"nabla", "8711"},
+  {"isin", "8712"},
+  {"notin", "8713"},
+  {"ni", "8715"},
+  {"prod", "8719"},
+  {"sum", "8721"},
+  {"minus", "8722"},
+  {"lowast", "8727"},
+  {"radic", "8730"},
+  {"prop", "8733"},
+  {"infin", "8734"},
+  {"ang", "8736"},
+  {"and", "8743"},
+  {"or", "8744"},
+  {"cap", "8745"},
+  {"cup", "8746"},
+  {"int", "8747"},
+  {"there4", "8756"},
+  {"sim", "8764"},
+  {"cong", "8773"},
+  {"asymp", "8776"},
+  {"ne", "8800"},
+  {"equiv", "8801"},
+  {"le", "8804"},
+  {"ge", "8805"},
+  {"sub", "8834"},
+  {"sup", "8835"},
+  {"sube", "8838"},
+  {"supe", "8839"},
+  {"oplus", "8853"},
+  {"otimes", "8855"},
+  {"perp", "8869"},
+  {"sdot", "8901"},
+  {"lceil", "8968"},
+  {"rceil", "8969"},
+  {"lfloor", "8970"},
+  {"rfloor", "8971"},
+  {"lang", "9001"},
+  {"rang", "9002"},
+  {"loz", "9674"},
+  {"spades", "9824"},
+  {"clubs", "9827"},
+  {"hearts", "9829"},
+  {"diams", "9830"},
+  {"OElig", "338"},
+  {"oelig", "339"},
+  {"Scaron", "352"},
+  {"scaron", "353"},
+  {"Yuml", "376"},
+  {"circ", "710"},
+  {"tilde", "732"},
+  {"ensp", "8194"},
+  {"emsp", "8195"},
+  {"thinsp", "8201"},
+  {"zwnj", "8204"},
+  {"zwj", "8205"},
+  {"lrm", "8206"},
+  {"rlm", "8207"},
+  {"ndash", "8211"},
+  {"mdash", "8212"},
+  {"lsquo", "8216"},
+  {"rsquo", "8217"},
+  {"sbquo", "8218"},
+  {"ldquo", "8220"},
+  {"rdquo", "8221"},
+  {"bdquo", "8222"},
+  {"dagger", "8224"},
+  {"Dagger", "8225"},
+  {"permil", "8240"},
+  {"lsaquo", "8249"},
+  {"rsaquo", "8250"},
+  {"euro", "8364"},};
 
-  public final static String       SEP_PARTS             = "║";
+  private static final String[] HTML_KEYS;
 
-  public final static String       SEP_PINYIN            = "'";
+  private static final int[] HTML_VALS;
 
-  public static final String       SEP_SAME_MEANING      = "¶";
+  public final static int MAX_CONNECTIONS = 2;
 
-  public static final String       SEP_SPACE             = " ";
+  public final static String SEP_ATTRIBUTE = "‹";
 
-  public final static String       SEP_WORDS             = "│";
+  public final static String SEP_DEFINITION = "═";
 
-  public final static String       SEP_ETC               = "…";
+  public final static String SEP_LIST = "▫";
 
-  public static final byte[]       SEP_DEFINITION_BYTES  = Helper.SEP_DEFINITION.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_LIST_BYTES        = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_WORDS_BYTES       = Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8);
-  public static final int[]        SEP_WORDS_INTS        = ArrayHelper.toIntArray(Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8));
-  public static final byte[]       SEP_ATTRS_BYTES       = Helper.SEP_ATTRIBUTE.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_NEWLINE_BYTES     = Helper.SEP_NEWLINE.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_PARTS_BYTES       = Helper.SEP_PARTS.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_ETC_BYTES         = Helper.SEP_ETC.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       SEP_URI_POSTFIX_BYTES = { ':', '/', '/' };
-  public static final byte[]       SEP_SPACE_BYTES       = Helper.SEP_SPACE.getBytes(Helper.CHARSET_UTF8);
-  public static final byte[]       BYTES_XML_TAG_START   = { '&', 'l', 't', ';' };
-  public static final byte[]       BYTES_XML_TAG_STOP    = { '&', 'g', 't', ';' };
+  public final static String SEP_NEWLINE = "\n";
 
-  static class CookiePermissionCollection extends PermissionCollection {
+  public final static char SEP_NEWLINE_CHAR = '\n';
+
+  public final static String SEP_PARTS = "║";
+
+  public final static String SEP_PINYIN = "'";
+
+  public static final String SEP_SAME_MEANING = "¶";
+
+  public static final String SEP_SPACE = " ";
+
+  public final static String SEP_WORDS = "│";
+
+  public final static String SEP_ETC = "…";
+
+  public static final byte[] SEP_DEFINITION_BYTES = Helper.SEP_DEFINITION.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_LIST_BYTES = Helper.SEP_LIST.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_WORDS_BYTES = Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8);
+
+  public static final int[] SEP_WORDS_INTS = ArrayHelper.toIntArray(Helper.SEP_WORDS.getBytes(Helper.CHARSET_UTF8));
+
+  public static final byte[] SEP_ATTRS_BYTES = Helper.SEP_ATTRIBUTE.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_NEWLINE_BYTES = Helper.SEP_NEWLINE.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_PARTS_BYTES = Helper.SEP_PARTS.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_ETC_BYTES = Helper.SEP_ETC.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] SEP_URI_POSTFIX_BYTES =
+  {':', '/', '/'};
+
+  public static final byte[] SEP_SPACE_BYTES = Helper.SEP_SPACE.getBytes(Helper.CHARSET_UTF8);
+
+  public static final byte[] BYTES_XML_TAG_START =
+  {'&', 'l', 't', ';'};
+
+  public static final byte[] BYTES_XML_TAG_STOP =
+  {'&', 'g', 't', ';'};
+
+  static class CookiePermissionCollection extends PermissionCollection
+  {
+    private static final long serialVersionUID = 4031018501658483709L;
 
     ArrayList<Permission> perms = new ArrayList<>();
 
+
     @Override
-    public void add(Permission p) {
+    public void add(Permission p)
+    {
       this.perms.add(p);
     }
 
+
     @Override
-    public boolean implies(Permission p) {
-      for (Iterator<Permission> i = this.perms.iterator(); i.hasNext();) {
-        if (i.next().implies(p)) {
+    public boolean implies(Permission p)
+    {
+      for (Iterator<Permission> i = this.perms.iterator(); i.hasNext();)
+      {
+        if (i.next().implies(p))
+        {
           return true;
         }
       }
       return false;
     }
 
+
     @Override
-    public Enumeration<Permission> elements() {
+    public Enumeration<Permission> elements()
+    {
       return Collections.enumeration(this.perms);
     }
 
+
     @Override
-    public boolean isReadOnly() {
+    public boolean isReadOnly()
+    {
       return false;
     }
 
   }
 
-  public static void runPrivileged(final Runnable task) {
+
+  public static void runPrivileged(final Runnable task)
+  {
 
     PermissionCollection perms = new CookiePermissionCollection();
     perms.add(new AllPermission());
 
-    AccessControlContext context = new AccessControlContext(new ProtectionDomain[] { new ProtectionDomain(null, perms) });
+    AccessControlContext context = new AccessControlContext(new ProtectionDomain[]
+    {new ProtectionDomain(null, perms)});
 
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>()
+    {
       @Override
-      public Object run() {
+      public Object run()
+      {
         task.run();
         return null;
       }
     }, context);
   }
 
-  static {
+  static
+  {
 
     System.setProperty("http.keepAlive", "false");
-    // FIXME: if CookieHandler is not null, HttpOnly cookies will be hidden in sun.net.www.protocol.http.HttpUrlConnection
-    // CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+    // FIXME: if CookieHandler is not null, HttpOnly cookies will be hidden in
+    // sun.net.www.protocol.http.HttpUrlConnection
+    // CookieHandler.setDefault(new CookieManager(null,
+    // CookiePolicy.ACCEPT_ALL));
     CookieHandler.setDefault(null);
     HttpURLConnection.setFollowRedirects(false);
 
-    Arrays.sort(Helper.HTML_ENTITIES, new Comparator<String[]>() {
+    Arrays.sort(Helper.HTML_ENTITIES, new Comparator<String[]>()
+    {
       @Override
-      public int compare(final String[] o1, final String[] o2) {
+      public int compare(final String[] o1, final String[] o2)
+      {
         return o1[0].compareTo(o2[0]);
       }
     });
     HTML_KEYS = new String[Helper.HTML_ENTITIES.length];
     HTML_VALS = new int[Helper.HTML_ENTITIES.length];
     int i = 0;
-    for (final String[] pair : Helper.HTML_ENTITIES) {
+    for (final String[] pair : Helper.HTML_ENTITIES)
+    {
       Helper.HTML_KEYS[i] = pair[0];
       Helper.HTML_VALS[i] = Integer.parseInt(pair[1]);
       i++;
     }
   }
 
-  public static void add(final Map<String, Integer> statMap, final String key) {
+
+  public static void add(final Map<String, Integer> statMap, final String key)
+  {
     final Integer counter = statMap.get(key);
-    if (counter == null) {
+    if (counter == null)
+    {
       statMap.put(key, Integer.valueOf(1));
-    } else {
+    } else
+    {
       statMap.put(key, Integer.valueOf(counter.intValue() + 1));
     }
   }
 
-  public static String appendCategories(final String word, final Set<String> categories) {
-    if (categories.isEmpty()) {
+
+  public static String appendCategories(final String word, final Set<String> categories)
+  {
+    if (categories.isEmpty())
+    {
       return word;
-    } else {
+    } else
+    {
       final StringBuilder sb = new StringBuilder(word.length() * 2);
       sb.append(word);
-      for (final String c : categories) {
+      for (final String c : categories)
+      {
         sb.append(Helper.SEP_ATTRIBUTE).append(Category.TYPE_ID).append(c);
       }
       return sb.toString();
     }
   }
 
-  public static final String appendFileName(final String file, final String suffix) {
+
+  public static final String appendFileName(final String file, final String suffix)
+  {
     final int indexOf = file.indexOf('.');
     return file.substring(0, indexOf) + suffix + file.substring(indexOf);
   }
 
-  public static final void changeWordLanguage(final DictRow word, final String currentLng, final Map<String, String> translations) {
-    if (translations.containsKey(currentLng)) {
+
+  public static final void changeWordLanguage(final DictRow word, final String currentLng,
+      final Map<String, String> translations)
+  {
+    if (translations.containsKey(currentLng))
+    {
       translations.put(currentLng, word.getName());
       final String enDef = translations.get(currentLng);
       word.setName(enDef);
@@ -250,56 +446,76 @@ public final class Helper {
     }
   }
 
-  public static String download(final String url) throws IOException {
+
+  public static String download(final String url) throws IOException
+  {
     return Helper.download(url, File.createTempFile("kkdl", null).getAbsolutePath(), true);
   }
 
-  public static String download(final String url, final String to, final boolean overwrite) throws IOException {
-    if (Helper.DEBUG) {
+
+  public static String download(final String url, final String to, final boolean overwrite) throws IOException
+  {
+    if (Helper.DEBUG)
+    {
       System.out.println("下载'" + url + "'到'" + to + "'。。。");
     }
     final File toFile = new File(to);
-    if (!overwrite && toFile.exists() && (toFile.length() > 0)) {
+    if (!overwrite && toFile.exists() && (toFile.length() > 0))
+    {
       System.err.println("文件'" + to + "'已存在。跳过下载程序。");
       return null;
-    } else {
+    } else
+    {
       int retries = 0;
       DownloadThread test = null;
-      while ((retries++ < 10) && !(test = new DownloadThread(to, url)).success) {
-        try {
+      while ((retries++ < 10) && !(test = new DownloadThread(to, url)).success)
+      {
+        try
+        {
           test.start();
           test.join(60000);
           test.interrupt();
-        } catch (final Throwable e) {
+        } catch (final Throwable e)
+        {
           e.printStackTrace();
         }
       }
-      if ((test != null) && !test.success) {
+      if ((test != null) && !test.success)
+      {
         throw new IOException("下载失败：" + to);
       }
       return to;
     }
   }
 
-  private static class DownloadThread extends Thread {
+  private static class DownloadThread extends Thread
+  {
     private final String to;
-    private final String url;
-    boolean              success;
 
-    public DownloadThread(final String to, final String url) {
+    private final String url;
+
+    boolean success;
+
+
+    public DownloadThread(final String to, final String url)
+    {
       super();
       this.to = to;
       this.url = url;
       this.success = false;
     }
 
+
     @Override
-    public void run() {
+    public void run()
+    {
       try (OutputStream out = new BufferedOutputStream(new FileOutputStream(this.to));
-          InputStream in = new BufferedInputStream(Helper.openUrlInputStream(this.url));) {
+          InputStream in = new BufferedInputStream(Helper.openUrlInputStream(this.url));)
+      {
         Helper.write(in, out);
         this.success = true;
-      } catch (final IOException e) {
+      } catch (final IOException e)
+      {
         new File(this.to).delete();
         e.printStackTrace();
         System.err.println("错误：" + e.toString());
@@ -309,17 +525,23 @@ public final class Helper {
 
   private static final Map<String, String> DEFAULT_CONN_HEADERS = new HashMap<>();
 
-  static {
+  static
+  {
     Helper.resetConnectionHeaders();
   }
 
-  public final static InputStream openUrlInputStream(final String url) throws IOException {
+
+  public final static InputStream openUrlInputStream(final String url) throws IOException
+  {
     return Helper.openUrlInputStream(url, false, null);
   }
 
-  public static final void resetConnectionHeaders() {
+
+  public static final void resetConnectionHeaders()
+  {
     Helper.DEFAULT_CONN_HEADERS.clear();
-    Helper.DEFAULT_CONN_HEADERS.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0");
+    Helper.DEFAULT_CONN_HEADERS.put("User-Agent",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0");
     Helper.DEFAULT_CONN_HEADERS.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     // Helper.DEFAULT_CONN_HEADERS.put("DNT", "1");
     // Helper.DEFAULT_CONN_HEADERS.put("Connection", "keep-alive");
@@ -329,22 +551,34 @@ public final class Helper {
     // Helper.DEFAULT_CONN_HEADERS.put("Pragma", "no-cache");
   }
 
-  public static final void putConnectionHeader(final String key, final String value) {
+
+  public static final void putConnectionHeader(final String key, final String value)
+  {
     Helper.DEFAULT_CONN_HEADERS.put(key, value);
   }
 
-  public static final InputStream openUrlInputStream(final String url, final boolean post, final String output) throws IOException {
+
+  public static final InputStream openUrlInputStream(final String url, final boolean post, final String output)
+      throws IOException
+  {
     return Helper.getUrlConnection(url, post, output).getInputStream();
   }
 
-  public final static HttpURLConnection getUrlConnection(final String url) throws IOException {
+
+  public final static HttpURLConnection getUrlConnection(final String url) throws IOException
+  {
     return Helper.getUrlConnection(url, false, null);
   }
 
-  public final static HttpURLConnection getUrlConnection(final String url, final boolean post, final String output) throws IOException {
+
+  public final static HttpURLConnection getUrlConnection(final String url, final boolean post, final String output)
+      throws IOException
+  {
     int retries = 0;
-    while (true) {
-      try {
+    while (true)
+    {
+      try
+      {
         final URL urlObj = new URL(url);
         final HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
         conn.setDefaultUseCaches(false);
@@ -352,40 +586,52 @@ public final class Helper {
         conn.setConnectTimeout(30000);
         conn.setReadTimeout(60000);
 
-        if (post) {
+        if (post)
+        {
           conn.setRequestMethod("POST");
         }
         final String referer;
         final int pathIdx;
-        if ((pathIdx = url.lastIndexOf('/')) > "https://".length()) {
+        if ((pathIdx = url.lastIndexOf('/')) > "https://".length())
+        {
           referer = url.substring(0, pathIdx);
-        } else {
+        } else
+        {
           referer = url;
         }
         conn.setRequestProperty("Referer", referer);
         final Set<String> keys = Helper.DEFAULT_CONN_HEADERS.keySet();
-        for (final String k : keys) {
+        for (final String k : keys)
+        {
           final String value = Helper.DEFAULT_CONN_HEADERS.get(k);
-          if (value != null) {
+          if (value != null)
+          {
             conn.setRequestProperty(k, value);
           }
         }
-        if (output != null) {
+        if (output != null)
+        {
           conn.setDoOutput(true);
-          try (final BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream());) {
+          try (final BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream());)
+          {
             out.write(output.getBytes(Helper.CHARSET_UTF8));
           }
         }
         return conn;
-      } catch (final Throwable e) {
+      } catch (final Throwable e)
+      {
         // 连接中断
-        if (retries++ >= 3) {
+        if (retries++ >= 3)
+        {
           throw new IOException(e);
-        } else {
+        } else
+        {
           System.err.println("连接错误：" + e.toString() + "，重试连接。。。");
-          try {
+          try
+          {
             Thread.sleep((retries * 1000) + ((int) Math.random() * 1000 * retries));
-          } catch (final InterruptedException e1) {
+          } catch (final InterruptedException e1)
+          {
             System.err.println("异常中断：" + e1.toString());
           }
         }
@@ -393,10 +639,13 @@ public final class Helper {
     }
   }
 
-  public static ByteBuffer compressFile(final String rawFile, final int level) throws IOException {
+
+  public static ByteBuffer compressFile(final String rawFile, final int level) throws IOException
+  {
     InputStream in = null;
     OutputStream out = null;
-    try {
+    try
+    {
       in = new FileInputStream(rawFile);
       final ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);
       final Deflater def = new Deflater(level);
@@ -405,15 +654,20 @@ public final class Helper {
 
       def.end();
       return ByteBuffer.wrap(dataOut.toByteArray());
-    } finally {
+    } finally
+    {
       Helper.close(in, out);
     }
   }
 
-  public static ByteBuffer compressFile(final String rawFile, final String dictionaryFile, final int level) throws IOException {
+
+  public static ByteBuffer compressFile(final String rawFile, final String dictionaryFile, final int level)
+      throws IOException
+  {
     InputStream in = null;
     OutputStream out = null;
-    try {
+    try
+    {
       in = new FileInputStream(rawFile);
       final ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);
       final Deflater def = new Deflater(level);
@@ -421,82 +675,106 @@ public final class Helper {
       out = new DeflaterOutputStream(dataOut, def, Helper.BUFFER_SIZE);
       Helper.write(in, out);
       return ByteBuffer.wrap(dataOut.toByteArray());
-    } finally {
+    } finally
+    {
       Helper.close(in, out);
     }
   }
 
-  public static ByteBuffer decompressFile(final String compressedFile) throws IOException {
+
+  public static ByteBuffer decompressFile(final String compressedFile) throws IOException
+  {
 
     try (InflaterInputStream in = new InflaterInputStream(new FileInputStream(compressedFile));
-        ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);) {
+        ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);)
+    {
       Helper.write(in, dataOut);
       byte[] data = dataOut.toByteArray();
       return ByteBuffer.wrap(data);
     }
   }
 
-  public static ByteBuffer decompressFile(final String compressedFile, final String dictionaryFile) {
+
+  public static ByteBuffer decompressFile(final String compressedFile, final String dictionaryFile)
+  {
     final Inflater inf = new Inflater();
-    try (InputStream in = new InflaterInputStream(new FileInputStream(compressedFile), inf, Helper.BUFFER_SIZE);) {
+    try (InputStream in = new InflaterInputStream(new FileInputStream(compressedFile), inf, Helper.BUFFER_SIZE);)
+    {
       // System.out.println(in.read());
-      if (inf.needsDictionary()) {
-        try (ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);) {
+      if (inf.needsDictionary())
+      {
+        try (ByteArrayOutputStream dataOut = new ByteArrayOutputStream(Helper.BUFFER_SIZE);)
+        {
           inf.setDictionary(Helper.readBytes(dictionaryFile).array());
           Helper.write(in, dataOut);
           byte[] data = dataOut.toByteArray();
           return ByteBuffer.wrap(data);
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e)
+        {
           System.err.println("文件夹不存在!");
           return null;
-        } finally {
+        } finally
+        {
           inf.end();
         }
-      } else {
+      } else
+      {
         System.err.println("不需要词典!");
         inf.end();
         return null;
       }
-    } catch (IOException e) {
+    } catch (IOException e)
+    {
       // silent
       return null;
     }
   }
 
+
   /**
    * 
-   * @param text
-   *          text to analyze
-   * @param definitions
-   *          array of array of definitions with the first element as its key
+   * @param text text to analyze
+   * @param definitions array of array of definitions with the first element as
+   *          its key
    * @return {cutted text, definition key } if found definition otherwise null
    */
-  public static String[] findAndCut(String text, final String[][] definitions) {
+  public static String[] findAndCut(String text, final String[][] definitions)
+  {
     String def = null;
     int indexOf;
     String cuttedText = text;
-    for (final String[] defArray : definitions) {
-      for (int g = 1; g < defArray.length; g++) {
+    for (final String[] defArray : definitions)
+    {
+      for (int g = 1; g < defArray.length; g++)
+      {
         final String k = defArray[g];
-        if ((indexOf = cuttedText.indexOf(k)) != -1) {
+        if ((indexOf = cuttedText.indexOf(k)) != -1)
+        {
           def = defArray[0];
-          if ((indexOf + k.length()) == cuttedText.length()) {
+          if ((indexOf + k.length()) == cuttedText.length())
+          {
             cuttedText = cuttedText.substring(0, indexOf);
-          } else {
+          } else
+          {
             cuttedText = cuttedText.substring(0, indexOf) + cuttedText.substring(indexOf + k.length());
           }
           break;
         }
       }
     }
-    if (def != null) {
-      return new String[] { cuttedText, def };
-    } else {
+    if (def != null)
+    {
+      return new String[]
+      {cuttedText, def};
+    } else
+    {
       return null;
     }
   }
 
-  public final static String formatDuration(final long duration) {
+
+  public final static String formatDuration(final long duration)
+  {
     final long v = Math.abs(duration);
     final long days = v / 1000 / 60 / 60 / 24;
     final long hours = (v / 1000 / 60 / 60) % 24;
@@ -504,121 +782,169 @@ public final class Helper {
     final long secs = (v / 1000) % 60;
     final long millis = v % 1000;
     final StringBuilder out = new StringBuilder();
-    if (days > 0) {
-      out.append(days).append(':').append(Helper.padding(hours, 2, '0')).append(':').append(Helper.padding(mins, 2, '0')).append(":")
-          .append(Helper.padding(secs, 2, '0')).append(".").append(Helper.padding(millis, 3, '0'));
-    } else if (hours > 0) {
-      out.append(hours).append(':').append(Helper.padding(mins, 2, '0')).append(":").append(Helper.padding(secs, 2, '0')).append(".")
+    if (days > 0)
+    {
+      out.append(days).append(':').append(Helper.padding(hours, 2, '0')).append(':')
+          .append(Helper.padding(mins, 2, '0')).append(":").append(Helper.padding(secs, 2, '0')).append(".")
           .append(Helper.padding(millis, 3, '0'));
-    } else if (mins > 0) {
-      out.append(mins).append(":").append(Helper.padding(secs, 2, '0')).append(".").append(Helper.padding(millis, 3, '0'));
-    } else {
+    } else if (hours > 0)
+    {
+      out.append(hours).append(':').append(Helper.padding(mins, 2, '0')).append(":")
+          .append(Helper.padding(secs, 2, '0')).append(".").append(Helper.padding(millis, 3, '0'));
+    } else if (mins > 0)
+    {
+      out.append(mins).append(":").append(Helper.padding(secs, 2, '0')).append(".")
+          .append(Helper.padding(millis, 3, '0'));
+    } else
+    {
       out.append(secs).append(".").append(Helper.padding(millis, 3, '0'));
     }
     return out.toString();
 
   }
 
-  public static final String formatSpace(final long limit) {
-    if (limit < 1024L) {
+
+  public static final String formatSpace(final long limit)
+  {
+    if (limit < 1024L)
+    {
       return limit + " B";
-    } else if (limit < (1024L * 1024)) {
+    } else if (limit < (1024L * 1024))
+    {
       return (Math.round(limit / 10.24) / 100.0) + " KB";
-    } else if (limit < (1024L * 1024 * 1024)) {
+    } else if (limit < (1024L * 1024 * 1024))
+    {
       return (Math.round(limit / 1024 / 10.24) / 100.0) + " MB";
-    } else if (limit < (1024L * 1024 * 1024 * 1024)) {
+    } else if (limit < (1024L * 1024 * 1024 * 1024))
+    {
       return (Math.round(limit / 1024.0 / 1024.0 / 10.24) / 100.0) + " GB";
-    } else {
+    } else
+    {
       return (Math.round(limit / 1024.0 / 1024.0 / 1024.0 / 10.24) / 100.0) + " TB";
     }
   }
 
-  public static boolean isEmptyOrNull(final String text) {
+
+  public static boolean isEmptyOrNull(final String text)
+  {
     return (text == null) || text.isEmpty();
   }
 
-  public final static boolean isNotEmptyOrNull(final String text) {
+
+  public final static boolean isNotEmptyOrNull(final String text)
+  {
     return (text != null) && (text.length() > 0);
   }
 
-  private static boolean isNumber(final char c) {
+
+  private static boolean isNumber(final char c)
+  {
     return (c >= '0') && (c <= '9');
   }
 
-  public final static String padding(final long value, final int len, final char c) {
+
+  public final static String padding(final long value, final int len, final char c)
+  {
     return Helper.padding(String.valueOf(value), len, c);
   }
 
-  public final static String padding(final String text, final int len, final char c) {
-    if ((text != null) && (len > text.length())) {
+
+  public final static String padding(final String text, final int len, final char c)
+  {
+    if ((text != null) && (len > text.length()))
+    {
       final char[] spaces = new char[len - text.length()];
       Arrays.fill(spaces, c);
       return new String(spaces) + text;
-    } else {
+    } else
+    {
       return text;
     }
   }
 
-  public static Set<String> parseCategories(final File file) {
+
+  public static Set<String> parseCategories(final File file)
+  {
     final String cats = Helper.substringBetween(file.getName(), "(", ")");
     final Set<String> categories = new FormattedTreeSet<>();
-    if (Helper.isNotEmptyOrNull(cats)) {
+    if (Helper.isNotEmptyOrNull(cats))
+    {
       final String[] cs = cats.split(",");
-      for (final String c : cs) {
+      for (final String c : cs)
+      {
         categories.add(c);
       }
     }
     return categories;
   }
 
-  public static String[] parseLanguages(final File file) {
+
+  public static String[] parseLanguages(final File file)
+  {
     final String base = file.getName().substring(0, file.getName().indexOf('.'));
     final int idx2 = base.lastIndexOf('_');
     final int idx1 = base.lastIndexOf('_', idx2 - 1);
     final String lng1 = base.substring(idx1 + 1, idx2);
     final String lng2 = base.substring(idx2 + 1);
-    return new String[] { lng1, lng2 };
+    return new String[]
+    {lng1, lng2};
   }
 
-  public final static void precheck(final String inFile, final String outDirectory) {
-    if (!new File(inFile).isFile()) {
+
+  public final static void precheck(final String inFile, final String outDirectory)
+  {
+    if (!new File(inFile).isFile())
+    {
       System.err.println("Could not read input file: " + inFile);
       System.exit(-100);
     }
-    if (!(new File(outDirectory).isDirectory() || new File(outDirectory).mkdirs())) {
+    if (!(new File(outDirectory).isDirectory() || new File(outDirectory).mkdirs()))
+    {
       System.err.println("Could not create output directory: " + outDirectory);
       System.exit(-101);
     }
   }
 
-  public static ByteBuffer readBytes(final String file) throws IOException {
+
+  public static ByteBuffer readBytes(final String file) throws IOException
+  {
     final ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
 
-    try (RandomAccessFile f = new RandomAccessFile(file, "r"); final FileChannel fChannel = f.getChannel();) {
+    try (RandomAccessFile f = new RandomAccessFile(file, "r"); final FileChannel fChannel = f.getChannel();)
+    {
       fChannel.transferTo(0, fChannel.size(), Channels.newChannel(dataOut));
     }
     return ByteBuffer.wrap(dataOut.toByteArray());
   }
 
-  public final static Map<String, String> readMapStringString(final String text) {
+
+  public final static Map<String, String> readMapStringString(final String text)
+  {
     final String[] many = text.split(Helper.SEP_LIST);
     final Map<String, String> map = new FormattedTreeMap<>();
-    for (final String d : many) {
+    for (final String d : many)
+    {
       final String[] defs = d.split(Helper.SEP_DEFINITION);
-      if (defs.length == 2) {
+      if (defs.length == 2)
+      {
         map.put(defs[0], defs[1]);
       }
     }
     return map;
   }
 
-  public final static DictRow readPinyinWord(final String line) {
-    if (Helper.isNotEmptyOrNull(line)) {
+
+  public final static DictRow readPinyinWord(final String line)
+  {
+    if (Helper.isNotEmptyOrNull(line))
+    {
       final String[] parts = line.split(Helper.SEP_PARTS);
-      if (parts.length == 2) {
+      if (parts.length == 2)
+      {
         final String name = parts[0];
         final String pinyin = parts[1];
-        if (Helper.isNotEmptyOrNull(name) && Helper.isNotEmptyOrNull(pinyin)) {
+        if (Helper.isNotEmptyOrNull(name) && Helper.isNotEmptyOrNull(pinyin))
+        {
           final DictRow w = new DictRow();
           w.setName(name);
           w.setPronounciation(pinyin);
@@ -629,26 +955,35 @@ public final class Helper {
     return null;
   }
 
-  public final static Set<String> readSetString(final String text) {
+
+  public final static Set<String> readSetString(final String text)
+  {
     final String[] many = text.split(Helper.SEP_LIST);
     final Set<String> set = new FormattedTreeSet<>();
-    for (final String d : many) {
+    for (final String d : many)
+    {
       set.add(d);
     }
     return set;
   }
 
-  public final static DictRow readWikiWord(final String line) {
-    if (Helper.isNotEmptyOrNull(line)) {
+
+  public final static DictRow readWikiWord(final String line)
+  {
+    if (Helper.isNotEmptyOrNull(line))
+    {
       final String[] parts = line.split(Helper.SEP_PARTS);
-      if (parts.length > 1) {
+      if (parts.length > 1)
+      {
         final String name = parts[0];
-        if (Helper.isNotEmptyOrNull(name)) {
+        if (Helper.isNotEmptyOrNull(name))
+        {
           final DictRow w = new DictRow();
           w.setName(name);
           final Map<String, String> translations = Helper.readMapStringString(parts[1]);
           w.setTranslations(translations);
-          if (parts.length > 2) {
+          if (parts.length > 2)
+          {
             final Set<String> categories = Helper.readSetString(parts[2]);
             w.setCategories(categories);
           }
@@ -659,23 +994,38 @@ public final class Helper {
     return null;
   }
 
-  public static String stripCoreText(final String line) {
+
+  public static String stripCoreText(final String line)
+  {
     final int count = line.length();
     final StringBuilder sb = new StringBuilder(count);
     int pairIdx = -1;
     char close = 0;
-    final char[][] pairs = { { '(', ')' }, { '{', '}' }, { '[', ']' }, { '（', '）' }, { '《', '》' }, { '［', '］' } };
+    final char[][] pairs =
+    {
+    {'(', ')'},
+    {'{', '}'},
+    {'[', ']'},
+    {'（', '）'},
+    {'《', '》'},
+    {'［', '］'}};
 
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
+    {
       final char c = line.charAt(i);
-      if (pairIdx != -1) {
-        if (c == close) {
+      if (pairIdx != -1)
+      {
+        if (c == close)
+        {
           pairIdx = -1;
         }
-      } else {
-        if (-1 == (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i)))) {
+      } else
+      {
+        if (-1 == (pairIdx = ArrayHelper.indexOf(pairs, line.charAt(i))))
+        {
           sb.append(c);
-        } else {
+        } else
+        {
           close = pairs[pairIdx][1];
         }
       }
@@ -683,25 +1033,33 @@ public final class Helper {
     return sb.toString();
   }
 
-  public static String stripHtmlText(final String line, final boolean startOk) {
+
+  public static String stripHtmlText(final String line, final boolean startOk)
+  {
     final int count = line.length();
     final StringBuilder sb = new StringBuilder(count);
     boolean ok = startOk;
     char c;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
+    {
       c = line.charAt(i);
-      if (c == '>') {
+      if (c == '>')
+      {
         ok = true;
-      } else if (c == '<') {
+      } else if (c == '<')
+      {
         ok = false;
-      } else if (ok) {
+      } else if (ok)
+      {
         sb.append(c);
       }
     }
     return sb.toString();
   }
 
-  public static String stripWikiText(final String wiki) {
+
+  public static String stripWikiText(final String wiki)
+  {
     final int length = wiki.length();
     // ==title==. remove ''', {}, [], [|(text)], {|}
     final StringBuilder sb = new StringBuilder(length);
@@ -712,28 +1070,35 @@ public final class Helper {
     int linkOpened = -1;
     boolean externalOpened = false;
     char last = '\0';
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++)
+    {
       cp = wiki.charAt(i);
-      if ((cp != ' ') && (countSpaces > 0)) {
-        if ((last != ' ') && (last != '(')) {
+      if ((cp != ' ') && (countSpaces > 0))
+      {
+        if ((last != ' ') && (last != '('))
+        {
           sb.append(' ');
           last = ' ';
         }
         countSpaces = 0;
       }
-      if ((cp != '\'') && (countQuos == 1)) {
+      if ((cp != '\'') && (countQuos == 1))
+      {
         sb.append('\'');
         last = '\'';
         countQuos = 0;
       }
-      if ((cp != '=') && (countEquals == 1)) {
+      if ((cp != '=') && (countEquals == 1))
+      {
         sb.append('=');
         last = '=';
         countEquals = 0;
       }
-      switch (cp) {
+      switch (cp)
+      {
         case ' ':
-          if (externalOpened) {
+          if (externalOpened)
+          {
             linkOpened = -1;
           }
           countSpaces++;
@@ -744,8 +1109,10 @@ public final class Helper {
         case '[':
           linkOpened = i;
           if (((i + 7) < length)
-              && (((wiki.charAt(i + 1) == 'h') && (wiki.charAt(i + 2) == 't') && (wiki.charAt(i + 3) == 't') && (wiki.charAt(i + 4) == 'p')) || ((wiki
-                  .charAt(i + 1) == 'f') && (wiki.charAt(i + 2) == 't') && (wiki.charAt(i + 3) == 'p')))) {
+              && (((wiki.charAt(i + 1) == 'h') && (wiki.charAt(i + 2) == 't') && (wiki.charAt(i + 3) == 't') && (wiki
+                  .charAt(i + 4) == 'p')) || ((wiki.charAt(i + 1) == 'f') && (wiki.charAt(i + 2) == 't') && (wiki
+                  .charAt(i + 3) == 'p'))))
+          {
             externalOpened = true;
           }
           continue;
@@ -753,7 +1120,8 @@ public final class Helper {
           linkOpened = -1;
           continue;
         case ']':
-          if (linkOpened != -1) {
+          if (linkOpened != -1)
+          {
             i = linkOpened;
           }
           linkOpened = -1;
@@ -768,7 +1136,8 @@ public final class Helper {
         default:
           break;
       }
-      if (linkOpened == -1) {
+      if (linkOpened == -1)
+      {
         sb.append(cp);
         last = cp;
       }
@@ -776,169 +1145,229 @@ public final class Helper {
     return sb.toString();
   }
 
-  public static final String substringBetween(final String text, final String start, final String end) {
+
+  public static final String substringBetween(final String text, final String start, final String end)
+  {
     return Helper.substringBetween(text, start, end, true);
   }
 
-  public static final String substringBetween(final String text, final String start, final String end, final boolean trim) {
+
+  public static final String substringBetween(final String text, final String start, final String end,
+      final boolean trim)
+  {
     final int nStart = text.indexOf(start);
     final int nEnd = text.indexOf(end, nStart + start.length() + 1);
-    if ((nStart != -1) && (nEnd > nStart)) {
-      if (trim) {
+    if ((nStart != -1) && (nEnd > nStart))
+    {
+      if (trim)
+      {
         return text.substring(nStart + start.length(), nEnd).trim();
-      } else {
+      } else
+      {
         return text.substring(nStart + start.length(), nEnd);
       }
-    } else {
+    } else
+    {
       return null;
     }
   }
 
-  public static String substringBetweenEnclose(final String text, final String start, final String end) {
+
+  public static String substringBetweenEnclose(final String text, final String start, final String end)
+  {
     final int nStart = text.indexOf(start);
     final int nEnd = text.lastIndexOf(end);
-    if ((nStart != -1) && (nEnd != -1) && (nEnd > (nStart + start.length()))) {
+    if ((nStart != -1) && (nEnd != -1) && (nEnd > (nStart + start.length())))
+    {
       return text.substring(nStart + start.length(), nEnd);
-    } else {
+    } else
+    {
       return null;
     }
   }
 
-  public final static String substringBetweenLast(final String text, final String start, final String end) {
+
+  public final static String substringBetweenLast(final String text, final String start, final String end)
+  {
     return Helper.substringBetweenLast(text, start, end, true);
   }
 
-  public final static String substringBetweenLast(final String text, final String start, final String end, final boolean trim) {
+
+  public final static String substringBetweenLast(final String text, final String start, final String end,
+      final boolean trim)
+  {
     final int nEnd = text.lastIndexOf(end);
     int nStart = -1;
-    if (nEnd > 1) {
+    if (nEnd > 1)
+    {
       nStart = text.lastIndexOf(start, nEnd - 1);
-    } else {
+    } else
+    {
       return null;
     }
-    if ((nStart < nEnd) && (nStart != -1) && (nEnd != -1)) {
-      if (trim) {
+    if ((nStart < nEnd) && (nStart != -1) && (nEnd != -1))
+    {
+      if (trim)
+      {
         return text.substring(nStart + start.length(), nEnd).trim();
-      } else {
+      } else
+      {
         return text.substring(nStart + start.length(), nEnd);
       }
-    } else {
+    } else
+    {
       return null;
     }
 
   }
+
 
   /**
    * 
    * @param text
    * @param start
-   * @param end
-   *          字符串里只能出现一次
+   * @param end 字符串里只能出现一次
    * @return
    */
-  public static String substringBetweenNarrow(final String text, final String start, final String end) {
+  public static String substringBetweenNarrow(final String text, final String start, final String end)
+  {
     final int nEnd = text.indexOf(end);
     int nStart = -1;
-    if (nEnd != -1) {
+    if (nEnd != -1)
+    {
       nStart = text.lastIndexOf(start, nEnd - 1);
     }
-    if ((nStart < nEnd) && (nStart != -1) && (nEnd != -1)) {
+    if ((nStart < nEnd) && (nStart != -1) && (nEnd != -1))
+    {
       return text.substring(nStart + start.length(), nEnd);
-    } else {
+    } else
+    {
       return null;
     }
   }
 
-  public static String toConstantName(String line) {
+
+  public static String toConstantName(String line)
+  {
     String correctedLine = line.toUpperCase();
     final int count = correctedLine.length();
     final StringBuilder sb = new StringBuilder(count);
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
+    {
       final char c = correctedLine.charAt(i);
-      if ((c == '.') || (c == ':') || (c == '?') || (c == ',') || (c == '*') || (c == '=') || (c == '„') || (c == '“') || (c == ')')
-          || ((c >= '0') && (c <= '9')) || (c == '"') || (c == ';') || (c == '!') || (c == '<') || (c == '>')) {
+      if ((c == '.') || (c == ':') || (c == '?') || (c == ',') || (c == '*') || (c == '=') || (c == '„') || (c == '“')
+          || (c == ')') || ((c >= '0') && (c <= '9')) || (c == '"') || (c == ';') || (c == '!') || (c == '<')
+          || (c == '>'))
+      {
         // [:\.\?;\*=\)0-9";!<>„“]
         continue;
-      } else if ((c == ' ') || (c == '\'') || (c == '-') || (c == '&') || (c == 'ß')) {
+      } else if ((c == ' ') || (c == '\'') || (c == '-') || (c == '&') || (c == 'ß'))
+      {
         // [ '\-&ß]
         sb.append('_');
-      } else {
+      } else
+      {
         sb.append(c);
       }
     }
     return sb.toString();
   }
 
-  private static void unescape(final Writer writer, final String str, final int firstAmp) throws IOException {
+
+  private static void unescape(final Writer writer, final String str, final int firstAmp) throws IOException
+  {
     writer.write(str, 0, firstAmp);
     final int len = str.length();
-    for (int i = firstAmp; i < len; i++) {
+    for (int i = firstAmp; i < len; i++)
+    {
       final char c = str.charAt(i);
-      if (c == '&') {
+      if (c == '&')
+      {
         final int nextIdx = i + 1;
         int semiColonIdx = str.indexOf(';', nextIdx);
-        if (semiColonIdx == -1) {
-          while (((i + 1) < len) && Helper.isNumber(str.charAt(i + 1))) {
+        if (semiColonIdx == -1)
+        {
+          while (((i + 1) < len) && Helper.isNumber(str.charAt(i + 1)))
+          {
             i++;
           }
           semiColonIdx = i + 1;
         }
         final int amphersandIdx = str.indexOf('&', i + 1);
-        if ((amphersandIdx != -1) && (amphersandIdx < semiColonIdx)) {
+        if ((amphersandIdx != -1) && (amphersandIdx < semiColonIdx))
+        {
           writer.write(c);
           continue;
         }
         final String entityContent = str.substring(nextIdx, semiColonIdx);
         int entityValue = -1;
         final int entityContentLen = entityContent.length();
-        if (entityContentLen > 0) {
-          if (entityContent.charAt(0) == '#') {
-            if (entityContentLen > 1) {
+        if (entityContentLen > 0)
+        {
+          if (entityContent.charAt(0) == '#')
+          {
+            if (entityContentLen > 1)
+            {
               final char isHexChar = entityContent.charAt(1);
-              try {
-                switch (isHexChar) {
+              try
+              {
+                switch (isHexChar)
+                {
                   case 'X':
-                  case 'x': {
+                  case 'x':
+                  {
                     entityValue = Integer.parseInt(entityContent.substring(2), 16);
                     break;
                   }
-                  default: {
+                  default:
+                  {
                     entityValue = Integer.parseInt(entityContent.substring(1), 10);
                   }
                 }
-                if (entityValue > 0xFFFF) {
+                if (entityValue > 0xFFFF)
+                {
                   entityValue = -1;
                 }
-              } catch (final NumberFormatException e) {
+              } catch (final NumberFormatException e)
+              {
                 entityValue = -1;
               }
             }
-          } else {
+          } else
+          {
             final int idx = Arrays.binarySearch(Helper.HTML_KEYS, entityContent);
-            if (idx >= 0) {
+            if (idx >= 0)
+            {
               entityValue = Helper.HTML_VALS[idx];
             }
           }
-        } else {
+        } else
+        {
           writer.write(c);
           continue;
         }
 
-        if (entityValue > -1) {
+        if (entityValue > -1)
+        {
           writer.write(entityValue);
         }
         i = semiColonIdx;
-      } else {
+      } else
+      {
         writer.write(c);
       }
     }
 
   }
 
-  public static String unescapeHtml(final String str) {
-    try {
+
+  public static String unescapeHtml(final String str)
+  {
+    try
+    {
       final int firstAmp = str.indexOf('&');
-      if (firstAmp < 0) {
+      if (firstAmp < 0)
+      {
         return str;
       }
 
@@ -946,42 +1375,60 @@ public final class Helper {
       Helper.unescape(writer, str, firstAmp);
 
       return writer.toString();
-    } catch (final IOException ioe) {
+    } catch (final IOException ioe)
+    {
       return str;
     }
   }
 
-  public static final void writeBytes(final byte[] data, final String file) throws IOException {
-    try (final FileOutputStream f = new FileOutputStream(file);) {
+
+  public static final void writeBytes(final byte[] data, final String file) throws IOException
+  {
+    try (final FileOutputStream f = new FileOutputStream(file);)
+    {
       f.write(data);
     }
   }
 
-  public static final void write(final InputStream in, final OutputStream out) throws IOException {
+
+  public static final void write(final InputStream in, final OutputStream out) throws IOException
+  {
     int len;
-    while ((len = in.read(Helper.IO_BB.array())) > 0) {
+    while ((len = in.read(Helper.IO_BB.array())) > 0)
+    {
       out.write(Helper.IO_BB.array(), 0, len);
     }
   }
 
-  public static final void writeToFile(final InputStream in, final File file) throws IOException {
-    try (final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));) {
+
+  public static final void writeToFile(final InputStream in, final File file) throws IOException
+  {
+    try (final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));)
+    {
       int len;
-      while ((len = in.read(Helper.IO_BB.array())) > 0) {
+      while ((len = in.read(Helper.IO_BB.array())) > 0)
+      {
         out.write(Helper.IO_BB.array(), 0, len);
       }
     }
   }
 
-  public static final int deleteDirectory(final File path) {
+
+  public static final int deleteDirectory(final File path)
+  {
     int deleted = 0;
-    if (path.exists()) {
+    if (path.exists())
+    {
       final File[] files = path.listFiles();
-      for (final File file : files) {
-        if (file.isDirectory()) {
+      for (final File file : files)
+      {
+        if (file.isDirectory())
+        {
           deleted += Helper.deleteDirectory(file);
-        } else {
-          if (file.delete()) {
+        } else
+        {
+          if (file.delete())
+          {
             deleted++;
           }
         }
@@ -991,55 +1438,75 @@ public final class Helper {
     return deleted;
   }
 
-  public static final String[] getFileNames(final File[] files) {
+
+  public static final String[] getFileNames(final File[] files)
+  {
     final String[] filePaths = new String[files.length];
     int i = 0;
-    for (final File f : files) {
+    for (final File f : files)
+    {
       // System.out.println((i + 1) + ". " + f.getAbsolutePath());
       filePaths[i++] = f.getAbsolutePath();
     }
     return filePaths;
   }
 
-  public final static long getFilesSize(final String[] files) {
+
+  public final static long getFilesSize(final String[] files)
+  {
     long size = 0;
-    for (final String f : files) {
+    for (final String f : files)
+    {
       size += new File(f).length();
     }
     return size;
   }
 
-  public static String substringAfterLast(final String f, final String str) {
+
+  public static String substringAfterLast(final String f, final String str)
+  {
     final int idx = f.lastIndexOf(str);
-    if (-1 != idx) {
+    if (-1 != idx)
+    {
       return f.substring(idx + str.length());
     }
     return null;
   }
 
-  public static String substringAfter(final String f, final String str) {
+
+  public static String substringAfter(final String f, final String str)
+  {
     final int idx = f.indexOf(str);
-    if (-1 != idx) {
+    if (-1 != idx)
+    {
       return f.substring(idx + str.length());
     }
     return null;
   }
 
-  public static final double toFixed(final double d, final double precision) {
+
+  public static final double toFixed(final double d, final double precision)
+  {
     final double pow = Math.pow(10, precision);
     return Math.round(d * pow) / pow;
   }
 
   private static final FileSystemView FILE_SYSTEM = FileSystemView.getFileSystemView();
 
-  public static final FileInputStream findResourceAsStream(final String resource) throws IllegalArgumentException, IOException {
+
+  public static final FileInputStream findResourceAsStream(final String resource) throws IllegalArgumentException,
+      IOException
+  {
     final File file = Helper.findResource(resource);
-    if (null != file) {
+    if (null != file)
+    {
       return new FileInputStream(file);
-    } else {
+    } else
+    {
       return null;
     }
   }
+
 
   /**
    * <pre>
@@ -1059,123 +1526,168 @@ public final class Helper {
    * @throws IllegalArgumentException
    * @throws IOException
    */
-  public static final File findResource(final String resource) throws IllegalArgumentException {
+  public static final File findResource(final String resource) throws IllegalArgumentException
+  {
     File resFile = null;
-    if (new File(resource).isFile()) {
+    if (new File(resource).isFile())
+    {
       // in run directory
       resFile = new File(resource);
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // in user directory
       final String dir = System.getProperty("user.home");
-      if (!Helper.isEmptyOrNull(dir)) {
-        if (new File(dir, resource).isFile()) {
+      if (!Helper.isEmptyOrNull(dir))
+      {
+        if (new File(dir, resource).isFile())
+        {
           resFile = new File(dir, resource);
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // in user document directory
       final File dir = Helper.FILE_SYSTEM.getDefaultDirectory();
-      if (dir != null) {
-        if (new File(dir, resource).isFile()) {
+      if (dir != null)
+      {
+        if (new File(dir, resource).isFile())
+        {
           resFile = new File(dir, resource);
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // in user desktop directory
       final File dir = Helper.FILE_SYSTEM.getHomeDirectory();
-      if (dir != null) {
-        if (new File(dir, resource).isFile()) {
+      if (dir != null)
+      {
+        if (new File(dir, resource).isFile())
+        {
           resFile = new File(dir, resource);
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // get from root of run directory
       final File dir = new File("/");
-      if (dir.isDirectory()) {
-        if (new File(dir, resource).isFile()) {
+      if (dir.isDirectory())
+      {
+        if (new File(dir, resource).isFile())
+        {
           resFile = new File(dir, resource);
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // get from class path (root)
       final URL resUrl = Helper.class.getResource("/" + resource);
-      if (resUrl != null) {
-        try {
+      if (resUrl != null)
+      {
+        try
+        {
           resFile = new File(System.getProperty("java.io.tmpdir") + "/" + resource);
           Helper.writeToFile(Helper.class.getResourceAsStream("/" + resource), resFile);
-        } catch (final IOException e) {
+        } catch (final IOException e)
+        {
           System.err.println("从JAR导出'" + resource + "'时出错：" + e.toString());
         }
-        if ((resFile != null) && !resFile.isFile()) {
+        if ((resFile != null) && !resFile.isFile())
+        {
           resFile = null;
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // find in root directories, e.g. c:\, d:\, e:\, x:\
       final File[] dirs = File.listRoots();
-      for (final File dir : dirs) {
-        if (dir.isDirectory()) {
-          if (new File(dir, resource).isFile()) {
+      for (final File dir : dirs)
+      {
+        if (dir.isDirectory())
+        {
+          if (new File(dir, resource).isFile())
+          {
             resFile = new File(dir, resource);
           }
         }
       }
     }
-    if (resFile == null) {
+    if (resFile == null)
+    {
       // in temp directory
       final String dir = System.getProperty("java.io.tmpdir");
-      if (!Helper.isEmptyOrNull(dir)) {
-        if (new File(dir, resource).isFile()) {
+      if (!Helper.isEmptyOrNull(dir))
+      {
+        if (new File(dir, resource).isFile())
+        {
           resFile = new File(dir, resource);
         }
       }
     }
-    if (Helper.DEBUG) {
-      if (resFile != null) {
+    if (Helper.DEBUG)
+    {
+      if (resFile != null)
+      {
         System.out.println("找到：" + resFile.getAbsolutePath());
-      } else {
+      } else
+      {
         System.err.println("没有找到：" + resource);
       }
     }
     return resFile;
   }
 
-  public final static boolean isEmptyOrNotExists(final String file) {
+
+  public final static boolean isEmptyOrNotExists(final String file)
+  {
     final File f = new File(file);
     return !f.isFile() || (f.length() == 0);
   }
 
   private static final ByteBuffer IO_BB = ByteBuffer.wrap(new byte[Helper.BUFFER_SIZE]);
 
-  public static final long readStatsFile(final String file) {
-    try {
+
+  public static final long readStatsFile(final String file)
+  {
+    try
+    {
       final ByteBuffer bb = Helper.readBytes(file);
       return Long.parseLong(ArrayHelper.toString(bb));
-    } catch (final Exception e) {
+    } catch (final Exception e)
+    {
       return 0L;
     }
   }
 
-  public static final void writeStatsFile(final String file, final long status) {
-    try {
+
+  public static final void writeStatsFile(final String file, final long status)
+  {
+    try
+    {
       Helper.writeBytes(String.valueOf(status).getBytes(Helper.CHARSET_UTF8), file);
-    } catch (final Exception e) {
+    } catch (final Exception e)
+    {
       System.err.println("写出状态文件'" + file + "'时出错：" + e.toString());
     }
   }
 
-  public static final void appendCookies(final StringBuffer cookie, final HttpURLConnection conn) {
+
+  public static final void appendCookies(final StringBuffer cookie, final HttpURLConnection conn)
+  {
     final List<String> values = conn.getHeaderFields().get("Set-Cookie");
-    if (values != null) {
-      for (final String v : values) {
-        if (v.indexOf("deleted") == -1) {
-          if (cookie.length() > 0) {
+    if (values != null)
+    {
+      for (final String v : values)
+      {
+        if (v.indexOf("deleted") == -1)
+        {
+          if (cookie.length() > 0)
+          {
             cookie.append("; ");
           }
           cookie.append(v.split(";")[0]);
@@ -1184,32 +1696,41 @@ public final class Helper {
     }
   }
 
-  public static String unescapeCode(final String str) {
+
+  public static String unescapeCode(final String str)
+  {
     final StringBuffer sb = new StringBuffer(str.length());
     final int sz = str.length();
     final StringBuffer unicode = new StringBuffer(4);
     boolean hadSlash = false;
     boolean inUnicode = false;
-    for (int i = 0; i < sz; i++) {
+    for (int i = 0; i < sz; i++)
+    {
       final char ch = str.charAt(i);
-      if (inUnicode) {
+      if (inUnicode)
+      {
         unicode.append(ch);
-        if (unicode.length() == 4) {
-          try {
+        if (unicode.length() == 4)
+        {
+          try
+          {
             final int value = Integer.parseInt(unicode.toString(), 16);
             sb.append((char) value);
             unicode.setLength(0);
             inUnicode = false;
             hadSlash = false;
-          } catch (final NumberFormatException nfe) {
+          } catch (final NumberFormatException nfe)
+          {
             // ignore
           }
         }
         continue;
       }
-      if (hadSlash) {
+      if (hadSlash)
+      {
         hadSlash = false;
-        switch (ch) {
+        switch (ch)
+        {
           case '\\':
             sb.append('\\');
             break;
@@ -1234,7 +1755,8 @@ public final class Helper {
           case 'b':
             sb.append('\b');
             break;
-          case 'u': {
+          case 'u':
+          {
             inUnicode = true;
             break;
           }
@@ -1243,111 +1765,175 @@ public final class Helper {
             break;
         }
         continue;
-      } else if (ch == '\\') {
+      } else if (ch == '\\')
+      {
         hadSlash = true;
         continue;
       }
       sb.append(ch);
     }
-    if (hadSlash) {
+    if (hadSlash)
+    {
       sb.append('\\');
     }
     return sb.toString();
   }
 
-  public final static void traverseDirAction(final File directory, final FileFilter filter, final FileFilter action) throws IOException {
-    if (directory.isDirectory()) {
+
+  public final static void traverseDirAction(final File directory, final FileFilter filter, final FileFilter action)
+      throws IOException
+  {
+    if (directory.isDirectory())
+    {
       final File[] childs = directory.listFiles();
       boolean found = false;
-      for (final File child : childs) {
-        if (child.isDirectory()) {
+      for (final File child : childs)
+      {
+        if (child.isDirectory())
+        {
           Helper.traverseDirAction(child, filter, action);
-        } else if (!found && filter.accept(child)) {
+        } else if (!found && filter.accept(child))
+        {
           found = true;
         }
       }
-      if (found) {
+      if (found)
+      {
         action.accept(directory);
       }
     }
   }
 
-  public final static void traverseFileAction(final File directory, final FileFilter action) throws IOException {
-    if (directory.isDirectory()) {
+
+  public final static void traverseFileAction(final File directory, final FileFilter action) throws IOException
+  {
+    if (directory.isDirectory())
+    {
       final File[] childs = directory.listFiles();
-      for (final File child : childs) {
-        if (child.isDirectory()) {
+      for (final File child : childs)
+      {
+        if (child.isDirectory())
+        {
           Helper.traverseFileAction(child, action);
-        } else {
+        } else
+        {
           action.accept(child);
         }
       }
     }
   }
 
-  public static void close(Closeable... closables) {
-    for (Closeable c : closables) {
-      if (c != null) {
-        try {
+
+  public static void close(Closeable... closables)
+  {
+    for (Closeable c : closables)
+    {
+      if (c != null)
+      {
+        try
+        {
           c.close();
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
           // silent
         }
       }
     }
   }
 
-  public static void consume(InputStream in, FileOutputStream out) throws IOException {
-    try {
+
+  public static void consume(InputStream in, FileOutputStream out) throws IOException
+  {
+    try
+    {
       Helper.write(in, out);
-    } finally {
+    } finally
+    {
       Helper.close(in, out);
     }
   }
 
-  public static void debug(HttpURLConnection conn) throws IOException {
-    try {
+
+  public static void debug(HttpURLConnection conn) throws IOException
+  {
+    try
+    {
       System.out.println("req: " + conn.getRequestProperties());
-    } catch (Exception e) {
+    } catch (Exception e)
+    {
       // silent
     }
     System.out.println("rsp: " + conn.getHeaderFields());
   }
 
-  public static String formatTime(long currentTimeMillis) {
+
+  public static String formatTime(long currentTimeMillis)
+  {
     return DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date(currentTimeMillis));
   }
 
-  public static boolean containsAny(String str, char... chars) {
+
+  public static boolean containsAny(String str, char... chars)
+  {
     final int l = str.length();
     Arrays.sort(chars);
-    for (int i = 0; i < l; i++) {
+    for (int i = 0; i < l; i++)
+    {
       final char c = str.charAt(i);
-      if (Arrays.binarySearch(chars, c) >= 0) {
+      if (Arrays.binarySearch(chars, c) >= 0)
+      {
         return true;
       }
     }
     return false;
   }
 
-  public static String escapeHtml(String str) {
+
+  public static String escapeHtml(String str)
+  {
     StringBuilder buf = new StringBuilder(str.length() * 2);
     int i;
-    for (i = 0; i < str.length(); ++i) {
+    for (i = 0; i < str.length(); ++i)
+    {
       char ch = str.charAt(i);
-      if (ch == '&') {
+      if (ch == '&')
+      {
         buf.append("&amp;");
-      } else {
-        if (ch > 0x7F) {
+      } else
+      {
+        if (ch > 0x7F)
+        {
           int intValue = ch;
           buf.append("&#");
           buf.append(intValue);
           buf.append(';');
-        } else {
+        } else
+        {
           buf.append(ch);
         }
       }
     }
     return buf.toString();
+  }
+
+
+  public static boolean equals(InputStream in1, InputStream in2) throws IOException
+  {
+    int b1;
+    int b2;
+    while (true)
+    {
+      b1 = in1.read();
+      b2 = in2.read();
+      if (b1 == -1 || b2 == -1)
+      {
+        break;
+      }
+      if (b1 != b2)
+      {
+        return false;
+      }
+    }
+    return b1 == -1;
   }
 }

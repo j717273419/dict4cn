@@ -23,7 +23,21 @@ public class SeekableFileInputStream extends SeekableInputStream
    */
   protected RandomAccessFile randomAccessFile;
 
-  private long offset = 0;
+  private final long offset;
+
+  private final long len;
+
+
+  public SeekableFileInputStream(String name) throws IOException
+  {
+    this(name, 0, Long.MAX_VALUE);
+  }
+
+
+  public SeekableFileInputStream(String name, long offset) throws IOException
+  {
+    this(name, offset, Long.MAX_VALUE);
+  }
 
 
   /**
@@ -32,10 +46,11 @@ public class SeekableFileInputStream extends SeekableInputStream
    * 
    * @throws IOException
    */
-  public SeekableFileInputStream(String name, long offset) throws IOException
+  public SeekableFileInputStream(String name, long offset, long len) throws IOException
   {
     this.randomAccessFile = new RandomAccessFile(name, "r");
     this.offset = offset;
+    this.len = Math.min(randomAccessFile.length() - offset, len);
     this.randomAccessFile.seek(offset);
   }
 
@@ -82,7 +97,7 @@ public class SeekableFileInputStream extends SeekableInputStream
    */
   public long length() throws IOException
   {
-    return randomAccessFile.length() - offset;
+    return len;
   }
 
 

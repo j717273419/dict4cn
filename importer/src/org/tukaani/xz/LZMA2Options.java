@@ -127,9 +127,6 @@ public class LZMA2Options extends FilterOptions
   private static final int[] presetToDictSize =
   {1 << 18, 1 << 20, 1 << 21, 1 << 22, 1 << 22, 1 << 23, 1 << 23, 1 << 24, 1 << 25, 1 << 26};
 
-  private static final int[] presetToDepthLimit =
-  {4, 8, 24, 48};
-
   private int dictSize;
 
   private byte[] presetDict = null;
@@ -212,7 +209,7 @@ public class LZMA2Options extends FilterOptions
    */
   public void setPreset(int preset) throws UnsupportedOptionsException
   {
-    if (preset < 0 || preset > 9)
+    if (preset < 3 || preset > 9)
       throw new UnsupportedOptionsException("Unsupported preset: " + preset);
 
     lc = LC_DEFAULT;
@@ -220,19 +217,10 @@ public class LZMA2Options extends FilterOptions
     pb = PB_DEFAULT;
     dictSize = presetToDictSize[preset];
 
-    if (preset <= 3)
-    {
-      mode = MODE_FAST;
-      mf = MF_HC4;
-      niceLen = preset <= 1 ? 128 : NICE_LEN_MAX;
-      depthLimit = presetToDepthLimit[preset];
-    } else
-    {
-      mode = MODE_NORMAL;
-      mf = MF_BT4;
-      niceLen = (preset == 4) ? 16 : (preset == 5) ? 32 : 64;
-      depthLimit = 0;
-    }
+    mode = MODE_NORMAL;
+    mf = MF_BT4;
+    niceLen = (preset == 4) ? 16 : (preset == 5) ? 32 : 64;
+    depthLimit = 0;
   }
 
 
