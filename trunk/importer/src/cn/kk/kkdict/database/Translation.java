@@ -5,13 +5,14 @@ import java.io.IOException;
 import cn.kk.kkdict.utils.ArrayHelper;
 
 public class Translation {
-  private static final int MAX_SIDX_SIZE = 50;
+  private static final int MAX_SIDX_SIZE = SuperIndexGenerator.LEN_SRC_KEY;
 
-  public Translation(byte[] srcKey, int srcLng, int tgtLng, String srcVal, String tgtVal) {
-    this(-1, srcKey, srcLng, tgtLng, srcVal, tgtVal, 0, 0, 0, 0);
+  public Translation(byte[] srcKey, short srcLng, short tgtLng, String srcVal, String tgtVal) {
+    this(-1, srcKey, srcLng, tgtLng, srcVal, tgtVal, (byte) 0, (byte) 0, (byte) 0, (byte) 0);
   }
 
-  public Translation(long trlId, byte[] srcKey, int srcLng, int tgtLng, String srcVal, String tgtVal, int srcGender, int srcCategory, int srcType, int srcUsage) {
+  public Translation(long trlId, byte[] srcKey, short srcLng, short tgtLng, String srcVal, String tgtVal, byte srcGender, byte srcCategory, byte srcType,
+      byte srcUsage) {
     this.trlId = trlId;
     this.srcLng = srcLng;
     this.tgtLng = tgtLng;
@@ -29,24 +30,24 @@ public class Translation {
     }
   }
 
-  public Translation(long trlId, String srcKeyHex, int srcLng, int tgtLng, String srcVal, String tgtVal, int srcGender, int srcCategory, int srcType,
-      int srcUsage) {
+  public Translation(long trlId, String srcKeyHex, short srcLng, short tgtLng, String srcVal, String tgtVal, byte srcGender, byte srcCategory, byte srcType,
+      byte srcUsage) {
     this(trlId, ArrayHelper.fromHex(srcKeyHex), srcLng, tgtLng, srcVal, tgtVal, srcGender, srcCategory, srcType, srcUsage);
   }
 
   private final long   trlId;
-  private final int    srcLng;
-  private final int    tgtLng;
+  private final short  srcLng;
+  private final short  tgtLng;
   private final String srcVal;
   private final String tgtVal;
-  private final int    srcGender;
-  private final int    srcCategory;
-  private final int    srcType;
-  private final int    srcUsage;
+  private final byte   srcGender;
+  private final byte   srcCategory;
+  private final byte   srcType;
+  private final byte   srcUsage;
 
   private final byte[] srcKey;
 
-  public static Translation from(int srcLngId, String srcVal, int tgtLngId, String tgtVal) throws IOException {
+  public static Translation from(short srcLngId, String srcVal, short tgtLngId, String tgtVal) throws IOException {
     Translation trl = new Translation(SuperIndexGenerator.createPhonetecIdx(srcVal), srcLngId, tgtLngId, srcVal, tgtVal);
     return trl;
   }
@@ -64,11 +65,11 @@ public class Translation {
     return this.trlId;
   }
 
-  public int getSrcLng() {
+  public short getSrcLng() {
     return this.srcLng;
   }
 
-  public int getTgtLng() {
+  public short getTgtLng() {
     return this.tgtLng;
   }
 

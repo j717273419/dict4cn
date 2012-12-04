@@ -15,6 +15,7 @@ import java.util.List;
 import cn.kk.kkdict.beans.DictByteBufferRow;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
+import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class DatabaseWriter {
@@ -24,43 +25,50 @@ public class DatabaseWriter {
   /**
    * @param args
    * @throws ClassNotFoundException
+   * @throws SQLException
    */
-  public static void main(String[] args) throws ClassNotFoundException {
+  public static void main(String[] args) throws ClassNotFoundException, SQLException {
     Class.forName(DatabaseWriter.driver);
-    final File directory = new File("D:\\kkdict\\out");
+    DatabaseWriter.start();
+  }
 
-    if (directory.isDirectory()) {
-      System.out.print("输入词典文件夹'" + directory.getAbsolutePath() + "' ... ");
+  private static void start() throws ClassNotFoundException, SQLException {
+    try (Connection conn = DriverManager.getConnection(DatabaseWriter.url, "moderator", "rotaredom");) {
+      final File directory = new File("D:\\kkdict\\out");
 
-      final File[] files = directory.listFiles(new FileFilter() {
-        @Override
-        public boolean accept(File f) {
-          return f.isFile();
+      if (directory.isDirectory()) {
+        System.out.print("输入词典文件夹'" + directory.getAbsolutePath() + "' ... ");
+
+        final File[] files = directory.listFiles(new FileFilter() {
+          @Override
+          public boolean accept(File f) {
+            return f.isFile();
+          }
+        });
+        System.out.println(files.length);
+
+        final long start = System.currentTimeMillis();
+        ArrayHelper.WARN = false;
+        long total = 0;
+        for (final File f : files) {
+          DatabaseWriter.write(conn, f);
         }
-      });
-      System.out.println(files.length);
 
-      final long start = System.currentTimeMillis();
-      ArrayHelper.WARN = false;
-      long total = 0;
-      for (final File f : files) {
-        DatabaseWriter.write(f);
+        System.out.println("=====================================");
+        System.out.println("总共读取了" + files.length + "个词典文件，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
+        System.out.println("总共有效词组：" + total);
+        System.out.println("=====================================\n");
       }
-
-      System.out.println("=====================================");
-      System.out.println("总共读取了" + files.length + "个词典文件，用时：" + Helper.formatDuration(System.currentTimeMillis() - start));
-      System.out.println("总共有效词组：" + total);
-      System.out.println("=====================================\n");
     }
   }
 
   private final static int BATCH_SIZE = 5000;
 
-  private static void write(File f) {
-    System.out.println("输入文件：" + f.getAbsolutePath() + " (" + Helper.formatSpace(f.length()) + ")");
+  private static void write(Connection conn, File f) {
+    System.out.println("\n输入文件：" + f.getAbsolutePath() + " (" + Helper.formatSpace(f.length()) + ")");
+    final boolean bi = f.getAbsolutePath().endsWith("_bi");
     final List<Translation> trls = new ArrayList<>();
-    try (Connection conn = DriverManager.getConnection(DatabaseWriter.url, "moderator", "rotaredom");
-        final BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);) {
+    try (final BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);) {
       conn.setAutoCommit(false);
 
       final ByteBuffer lineBB = ArrayHelper.borrowByteBufferLarge();
@@ -79,29 +87,32 @@ public class DatabaseWriter {
           }
           if (idxZh != -1) {
             final int zhLngId = Language.ZH.getId();
-            final String zhVal = row.getValuesAsString(idxZh);
+            final String zhVal = ChineseHelper.toSimplifiedChinese(DatabaseWriter.clean(row.getValuesAsString(idxZh)));
             for (int i = 0; i < idxLngs.length; i++) {
               if (i != idxZh) {
                 final int otherLngId = idxLngs[i];
-                final String otherVal = row.getValuesAsString(i);
-                boolean zhSingle = !Helper.containsAny(zhVal, ',', '"', '.', '(', ')', '[', ']');
-                boolean otherSingle = !Helper.containsAny(otherVal, ',', '"', '.', '(', ')', '[', ']');
+                final String otherVal = DatabaseWriter.clean(row.getValuesAsString(i));
+                boolean zhSingle;
+                boolean otherSingle;
+                if (bi) {
+                  zhSingle = true;
+                  otherSingle = true;
+                } else {
+                  zhSingle = !Helper.containsAny(zhVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (zhVal.length() < 20);
+                  otherSingle = !Helper.containsAny(otherVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (otherVal.length() < 40);
+                  if (idxZh < i) {
+                    zhSingle = true;
+                  } else {
+                    otherSingle = true;
+                  }
+                }
                 if (zhSingle) {
-                  Translation trl = Translation.from(zhLngId, zhVal, otherLngId, otherVal);
+                  Translation trl = Translation.from((short) zhLngId, zhVal, (short) otherLngId, otherVal);
                   trls.add(trl);
                 }
                 if (otherSingle) {
-                  Translation trl = Translation.from(otherLngId, otherVal, zhLngId, zhVal);
+                  Translation trl = Translation.from((short) otherLngId, otherVal, (short) zhLngId, zhVal);
                   trls.add(trl);
-                }
-                if (!zhSingle && !otherSingle) {
-                  if (idxZh < i) {
-                    Translation trl = Translation.from(zhLngId, zhVal, otherLngId, otherVal);
-                    trls.add(trl);
-                  } else {
-                    Translation trl = Translation.from(otherLngId, otherVal, zhLngId, zhVal);
-                    trls.add(trl);
-                  }
                 }
               }
             }
@@ -119,6 +130,10 @@ public class DatabaseWriter {
       System.err.println("错误：" + e.toString());
       e.printStackTrace();
     }
+  }
+
+  private static String clean(String val) {
+    return val.replaceAll("( [ ]+)", " ").replaceAll("[ ]*,([ ]*,)*[ ]*", ", ").replaceAll("[,: ]+$", "").trim();
   }
 
   private static void writeAgain(Connection conn, List<Translation> trls) throws SQLException {

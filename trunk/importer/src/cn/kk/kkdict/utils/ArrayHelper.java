@@ -40,6 +40,7 @@ import java.util.List;
 
 public final class ArrayHelper {
   public static final int[]              EMPTY_INTS                = new int[0];
+  public static final byte[]             EMPTY_BYTES               = new byte[0];
 
   private static final List<ByteBuffer>  byteBuffersPoolLarge      = new ArrayList<>();
 
@@ -1447,5 +1448,17 @@ public final class ArrayHelper {
       data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
     }
     return data;
+  }
+
+  public final static byte[] toBytes(String val) {
+    return val == null ? ArrayHelper.EMPTY_BYTES : val.getBytes(Helper.CHARSET_UTF8);
+  }
+
+  public static final byte[] toBytes(int value) {
+    return new byte[] { (byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value };
+  }
+
+  public static final byte[] toBytes(short value) {
+    return new byte[] { (byte) (value >>> 8), (byte) value };
   }
 }
