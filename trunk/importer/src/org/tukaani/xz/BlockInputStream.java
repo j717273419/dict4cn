@@ -157,8 +157,10 @@ class BlockInputStream extends InputStream
 
     // Initialize the filter chain.
     filterChain = inCounted;
-    for (int i = filters.length - 1; i >= 0; --i)
-      filterChain = filters[i].getInputStream(filterChain);
+    for (int i = filters.length - 1; i >= 0; --i) {
+      final FilterDecoder filterDecoder = filters[i];
+      filterChain = filterDecoder.getInputStream(filterChain);
+    }
   }
 
   private static final byte[] BUFFER_READ = new byte[1];
