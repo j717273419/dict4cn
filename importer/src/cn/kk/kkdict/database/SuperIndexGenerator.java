@@ -8,7 +8,7 @@ import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class SuperIndexGenerator {
 
-  private final static int LEN_SRC_KEY = 50;
+  final static int LEN_SRC_KEY = 40;
 
   /**
    * @param args
@@ -42,31 +42,31 @@ public class SuperIndexGenerator {
     SuperIndexGenerator.metaphoneMapping = new char[][][] { { "ä".toCharArray(), "e".toCharArray(), }, { "ö".toCharArray(), "v".toCharArray(), },
         { "ü".toCharArray(), "v".toCharArray(), }, { "ß".toCharArray(), "s".toCharArray(), }, { "é".toCharArray(), "ei".toCharArray(), },
         { "è".toCharArray(), "e".toCharArray(), }, { "ê".toCharArray(), "e".toCharArray(), }, { "î".toCharArray(), "i".toCharArray(), },
-        { "í".toCharArray(), "i".toCharArray(), }, { "ì".toCharArray(), "i".toCharArray(), }, { "á".toCharArray(), "a".toCharArray(), },
-        { "à".toCharArray(), "a".toCharArray(), }, { "â".toCharArray(), "a".toCharArray(), }, { "ó".toCharArray(), "o".toCharArray(), },
-        { "ô".toCharArray(), "o".toCharArray(), }, { "ò".toCharArray(), "o".toCharArray(), }, { "ú".toCharArray(), "u".toCharArray(), },
-        { "ù".toCharArray(), "u".toCharArray(), }, { "û".toCharArray(), "u".toCharArray(), }, { "œ".toCharArray(), "v".toCharArray(), },
-        { "æ".toCharArray(), "e".toCharArray(), }, { "ç".toCharArray(), "s".toCharArray(), }, { "th".toCharArray(), "s".toCharArray(), },
-        { "cs".toCharArray(), "x".toCharArray(), }, { "ks".toCharArray(), "x".toCharArray(), }, { "ion".toCharArray(), "iong".toCharArray(), },
-        { "sch".toCharArray(), "sh".toCharArray(), }, { "tsch".toCharArray(), "ch".toCharArray(), }, { "chs".toCharArray(), "x".toCharArray(), },
-        { "ung".toCharArray(), "ong".toCharArray(), }, { "ea".toCharArray(), "ia".toCharArray(), }, { "gn".toCharArray(), "n".toCharArray(), },
-        { "kn".toCharArray(), "n".toCharArray(), }, { "pn".toCharArray(), "n".toCharArray(), }, { "wr".toCharArray(), "r".toCharArray(), },
-        { "ps".toCharArray(), "s".toCharArray(), }, { "ck".toCharArray(), "k".toCharArray(), }, { "ae".toCharArray(), "e".toCharArray(), },
-        { "oe".toCharArray(), "ou".toCharArray(), }, { "eo".toCharArray(), "iu".toCharArray(), }, { "ay".toCharArray(), "ai".toCharArray(), },
-        { "ey".toCharArray(), "ai".toCharArray(), }, { "oi".toCharArray(), "ui".toCharArray(), }, { "ew".toCharArray(), "iu".toCharArray(), },
-        { "eu".toCharArray(), "iu".toCharArray(), }, { "ough".toCharArray(), "iu".toCharArray(), }, { "ault".toCharArray(), "olt".toCharArray(), },
-        { "oup".toCharArray(), "up".toCharArray(), }, { "ioux".toCharArray(), "ux".toCharArray(), }, { "csz".toCharArray(), "ch".toCharArray(), },
-        { "mn".toCharArray(), "n".toCharArray(), }, { "or".toCharArray(), "o".toCharArray(), }, { "aigh".toCharArray(), "ei".toCharArray(), },
-        { "eigh".toCharArray(), "ei".toCharArray(), }, { "ow".toCharArray(), "ou".toCharArray(), }, { "eau".toCharArray(), "ou".toCharArray(), },
-        { "aoh".toCharArray(), "ou".toCharArray(), }, { "ough".toCharArray(), "ou".toCharArray(), }, { "igh".toCharArray(), "ai".toCharArray(), },
-        { "ear".toCharArray(), "ie".toCharArray(), }, { "aire".toCharArray(), "er".toCharArray(), }, { "eir".toCharArray(), "er".toCharArray(), },
-        { "air".toCharArray(), "er".toCharArray(), }, { "eye".toCharArray(), "ai".toCharArray(), }, { "aw".toCharArray(), "oi".toCharArray(), },
-        { "uoy".toCharArray(), "oi".toCharArray(), }, { "err".toCharArray(), "er".toCharArray(), }, { "eur".toCharArray(), "er".toCharArray(), },
-        { "oeu".toCharArray(), "er".toCharArray(), }, { "uer".toCharArray(), "er".toCharArray(), }, { "ieu".toCharArray(), "iu".toCharArray(), },
-        { "iew".toCharArray(), "iu".toCharArray(), }, { "ueue".toCharArray(), "iu".toCharArray(), }, { "gh".toCharArray(), "f".toCharArray(), },
-        { "hj".toCharArray(), "x".toCharArray(), }, { "kj".toCharArray(), "k".toCharArray(), }, { "nk".toCharArray(), "k".toCharArray(), },
-        { "bl".toCharArray(), "pl".toCharArray(), }, { "gn".toCharArray(), "ni".toCharArray(), }, { "pf".toCharArray(), "f".toCharArray(), },
-        { "sci".toCharArray(), "si".toCharArray(), }, };
+        { "í".toCharArray(), "i".toCharArray(), }, { "ï".toCharArray(), "i".toCharArray(), }, { "ì".toCharArray(), "i".toCharArray(), },
+        { "á".toCharArray(), "a".toCharArray(), }, { "à".toCharArray(), "a".toCharArray(), }, { "â".toCharArray(), "a".toCharArray(), },
+        { "ó".toCharArray(), "o".toCharArray(), }, { "ô".toCharArray(), "o".toCharArray(), }, { "ò".toCharArray(), "o".toCharArray(), },
+        { "ú".toCharArray(), "u".toCharArray(), }, { "ù".toCharArray(), "u".toCharArray(), }, { "û".toCharArray(), "u".toCharArray(), },
+        { "œ".toCharArray(), "v".toCharArray(), }, { "æ".toCharArray(), "e".toCharArray(), }, { "ç".toCharArray(), "s".toCharArray(), },
+        { "th".toCharArray(), "s".toCharArray(), }, { "cs".toCharArray(), "x".toCharArray(), }, { "ks".toCharArray(), "x".toCharArray(), },
+        { "ion".toCharArray(), "iong".toCharArray(), }, { "sch".toCharArray(), "sh".toCharArray(), }, { "tsch".toCharArray(), "ch".toCharArray(), },
+        { "chs".toCharArray(), "x".toCharArray(), }, { "ung".toCharArray(), "ong".toCharArray(), }, { "ea".toCharArray(), "ia".toCharArray(), },
+        { "gn".toCharArray(), "n".toCharArray(), }, { "kn".toCharArray(), "n".toCharArray(), }, { "pn".toCharArray(), "n".toCharArray(), },
+        { "wr".toCharArray(), "r".toCharArray(), }, { "ps".toCharArray(), "s".toCharArray(), }, { "ck".toCharArray(), "k".toCharArray(), },
+        { "ae".toCharArray(), "e".toCharArray(), }, { "oe".toCharArray(), "ou".toCharArray(), }, { "eo".toCharArray(), "iu".toCharArray(), },
+        { "ay".toCharArray(), "ai".toCharArray(), }, { "ey".toCharArray(), "ai".toCharArray(), }, { "oi".toCharArray(), "ui".toCharArray(), },
+        { "ew".toCharArray(), "iu".toCharArray(), }, { "eu".toCharArray(), "iu".toCharArray(), }, { "ough".toCharArray(), "iu".toCharArray(), },
+        { "ault".toCharArray(), "olt".toCharArray(), }, { "oup".toCharArray(), "up".toCharArray(), }, { "ioux".toCharArray(), "ux".toCharArray(), },
+        { "csz".toCharArray(), "ch".toCharArray(), }, { "mn".toCharArray(), "n".toCharArray(), }, { "or".toCharArray(), "o".toCharArray(), },
+        { "aigh".toCharArray(), "ei".toCharArray(), }, { "eigh".toCharArray(), "ei".toCharArray(), }, { "ow".toCharArray(), "ou".toCharArray(), },
+        { "eau".toCharArray(), "ou".toCharArray(), }, { "aoh".toCharArray(), "ou".toCharArray(), }, { "ough".toCharArray(), "ou".toCharArray(), },
+        { "igh".toCharArray(), "ai".toCharArray(), }, { "ear".toCharArray(), "ie".toCharArray(), }, { "aire".toCharArray(), "er".toCharArray(), },
+        { "eir".toCharArray(), "er".toCharArray(), }, { "air".toCharArray(), "er".toCharArray(), }, { "eye".toCharArray(), "ai".toCharArray(), },
+        { "aw".toCharArray(), "oi".toCharArray(), }, { "uoy".toCharArray(), "oi".toCharArray(), }, { "err".toCharArray(), "er".toCharArray(), },
+        { "eur".toCharArray(), "er".toCharArray(), }, { "oeu".toCharArray(), "er".toCharArray(), }, { "uer".toCharArray(), "er".toCharArray(), },
+        { "ieu".toCharArray(), "iu".toCharArray(), }, { "iew".toCharArray(), "iu".toCharArray(), }, { "ueue".toCharArray(), "iu".toCharArray(), },
+        { "gh".toCharArray(), "f".toCharArray(), }, { "hj".toCharArray(), "x".toCharArray(), }, { "kj".toCharArray(), "k".toCharArray(), },
+        { "nk".toCharArray(), "k".toCharArray(), }, { "bl".toCharArray(), "pl".toCharArray(), }, { "gn".toCharArray(), "ni".toCharArray(), },
+        { "pf".toCharArray(), "f".toCharArray(), }, { "sci".toCharArray(), "si".toCharArray(), }, };
     SuperIndexGenerator.pinyinEncMapping = new char[][][] { { "shi".toCharArray(), new char[] { 1 } }, { "ji".toCharArray(), new char[] { 2 } },
         { "yi".toCharArray(), new char[] { 3 } }, { "zhi".toCharArray(), new char[] { 4 } }, { "xing".toCharArray(), new char[] { 5 } },
         { "li".toCharArray(), new char[] { 6 } }, { "fu".toCharArray(), new char[] { 7 } }, { "xi".toCharArray(), new char[] { 8 } },
@@ -286,7 +286,8 @@ public class SuperIndexGenerator {
   // Tries to make word to latin string
   private static String toPhoneticSpelling(String str) {
     // clean, change v here, as v is used as 'ue' later
-    String s = str.replaceAll("\\s|(\\(.+?\\))|(\\[.+?\\])|[\\+\\-\\*/%=\\?,\\.:;!~^_\\|&#\"'´`{}\\(\\)<>\\[\\]\\\\]", "").toLowerCase().replace('v', 'f');
+    String s = str.replaceAll("\\s|(\\(.+?\\))|(\\[.+?\\])|[\\+\\-\\*/%=\\?,\\.:;、。，？；：《》【】!~^_\\|&#\"'´`{}「」\\(\\)<>\\[\\]\\\\]", "").toLowerCase()
+        .replace('v', 'f');
     // System.out.println(s);
     // to pinyin
     s = PhoneticTranscriptionHelper.getPinyin(s);
