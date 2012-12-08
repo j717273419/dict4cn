@@ -57,6 +57,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1173,6 +1174,26 @@ public final class Helper
   }
 
 
+  public static List<String> substringBetweens(String text, String start, String end)
+  {
+    LinkedList<String> result = new LinkedList<String>();
+    int nEnd = 0;
+    while (true)
+    {
+      final int nStart = text.indexOf(start, nEnd);
+      nEnd = text.indexOf(end, nStart + start.length() + 1);
+      if ((nStart != -1) && (nEnd > nStart))
+      {
+        result.add(text.substring(nStart + start.length(), nEnd));
+      } else
+      {
+        break;
+      }
+    }
+    return result;
+  }
+
+
   public static String substringBetweenEnclose(final String text, final String start, final String end)
   {
     final int nStart = text.indexOf(start);
@@ -1936,4 +1957,16 @@ public final class Helper
     }
     return b1 == -1;
   }
+
+
+  public final static String substringBefore(String text, String str)
+  {
+    int idx = text.indexOf(str);
+    if ( idx != -1) {
+      return text.substring(0, idx);
+    } else {
+      return null;
+    }
+  }
+
 }

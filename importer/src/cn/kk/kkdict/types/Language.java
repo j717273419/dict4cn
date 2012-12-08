@@ -20,18 +20,22 @@
  */
 package cn.kk.kkdict.types;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import cn.kk.kkdict.utils.Helper;
 
 // NOTICE: final version, do not change anything.
-public enum Language implements KeyType<Language> {
+public enum Language implements KeyType<Language>
+{
   AA("aa", LanguageFamily.NONE),
   AAK("aak", LanguageFamily.NONE),
   AAO("aao", LanguageFamily.ARABIC),
@@ -743,87 +747,131 @@ public enum Language implements KeyType<Language> {
   ZWA("zwa", LanguageFamily.NONE),
   ZZA("zza", LanguageFamily.NONE), ;
 
-  public static final String                 TYPE_ID = "语";
+  public static final String TYPE_ID = "语";
 
-  private int                                id;
+  private int id;
 
-  private final String                       key;
+  private final String key;
 
-  private final byte[]                       keyBytes;
+  private final byte[] keyBytes;
 
-  public final LanguageFamily                family;
+  public final LanguageFamily family;
 
   private static final Map<String, Language> KEYS_MAP;
 
-  private static final Language[]            VALUES;
-  static {
+  private static final Language[] VALUES;
+  static
+  {
     List<Language> values = new ArrayList<>(Arrays.asList(Language.values()));
     Collections.sort(values, new KeyTypeComparator<Language>());
     VALUES = new Language[values.size()];
     KEYS_MAP = new TreeMap<>();
     int i = 0;
-    for (Language c : values) {
-      if (c.id != -1) {
+    for (Language c : values)
+    {
+      if (c.id != -1)
+      {
         i = c.id;
-      } else {
+      } else
+      {
         c.id = i;
       }
       Language.KEYS_MAP.put(c.key, c);
       Language.VALUES[i++] = c;
     }
+    Properties lngsAlt = new Properties();
+    try
+    {
+      lngsAlt.load(Helper.findResourceAsStream("lng2alt.txt"));
+      Enumeration<Object> keys = lngsAlt.keys();
+      while (keys.hasMoreElements())
+      {
+        String key = (String) keys.nextElement();
+        String val = lngsAlt.getProperty(key);
+        KEYS_MAP.put(key, KEYS_MAP.get(val));
+      }
+    } catch (IllegalArgumentException e)
+    {
+      e.printStackTrace();
+    } catch (IOException e)
+    {
+      e.printStackTrace();
+    }
+
   }
 
-  public static final Language fromId(final int id) {
+
+  public static final Language fromId(final int id)
+  {
     return Language.VALUES[id - 1];
   }
 
-  public static final Language fromKey(final String key) {
-    return Language.KEYS_MAP.get(key.replace('-', '_'));
+
+  public static final Language fromKey(final String key)
+  {
+    return Language.KEYS_MAP.get(key.toLowerCase().replace('-', '_'));
   }
 
-  Language(final String key, final LanguageFamily family) {
+
+  Language(final String key, final LanguageFamily family)
+  {
     this(key, family, -1);
   }
 
-  Language(final String key, final LanguageFamily family, final int id) {
+
+  Language(final String key, final LanguageFamily family, final int id)
+  {
     this.id = id;
     this.key = key;
     this.family = family;
     this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
   }
 
-  public static void main(String[] args) {
+
+  public static void main(String[] args)
+  {
     List<Language> lngs = Arrays.asList(Language.values());
-    Collections.sort(lngs, new Comparator<Language>() {
+    Collections.sort(lngs, new Comparator<Language>()
+    {
       @Override
-      public int compare(Language o1, Language o2) {
+      public int compare(Language o1, Language o2)
+      {
         return o1.id - o2.id;
       }
     });
 
-    for (Language lng : lngs) {
-      if (lng.id > 0) {
+    for (Language lng : lngs)
+    {
+      if (lng.id > 0)
+      {
         System.out.println(lng.id + "=" + lng.key);
       }
     }
 
-    for (Language lng : Language.VALUES) {
+    for (Language lng : Language.VALUES)
+    {
       System.out.println(lng.id + "=" + lng.key);
     }
   }
 
+
   @Override
-  public int getId() {
+  public int getId()
+  {
     return this.id;
   }
 
+
   @Override
-  public String getKey() {
+  public String getKey()
+  {
     return this.key;
   }
 
+
   @Override
-  public byte[] getKeyBytes() {
+  public byte[] getKeyBytes()
+  {
     return this.keyBytes;
   }
 

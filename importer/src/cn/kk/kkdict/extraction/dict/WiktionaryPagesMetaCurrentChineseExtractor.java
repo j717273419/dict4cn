@@ -38,12 +38,6 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
-/**
- * Grammatik, Aussprache, Plural, Abkürzung, Beispiel, Übersetzungen, Wortart TODO: eine Zeile eine Übersetzung
- * 
- * @author x_kez
- * 
- */
 public class WiktionaryPagesMetaCurrentChineseExtractor extends WikiExtractorBase {
 
   private static final byte[]         LNG_FCT_KEY_BYTES     = "{{-".getBytes(Helper.CHARSET_UTF8);
