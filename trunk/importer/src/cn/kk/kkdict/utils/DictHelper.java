@@ -471,6 +471,9 @@ public final class DictHelper {
     if (lngStr == null) {
       lngStr = Helper.substringBetweenNarrow(f, File.separator, "wiktionary-");
     }
+    if (lngStr == null) {
+      lngStr = Helper.substringBefore(f, "wiktionary-");
+    }
     if (lngStr != null) {
       System.out.println("wiki语言：" + Helper.toConstantName(lngStr));
       return Language.fromKey(lngStr);
