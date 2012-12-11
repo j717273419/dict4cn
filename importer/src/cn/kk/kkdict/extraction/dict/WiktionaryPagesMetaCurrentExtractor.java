@@ -284,9 +284,9 @@ public class WiktionaryPagesMetaCurrentExtractor
 
               findTranslationBlockTgtVal2(line, info);
             }
-            if (line.startsWith("----") || line.startsWith("==="))
+            if (line.startsWith("----") || line.startsWith("="))
             {
-              // TODO check ===
+              // TODO check =
               step = Step.ParseText;
             }
             if (line.endsWith("</text>"))
@@ -417,7 +417,7 @@ public class WiktionaryPagesMetaCurrentExtractor
       }
       if (found)
       {
-        info.tgtVal = st.toString();
+        info.tgtVal = sb.toString();
         info.addTitleTgt();
       }
     }
