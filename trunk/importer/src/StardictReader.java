@@ -49,7 +49,6 @@ public class StardictReader {
 
   }
 
-  @SuppressWarnings("unused")
   private static void testDict() throws IOException, FileNotFoundException {
     try (final TarInputStream tarIn = new TarInputStream(new CBZip2InputStream(new FileInputStream(
         "D:\\kkdict\\selected\\dicts\\stardict\\Powerword2007\\stardict-powerword2007_pw7ecky-2.4.2_en_zh_工.tar.bz2")));) {

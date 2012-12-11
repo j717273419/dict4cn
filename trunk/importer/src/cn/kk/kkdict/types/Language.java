@@ -57,7 +57,7 @@ public enum Language implements KeyType<Language>
   ADA("ada", LanguageFamily.NONE),
   ADE("ade", LanguageFamily.NONE),
   ADF("adf", LanguageFamily.ARABIC),
-  ADJ("adj", LanguageFamily.NONE),
+  // ADJ("adj", LanguageFamily.NONE),
   ADT("adt", LanguageFamily.NONE),
   ADY("ady", LanguageFamily.NONE),
   AE("ae", LanguageFamily.NONE),
@@ -797,7 +797,6 @@ public enum Language implements KeyType<Language>
     {
       e.printStackTrace();
     }
-
   }
 
 
@@ -809,7 +808,13 @@ public enum Language implements KeyType<Language>
 
   public static final Language fromKey(final String key)
   {
-    return Language.KEYS_MAP.get(key.toLowerCase().replace('-', '_'));
+    if (key == null)
+    {
+      return null;
+    } else
+    {
+      return Language.KEYS_MAP.get(key.toLowerCase().replace('-', '_'));
+    }
   }
 
 

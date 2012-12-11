@@ -34,7 +34,7 @@ import java.nio.channels.FileChannel;
  * 0x0C：单词数量
  * ????：单词长度（byte），单词（编码：UTF-16LE）
  * 
- * For files like sgim_eng.bin etc., the implementation has to be littlely modified.
+ * For files like sgim_eng.bin etc., the implementation has to be slightly modified.
  * </pre>
  * 
  * @author keke
