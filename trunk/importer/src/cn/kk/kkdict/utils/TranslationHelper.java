@@ -131,33 +131,11 @@ public final class TranslationHelper
               findGoogleTranslationsBySelections(translations, input, trls, line);
             }
           }
-
-          // final String translationRaw = Helper.substringBetween(line,
-          // "]],[[\"", "]]");
-          // final String[] translationParts =
-          // translationRaw.split("[\\[\\],\"]+");
-          // // System.out.println(Arrays.toString(translationParts));
-          // if ((translationParts.length > 5)
-          // && input.replaceAll("\\b+", Helper.EMPTY_STRING).equals(
-          // translationParts[0].replace(" ", Helper.EMPTY_STRING)))
-          // {
-          // for (int i = 2; i < translationParts.length; i += 4)
-          // {
-          // if (Integer.parseInt(translationParts[i + 1]) > 0)
-          // {
-          // translations.add(translationParts[i]);
-          // }
-          // if (translations.size() == TranslationHelper.MAX_RESULTS)
-          // {
-          // break;
-          // }
-          // }
-          // }
         }
       }
     } catch (final Throwable e)
     {
-      System.err.println("Failed to get google translations '" + input + "': " + e.toString());
+      System.err.println("查询谷歌翻译服务失败：'" + input + "': " + e.toString());
     }
     if ((translations != null) && !translations.isEmpty())
     {
@@ -345,23 +323,6 @@ public final class TranslationHelper
       }
     } else
     {
-      // StringBuilder sb = new StringBuilder();
-      // boolean first = true;
-      // for (String part : parts)
-      // {
-      // final String trl = getGoogleTranslation(part, 0);
-      // if (Helper.isNotEmptyOrNull(trl))
-      // {
-      // if (first)
-      // {
-      // first = false;
-      // } else
-      // {
-      // sb.append(" ");
-      // }
-      // sb.append(trl);
-      // }
-      // }
       translations.add(getGoogleTranslation(line.substring(2), 0, false));
     }
   }
