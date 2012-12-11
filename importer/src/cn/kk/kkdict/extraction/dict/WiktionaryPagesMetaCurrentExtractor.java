@@ -32,24 +32,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
-import cn.kk.kkdict.beans.ByteArrayPairs;
-import cn.kk.kkdict.beans.WikiParseStep;
-import cn.kk.kkdict.types.Gender;
 import cn.kk.kkdict.types.Language;
-import cn.kk.kkdict.types.LanguageConstants;
-import cn.kk.kkdict.types.WordType;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.DictHelper;
@@ -57,6 +51,7 @@ import cn.kk.kkdict.utils.Helper;
 
 public class WiktionaryPagesMetaCurrentExtractor
 {
+  private static final boolean DEBUG = false;
 
   public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY);
 
@@ -64,23 +59,45 @@ public class WiktionaryPagesMetaCurrentExtractor
 
   public static final String OUT_DIR_FINISHED = WiktionaryPagesMetaCurrentExtractor.OUT_DIR + "/finished";
 
-  public static final Language[] RELEVANT_LANGUAGES =
-  {Language.EN, Language.RU, Language.PL, Language.JA, Language.KO, Language.ZH, Language.DE, Language.FR, Language.IT,
-      Language.ES, Language.PT, Language.NL, Language.SV, Language.UK, Language.VI, Language.CA, Language.NO,
-      Language.FI, Language.CS, Language.HU, Language.ID, Language.TR, Language.RO, Language.FA, Language.AR,
-      Language.DA, Language.EO, Language.SR, Language.LT, Language.SK, Language.SL, Language.MS, Language.HE,
-      Language.BG, Language.KK, Language.EU, Language.VO, Language.WAR, Language.HR, Language.HI, Language.LA,
-      Language.BR, Language.LI, Language.LB, Language.HSB, Language.MG, Language.CSB, Language.AST, Language.GL,
-      Language.LV, Language.BS, Language.IO, Language.BE, Language.CY, Language.EL, Language.KL, Language.ET,
-      Language.NAH, Language.GU, Language.AF, Language.GA, Language.FJ, Language.JV, Language.IS, Language.UR,
-      Language.OC, Language.WA, Language.KA, Language.AZ, Language.UZ, Language.FY, Language.SO, Language.TG,
-      Language.ML, Language.LN, Language.TH, Language.SI, Language.KW, Language.ZH_MIN_NAN, Language.CHR, Language.TI,
-      Language.SCN, Language.FO, Language.ZA, Language.SW, Language.NDS, Language.WO, Language.ROA_RUP, Language.SU,
-      Language.LO, Language.MN, Language.AN, Language.AY, Language.MI, Language.TPI, Language.KN, Language.KM,
-      Language.IU, Language.ANG, Language.TL, Language.MY, Language.TE, Language.TA, Language.SH, Language.ZU,
-      Language.TK, Language.UG, Language.KU, Language.OM, Language.NA, Language.CO, Language.KY, Language.SS,
-      Language.GV, Language.SA, Language.SM, Language.MT, Language.SQ, Language.IA, Language.HY, Language.TT,
-      Language.YI, Language.MK, Language.RW, Language.QU};
+  private static Map<String, List<String>> transMap = new HashMap<String, List<String>>();
+  static
+  {
+    try (BufferedReader in =
+        new BufferedReader(new InputStreamReader(Helper.findResourceAsStream("wikt_trans.txt"), Helper.CHARSET_UTF8)))
+    {
+      String line = null;
+      while (null != (line = in.readLine()))
+      {
+        String[] strs = line.split("=");
+        if (strs.length > 1)
+        {
+          final String key = strs[0].trim();
+          List<String> trls = transMap.get(key);
+          if (trls == null)
+          {
+            trls = new ArrayList<String>();
+            transMap.put(key, trls);
+          }
+          trls.add(strs[1].trim());
+        }
+      }
+    } catch (IllegalArgumentException | IOException e)
+    {
+      e.printStackTrace();
+    }
+  }
+
+  private static Map<String, String> lngNamesLowerCased;
+  static
+  {
+    try
+    {
+      lngNamesLowerCased = loadLanguageNames();
+    } catch (IOException e)
+    {
+      e.printStackTrace();
+    }
+  }
 
 
   public static void main(final String args[]) throws IOException
@@ -149,7 +166,6 @@ public class WiktionaryPagesMetaCurrentExtractor
                 Helper.CHARSET_UTF8), Helper.BUFFER_SIZE))
     {
       Language fLng = DictHelper.getWikiLanguage(f.getName());
-      Properties lngNames = loadLanguageNames(fLng);
       ArrayList<String> namespaces = new ArrayList<String>(100);
       Step step = Step.Start;
       String line;
@@ -176,10 +192,11 @@ public class WiktionaryPagesMetaCurrentExtractor
             break;
           case ParseTitle:
             info.clear();
+            info.defLng = fLng;
             String title = Helper.substringBetween(line, "    <title>", "</title>");
             if (title != null)
             {
-              info.defVal = ChineseHelper.toSimplifiedChinese(title);
+              info.setDefVal(ChineseHelper.toSimplifiedChinese(title));
               step = Step.CheckNS;
             }
             break;
@@ -194,7 +211,7 @@ public class WiktionaryPagesMetaCurrentExtractor
             }
             break;
           case ParseTextDef:
-            if (line.trim().length() == 0 || info.defLng == info.fLng)
+            if (line.trim().length() == 0 || info.getDefLng() == info.fLng)
             {
               step = Step.ParseText;
             } else if (line.startsWith("#") || !line.contains("#"))
@@ -214,7 +231,7 @@ public class WiktionaryPagesMetaCurrentExtractor
                 if (Helper.isNotEmptyOrNull(fLngVal))
                 {
                   info.fVal = ChineseHelper.toSimplifiedChinese(fLngVal);
-                  info.writeTitlefLng();
+                  info.addTitlefLng();
                 }
               }
               // else
@@ -257,43 +274,19 @@ public class WiktionaryPagesMetaCurrentExtractor
             }
             break;
           case ParseTranslation:
-            Language tgtLng = findTranslationBlockTgtLng(line, lngNames, info);
+            line = ChineseHelper.toSimplifiedChinese(line);
+            Language tgtLng = findTranslationBlockTgtLng(line, info);
             if (tgtLng != null)
             {
               info.tgtLng = tgtLng;
-              List<String> tgtVals = Helper.substringBetweens(line, "[[", "]]");
-              int idx;
-              for (String tgtVal : tgtVals)
-              {
-                if (tgtVal.startsWith(":" + tgtLng.getKey() + ":"))
-                {
-                  tgtVal = tgtVal.substring(tgtLng.getKey().length() + 2);
-                  idx = tgtVal.indexOf('/');
-                  if (idx != -1)
-                  {
-                    tgtVal = tgtVal.substring(0, idx);
-                  }
-                  if ((idx = tgtVal.indexOf('|')) != -1)
-                  {
-                    tgtVal = tgtVal.substring(0, idx);
-                  }
-                } else if ((idx = (tgtVal.indexOf('#'))) != -1)
-                {
-                  int idx2 = tgtVal.indexOf('|');
-                  if (idx2 != -1)
-                  {
-                    tgtVal = tgtVal.substring(idx2 + 1);
-                  } else
-                  {
-                    tgtVal = tgtVal.substring(0, idx);
-                  }
-                }
-                info.tgtVal = Helper.unescapeHtml(tgtVal);
-                info.writeTitleTgt();
-              }
+
+              findTranslationBlockTgtVal1(line, info);
+
+              findTranslationBlockTgtVal2(line, info);
             }
-            if (line.startsWith("----"))
+            if (line.startsWith("----") || line.startsWith("==="))
             {
+              // TODO check ===
               step = Step.ParseText;
             }
             if (line.endsWith("</text>"))
@@ -304,36 +297,184 @@ public class WiktionaryPagesMetaCurrentExtractor
         }
       }
       defCounter += info.defsCount;
+      info.clear();
     }
     return defCounter;
   }
 
 
-  private Properties loadLanguageNames(Language fLng) throws IOException, FileNotFoundException
+  private void findTranslationBlockTgtVal2(String line, ParseInfo info)
   {
-    Properties lngNames = new Properties();
-    File lngNamesFile = Helper.findResource("lng2name_" + fLng.getKey().toUpperCase());
-    if (lngNamesFile != null)
+    List<String> tgtVals =
+        Helper.substringBetweens(
+            line.replace("]][[", Helper.SEP_SAME_MEANING).replace("]] [[",
+                Helper.SEP_SAME_MEANING + Helper.SEP_SAME_MEANING), "[[", "]]");
+    int idx;
+    for (String tgtVal : tgtVals)
     {
-      try (InputStream lngNamesIn = new FileInputStream(lngNamesFile))
+      String[] st = tgtVal.split(Helper.SEP_SAME_MEANING);
+      StringBuilder sb = new StringBuilder();
+      boolean found = false;
+      for (int i = 0; i < st.length; i++)
       {
-        lngNames.load(lngNamesIn);
+        String t = st[i];
+        if (t.isEmpty())
+        {
+          sb.append(" ");
+        } else
+        {
+          if (t.startsWith(":" + info.tgtLng.getKey() + ":"))
+          {
+            t = t.substring(info.tgtLng.getKey().length() + 2);
+            idx = t.indexOf('/');
+            if (idx != -1)
+            {
+              t = t.substring(0, idx);
+            }
+            if ((idx = t.indexOf('|')) != -1)
+            {
+              t = t.substring(0, idx);
+            }
+          } else if ((idx = (t.indexOf('#'))) != -1)
+          {
+            int idx2 = t.indexOf('|');
+            if (idx2 != -1)
+            {
+              t = t.substring(idx2 + 1);
+            } else
+            {
+              t = t.substring(0, idx);
+            }
+          }
+          sb.append(Helper.unescapeHtml(t));
+          found = true;
+        }
+      }
+      if (found)
+      {
+        info.tgtVal = sb.toString();
+        info.addTitleTgt();
       }
     }
-    return lngNames;
   }
 
 
-  private Language findTranslationBlockTgtLng(String line, Properties lngNames, ParseInfo info) throws IOException
+  private void findTranslationBlockTgtVal1(String line, ParseInfo info)
+  {
+    List<String> tgtVals =
+        Helper.substringBetweens(
+            line.replace("}}{{", Helper.SEP_SAME_MEANING).replace("}} {{",
+                Helper.SEP_SAME_MEANING + Helper.SEP_SAME_MEANING), "{{", "}}");
+    for (String tgtVal : tgtVals)
+    {
+      if (tgtVal.length() < 5 || Helper.containsAny(tgtVal, '=', '[', ':'))
+      {
+        continue;
+      }
+      String[] st = tgtVal.split(Helper.SEP_SAME_MEANING);
+      StringBuilder sb = new StringBuilder();
+      boolean found = false;
+      for (int i = 0; i < st.length; i++)
+      {
+        String t = st[i];
+        if (t.isEmpty())
+        {
+          sb.append(" ");
+        } else
+        {
+          int idx = t.indexOf('|');
+          if (idx != -1)
+          {
+            int idx1 = t.indexOf('|', idx + 1);
+            if (idx1 != -1)
+            {
+              Language tgtLng = findTargetLanguage(t.substring(idx + 1, idx1));
+              if (tgtLng != null)
+              {
+                info.tgtLng = tgtLng;
+              }
+              int idx2 = t.indexOf('|', idx1 + 1);
+              if (idx2 == -1 && t.length() > idx1 + 1)
+              {
+                idx2 = t.length();
+              }
+              if (idx2 != -1)
+              {
+                String val = t.substring(idx1 + 1, idx2);
+                int idx3 = val.indexOf('#');
+                if (idx3 != -1)
+                {
+                  val = val.substring(0, idx3);
+                }
+                found = true;
+                sb.append(Helper.unescapeHtml(val));
+                // System.out.println(tgtLng + " -> " + tgtVal + ": " +
+                // t);
+              }
+            }
+          }
+        }
+      }
+      if (found)
+      {
+        info.tgtVal = st.toString();
+        info.addTitleTgt();
+      }
+    }
+  }
+
+
+  private static Map<String, String> loadLanguageNames() throws IOException, FileNotFoundException
+  {
+    Properties lngNames = new Properties();
+    for (Language lng : Language.values())
+    {
+      File lngNamesFile = Helper.findResource("lng2name_" + lng.getKey().toUpperCase() + ".txt");
+      if (lngNamesFile != null)
+      {
+        try (InputStream lngNamesIn = new FileInputStream(lngNamesFile))
+        {
+          lngNames.load(new InputStreamReader(lngNamesIn, Helper.CHARSET_UTF8));
+        }
+      }
+    }
+    Map<String, String> result = new HashMap<String, String>();
+    for (Object k : lngNames.keySet())
+    {
+      String key = (String) k;
+      result.put(key.toLowerCase(), lngNames.getProperty(key).toLowerCase());
+    }
+    System.out.println("总：" + lngNames.size() + " 语言名代号 (过滤后：" + result.size() + ")");
+    return result;
+  }
+
+
+  private Language findTranslationBlockTgtLng(String line, ParseInfo info) throws IOException
   {
     Language tgtLng = null;
     String lng;
     if ((lng = Helper.substringBetween(line, "*{{", "}}")) != null)
     {
-      tgtLng = findTargetLanguage(lngNames, lng);
-    } else if ((lng = Helper.substringBetween(line, "*", "：")) != null)
+      tgtLng = findTargetLanguage(lng);
+    }
+    if (tgtLng == null
+        && line.startsWith("*:")
+        && ((lng = Helper.substringBetween(line, "*:", "：")) != null || (lng = Helper.substringBetween(line, "*:", ":")) != null))
     {
-      tgtLng = findTargetLanguage(lngNames, lng);
+      tgtLng = findTargetLanguage(lng);
+    } else if (tgtLng == null
+        && line.startsWith("*")
+        && ((lng = Helper.substringBetween(line, "*", "：")) != null || (lng = Helper.substringBetween(line, "*", ":")) != null))
+    {
+      tgtLng = findTargetLanguage(lng);
+    }
+    if (tgtLng == null && (lng = Helper.substringBetween(line, "{{T|", "}}")) != null)
+    {
+      tgtLng = findTargetLanguage(lng);
+    }
+    if (tgtLng == null && (lng = Helper.substringBetween(line, "{{T|", "|")) != null)
+    {
+      tgtLng = findTargetLanguage(lng);
     }
 
     if (tgtLng == null)
@@ -341,7 +482,7 @@ public class WiktionaryPagesMetaCurrentExtractor
       lng = Helper.substringBetween(line, "*{{to|", "|");
       if (lng != null)
       {
-        tgtLng = findTargetLanguage(lngNames, lng);
+        tgtLng = findTargetLanguage(lng);
         if (tgtLng != null)
         {
           String tgtVal = Helper.substringBetweenLast(line, "|", "}}");
@@ -349,7 +490,7 @@ public class WiktionaryPagesMetaCurrentExtractor
           {
             info.tgtVal = tgtVal;
 
-            info.writeTitleTgt();
+            info.addTitleTgt();
           }
           tgtLng = null;
         }
@@ -359,13 +500,13 @@ public class WiktionaryPagesMetaCurrentExtractor
   }
 
 
-  private Language findTargetLanguage(Properties lngNames, String lng)
+  private Language findTargetLanguage(String lng)
   {
     Language tgtLng;
     tgtLng = Language.fromKey(lng);
     if (tgtLng == null)
     {
-      String lng2 = lngNames.getProperty(lng);
+      String lng2 = lngNamesLowerCased.get(lng.toLowerCase());
       if (lng2 != null)
       {
         tgtLng = Language.fromKey(lng2);
@@ -374,30 +515,37 @@ public class WiktionaryPagesMetaCurrentExtractor
     return tgtLng;
   }
 
-  private static Map<String, List<String>> transMap = new HashMap<String, List<String>>();
-  static
-  {
-    List<String> transZh = new LinkedList<String>();
-    transZh.add("翻译");
-    transMap.put(Language.ZH.getKey(), transZh);
-  }
-
 
   private boolean findTranslationBlock(String line, ParseInfo info)
   {
-    List<String> trans = transMap.get(info.fLng.getKey());
-    for (String t : trans)
+    final String lineLower = line.toLowerCase();
+    if (lineLower.startsWith("{{-trad-}}"))
     {
-      if (line.startsWith("===" + t + "===") || line.startsWith("====" + t + "===="))
-      {
-        return true;
-      }
+      return true;
     }
+    List<String> trans = transMap.get(info.fLng.getKey());
+    if (trans == null)
+    {
+      System.err.println("没找到翻译代码！");
+    } else
+      for (String t : trans)
+      {
+        String translationText = t.toLowerCase();
+        if (lineLower.startsWith("===" + translationText + "===")
+            || lineLower.startsWith("====" + translationText + "====")
+            || lineLower.startsWith("=====" + translationText + "=====")
+            || lineLower.startsWith("=== " + translationText + " ===")
+            || lineLower.startsWith("==== " + translationText + " ====")
+            || lineLower.startsWith("===== " + translationText + " ====="))
+        {
+          return true;
+        }
+      }
     return false;
   }
 
 
-  private boolean findDefinitionLanguage(String line, ParseInfo info)
+  private boolean findDefinitionLanguage(String line, ParseInfo info) throws IOException
   {
     String lng = null;
     Language defLng = null;
@@ -412,13 +560,28 @@ public class WiktionaryPagesMetaCurrentExtractor
     } else if (line.startsWith("=[[") && null != (lng = Helper.substringBetween(line, "=[[", "]]=")))
     {
       defLng = Language.fromKey(lng);
+    } else if (line.startsWith("===") && null != (lng = Helper.substringBetweenNarrow(line, "|", "}}")))
+    {
+      defLng = findTargetLanguage(lng);
     } else if (line.startsWith("==") && null != (lng = Helper.substringBetween(line, "==", "==")))
     {
       defLng = Language.fromKey(lng);
+      if (defLng == null)
+      {
+        defLng = findTargetLanguage(lng);
+      }
+      if (defLng == null)
+      {
+        lng = Helper.substringBetween(lng, "|", "}}");
+        if (lng != null)
+        {
+          defLng = Language.fromKey(lng);
+        }
+      }
     }
     if (defLng != null)
     {
-      info.defLng = defLng;
+      info.setDefLng(defLng);
       return true;
     } else
     {
@@ -432,11 +595,15 @@ public class WiktionaryPagesMetaCurrentExtractor
 
     public int defsCount;
 
-    public String tgtVal;
+    public List<String> vals = new ArrayList<String>();
+
+    public List<String> lngs = new ArrayList<String>();
 
     public Language tgtLng;
 
-    public Language defLng;
+    public String tgtVal;
+
+    private Language defLng;
 
     public Language fLng;
 
@@ -452,47 +619,107 @@ public class WiktionaryPagesMetaCurrentExtractor
     }
 
 
-    public void writeTitlefLng() throws IOException
+    public void write() throws IOException
     {
-      if (fLng != null && fVal != null && defLng != null && defVal != null)
+      final int size = lngs.size();
+      if (size > 1)
       {
-        out.write(defLng.getKey());
-        out.write(Helper.SEP_DEFINITION);
-        out.write(defVal);
-        out.write(Helper.SEP_LIST);
-        out.write(fLng.getKey());
-        out.write(Helper.SEP_DEFINITION);
-        out.write(fVal);
+        for (int i = 0; i < size; i++)
+        {
+          if (i > 0)
+          {
+            out.write(Helper.SEP_LIST);
+          }
+          String key = lngs.get(i);
+          String val = vals.get(i);
+          out.write(key);
+          out.write(Helper.SEP_DEFINITION);
+          out.write(val.replaceAll("^([,\\.，。；?!！？\\|\\-\\+\\* ]+)|([,\\.，。；?!！？\\|\\-\\+\\* ]+$)|('[']+)", ""));
+        }
         out.write(Helper.SEP_NEWLINE);
         defsCount++;
       }
+      clearNow();
     }
 
 
-    public void clear()
+    public void clear() throws IOException
     {
+      write();
+    }
+
+
+    private void clearNow() throws IOException
+    {
+      vals.clear();
+      lngs.clear();
+      fVal = null;
       tgtVal = null;
       tgtLng = null;
-      defLng = null;
-      defVal = null;
-      fVal = null;
     }
 
 
-    public void writeTitleTgt() throws IOException
+    public void addTitleTgt()
     {
-      if (tgtVal != null && tgtLng != null && defLng != null && defVal != null)
+      if (tgtVal != null && Helper.isNotEmptyOrNull(tgtVal) && tgtLng != null && defLng != null && defVal != null
+          && defLng != tgtLng)
       {
-        out.write(defLng.getKey());
-        out.write(Helper.SEP_DEFINITION);
-        out.write(defVal);
-        out.write(Helper.SEP_LIST);
-        out.write(tgtLng.getKey());
-        out.write(Helper.SEP_DEFINITION);
-        out.write(tgtVal);
-        out.write(Helper.SEP_NEWLINE);
-        defsCount++;
+        if (!lngs.contains(getDefLng().getKey()))
+        {
+          lngs.add(getDefLng().getKey());
+          vals.add(getDefVal());
+        }
+        lngs.add(tgtLng.getKey());
+        vals.add(tgtVal);
+      } else if (DEBUG)
+      {
+        System.err.println(getDefLng() + "=" + getDefVal() + ", " + tgtLng + "=" + tgtVal);
       }
+    }
+
+
+    public void addTitlefLng()
+    {
+      if (fVal != null && Helper.isNotEmptyOrNull(fVal) && fLng != null && defLng != null && defVal != null
+          && defLng != tgtLng)
+      {
+        if (!lngs.contains(getDefLng().getKey()))
+        {
+          lngs.add(getDefLng().getKey());
+          vals.add(getDefVal());
+        }
+        lngs.add(fLng.getKey());
+        vals.add(fVal);
+      } else if (DEBUG)
+      {
+        System.err.println(getDefLng() + "=" + getDefVal() + ", " + fLng + "=" + fVal);
+      }
+    }
+
+
+    public String getDefVal()
+    {
+      return defVal;
+    }
+
+
+    public void setDefVal(String defVal) throws IOException
+    {
+      write();
+      this.defVal = defVal;
+    }
+
+
+    public Language getDefLng()
+    {
+      return defLng;
+    }
+
+
+    public void setDefLng(Language defLng) throws IOException
+    {
+      write();
+      this.defLng = defLng;
     }
 
   }

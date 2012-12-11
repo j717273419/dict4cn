@@ -3,7 +3,8 @@ package cn.kk.kkdict.types;
 import java.util.EnumMap;
 import java.util.Map;
 
-public enum GoogleLanguage {
+public enum GoogleLanguage
+{
   AF(Language.AF, "af", "Afrikaans"),
   SQ(Language.SQ, "sq", "Albanian"),
   AR(Language.AR, "ar", "Arabic"),
@@ -41,6 +42,7 @@ public enum GoogleLanguage {
   JA(Language.JA, "ja", "Japanese"),
   KN(Language.KN, "kn", "Kannada"),
   KO(Language.KO, "ko", "Korean"),
+  LO(Language.LO, "lo", "Lao"),
   LA(Language.LA, "la", "Latin"),
   LV(Language.LV, "lv", "Latvian"),
   LT(Language.LT, "lt", "Lithuanian"),
@@ -68,20 +70,27 @@ public enum GoogleLanguage {
   VI(Language.VI, "vi", "Vietnamese"),
   CY(Language.CY, "cy", "Welsh"),
   YI(Language.YI, "yi", "Yiddish");
-  public final Language                             lng;
-  public final String                               key;
-  public final String                               name;
+  public final Language lng;
+
+  public final String key;
+
+  public final String name;
+
   public final static Map<Language, GoogleLanguage> LNG_MAPPING;
 
-  private GoogleLanguage(final Language lng, final String key, final String name) {
+
+  private GoogleLanguage(final Language lng, final String key, final String name)
+  {
     this.lng = lng;
     this.key = key;
     this.name = name;
   }
 
-  static {
+  static
+  {
     LNG_MAPPING = new EnumMap<>(Language.class);
-    for (final GoogleLanguage l : GoogleLanguage.values()) {
+    for (final GoogleLanguage l : GoogleLanguage.values())
+    {
       GoogleLanguage.LNG_MAPPING.put(l.lng, l);
     }
   }
