@@ -46,7 +46,7 @@ public class WordsMerger {
           final File[] files = directory.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(final File dir, final String name) {
-              return name.startsWith("output-words.");
+              return true;
             }
           });
           System.out.println(files.length);

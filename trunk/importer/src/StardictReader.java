@@ -51,7 +51,7 @@ public class StardictReader {
 
   private static void testDict() throws IOException, FileNotFoundException {
     try (final TarInputStream tarIn = new TarInputStream(new CBZip2InputStream(new FileInputStream(
-        "D:\\kkdict\\selected\\dicts\\stardict\\Powerword2007\\stardict-powerword2007_pw7ecky-2.4.2_en_zh_工.tar.bz2")));) {
+        "E:\\kkdict\\raw\\dicts\\stardict\\Powerword2005\\stardict-powerword_pwpcehx-2.4.2.tar.bz2")));) {
       TarEntry entry;
 
       while (null != (entry = tarIn.getNextEntry())) {
@@ -82,7 +82,8 @@ public class StardictReader {
   }
 
   private static void testIdx() throws IOException, FileNotFoundException {
-    final TarInputStream tarIn = new TarInputStream(new CBZip2InputStream(new FileInputStream("D:\\tmp\\test.tar.bz2")));
+    final TarInputStream tarIn = new TarInputStream(new CBZip2InputStream(new FileInputStream(
+        "E:\\kkdict\\raw\\dicts\\stardict\\Powerword2005\\stardict-powerword_pwpcehx-2.4.2.tar.bz2")));
     TarEntry entry;
     while (null != (entry = tarIn.getNextEntry())) {
       InputStream dictIn = null;
