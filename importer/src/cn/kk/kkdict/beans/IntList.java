@@ -133,4 +133,13 @@ public class IntList {
   public final void clear() {
     this.num = 0;
   }
+
+  public int getFirst() {
+    if (this.num > 0) {
+      return this.ints[0];
+    } else {
+      throw new IllegalArgumentException("List is empty!");
+    }
+
+  }
 }
