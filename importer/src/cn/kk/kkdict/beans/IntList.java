@@ -20,6 +20,8 @@
  */
 package cn.kk.kkdict.beans;
 
+import java.util.Arrays;
+
 public class IntList {
   public int  ints[] = null;
   public int  num    = 0;
@@ -141,5 +143,9 @@ public class IntList {
       throw new IllegalArgumentException("List is empty!");
     }
 
+  }
+  
+  public String toString() {
+    return Arrays.toString(ints);
   }
 }

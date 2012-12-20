@@ -4,39 +4,76 @@ import java.io.IOException;
 
 import cn.kk.kkdict.database.SuperIndexGenerator;
 
-public class AppService {
-  private Dictionary     dict;
-  private final CacheKey inputKey;
+public class AppService
+{
+  private Dictionary dict;
 
-  public static void main(String[] args) throws IOException {
+  private final IndexKey inputKey;
+
+
+  public static void main(String[] args) throws IOException
+  {
     AppService svc = new AppService();
     svc.initialize();
     Context.input = "hallo";
     svc.find();
   }
 
-  public AppService() {
-    this.inputKey = new CacheKey();
+
+  public AppService()
+  {
+    this.inputKey = new IndexKey();
   }
 
-  private void initialize() throws IOException {
+
+  public void shutdown()
+  {
+    Dictionary.close();
+  }
+
+
+  private void initialize() throws IOException
+  {
     Context.change(Step.init);
-    this.dict = new Dictionary();
-    this.dict.loadMeta();
-    this.dict.loadCachedIndexes();
+    Dictionary.loadMeta();
+    Dictionary.loadCachedIndexes();
     Context.change(Step.find);
   }
 
-  public void find() {
+
+  public void find()
+  {
     final byte[] inputKeyBytes = SuperIndexGenerator.createPhonetecIdx(Context.input);
     this.inputKey.setKey(inputKeyBytes);
-    final int cacheStartIdx = this.dict.findCachedStartIdx(this.inputKey);
-    System.out.println(cacheStartIdx);
-    // int findStartIdxInCachedIndex(IndexKey)
-    // IndexResult findIndexesByStartIdx(Context.sortedLngs, IndexResult, IndexKey, int) // idxExacts, idxStartsWiths
-    // IndexResult findIndexesByKey(Context.sortedLngs, IndexResult, IndexKey) // idxEndWiths, idxContains
-    // Index[] getSortedIndexesForFindMode(Context.lngs, IndexResult) // srclng, tgtlng, exact, startsWith, endsWith, contains
-    // Translation[] loadTranslationsByIndexesAndFilter(Context.input, IndexResult) // filter trls AND idxResult by srcVal containing input
+    final int cacheStartIdx = Dictionary.findCachedStartIdx(this.inputKey);
+    System.out.println("input: " + Context.input + " (" + inputKey + ")");
+    System.out.println("cache start idx: " + cacheStartIdx);
+
+    Context.searchResult.clear();
+    // finds exatcts and starts with
+    Dictionary.findIndexesByStartIdx(this.inputKey, cacheStartIdx);
+    System.out.println(Dictionary.readIndexKey(cacheStartIdx));
+    System.out.println("equals: " + Context.searchResult.idxExacts);
+    System.out.println("contains: " + Context.searchResult.idxContains);
+
+    for (int i = 0; i < Context.searchResult.idxContains.size(); i++)
+    {
+      int idxData = Context.searchResult.idxContains.get(i);
+      try
+      {
+        System.out.println(Dictionary.readDataKey(idxData));
+      } catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    // IndexResult findIndexesByKey(Context.sortedLngs, IndexResult, IndexKey)
+    // // idxEndWiths, idxContains
+    // Index[] getSortedIndexesForFindMode(Context.lngs, IndexResult) // srclng,
+    // tgtlng, exact, startsWith, endsWith, contains
+    // Translation[] loadTranslationsByIndexesAndFilter(Context.input,
+    // IndexResult) // filter trls AND idxResult by srcVal containing input
 
   }
 }
