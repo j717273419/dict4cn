@@ -65,13 +65,27 @@ public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
         @Override
         public void run() {
           try {
-            if (Helper.isEmptyOrNotExists(file)) {
-              if (null != Helper.download(url, file, false)) {
-                System.out.println("下载" + file + " （" + url + "）成功。");
-                successCounter.incrementAndGet();
+            boolean finished = false;
+            int retries = 0;
+            Throwable ex = null;
+            while(!finished && retries++ < 10) {
+              try {
+                Thread.sleep(3000);
+                if (Helper.isEmptyOrNotExists(file)) {
+                  if (null != Helper.download(url, file, false)) {
+                    System.out.println("下载" + file + " （" + url + "）成功。");
+                    successCounter.incrementAndGet();
+                  }
+                } else {
+                  System.out.println("跳过：" + file + " （" + url + "）。文件已存在。");
+                }
+                finished = true;
+              } catch (final Throwable e) {
+                ex = e;
               }
-            } else {
-              System.out.println("跳过：" + file + " （" + url + "）。文件已存在。");
+            }
+            if (!finished && ex != null) {
+              throw ex;
             }
           } catch (final Throwable e) {
             System.err.println("下载" + file + " （" + url + "）失败：" + e.toString());
