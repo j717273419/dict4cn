@@ -11,35 +11,34 @@ import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.CompressHelper;
 import cn.kk.kkdict.utils.Helper;
 
-public final class Dictionary
-{
-  private static final int MAX_INDEXES_CACHED = 200;
+public final class Dictionary {
+  private static final int             MAX_INDEXES_CACHED = 200;
 
-  private static final int MAX_DATA_SIZE = 8000 + 2000;
+  private static final int             MAX_DATA_SIZE      = 8000 + 2000;
 
-  private static final String DXZ = "D:\\dict2go.dxz";
+  private static final String          DXZ                = "D:\\dict2go.dxz";
 
-  public static final int HEADER_OFFSET = 2;
+  public static final int              HEADER_OFFSET      = 2;
 
-  public static final int MAX_CACHE_SIZE = 1024 * 1024;
+  public static final int              MAX_CACHE_SIZE     = 1024 * 1024;
 
-  static byte[] INDEX_CACHE_DATA = new byte[(MAX_CACHE_SIZE / CacheKey.CACHE_SIZE) * CacheKey.CACHE_SIZE];
+  static byte[]                        INDEX_CACHE_DATA   = new byte[(Dictionary.MAX_CACHE_SIZE / CacheKey.CACHE_SIZE) * CacheKey.CACHE_SIZE];
 
-  private static int headerLen;
+  private static int                   headerLen;
 
-  private static int totalDefs;
+  private static int                   totalDefs;
 
-  private static int cachedLen;
+  private static int                   cachedLen;
 
-  private static int idxLen;
+  private static int                   idxLen;
 
-  private static int dataLen;
+  private static int                   dataLen;
 
-  private static int cachedOffset;
+  private static int                   cachedOffset;
 
-  private static int idxOffset;
+  private static int                   idxOffset;
 
-  private static int dataOffset;
+  private static int                   dataOffset;
 
   private static SeekableXZInputStream inMeta;
 
@@ -47,22 +46,17 @@ public final class Dictionary
 
   private static SeekableXZInputStream inData;
 
-  final static CacheKey[] INDEX_CACHE = new CacheKey[MAX_CACHE_SIZE / CacheKey.CACHE_SIZE];
-  static
-  {
+  final static CacheKey[]              INDEX_CACHE        = new CacheKey[Dictionary.MAX_CACHE_SIZE / CacheKey.CACHE_SIZE];
+  static {
 
-    for (int i = 0; i < INDEX_CACHE.length; i++)
-    {
-      INDEX_CACHE[i] = new CacheKey();
+    for (int i = 0; i < Dictionary.INDEX_CACHE.length; i++) {
+      Dictionary.INDEX_CACHE[i] = new CacheKey();
     }
   }
 
-
-  private Dictionary()
-  {
+  private Dictionary() {
 
   }
-
 
   /**
    * <pre>
@@ -82,157 +76,124 @@ public final class Dictionary
    * 
    * @throws IOException
    */
-  static void loadMeta() throws IOException
-  {
-    try (DataInputStream in = new DataInputStream(new FileInputStream(Dictionary.DXZ)))
-    {
-      headerLen = in.readUnsignedShort();
+  static void loadMeta() throws IOException {
+    try (DataInputStream in = new DataInputStream(new FileInputStream(Dictionary.DXZ))) {
+      Dictionary.headerLen = in.readUnsignedShort();
     }
 
-    inMeta = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, Dictionary.HEADER_OFFSET, headerLen);
-    inMeta.read(CACHE, 0, 16);
-    totalDefs = ClientHelper.toInt(CACHE, 0);
-    cachedLen = ClientHelper.toInt(CACHE, 4);
-    idxLen = ClientHelper.toInt(CACHE, 8);
-    dataLen = ClientHelper.toInt(CACHE, 12);
+    Dictionary.inMeta = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, Dictionary.HEADER_OFFSET, Dictionary.headerLen);
+    Dictionary.inMeta.read(Dictionary.CACHE, 0, 16);
+    Dictionary.totalDefs = ClientHelper.toInt(Dictionary.CACHE, 0);
+    Dictionary.cachedLen = ClientHelper.toInt(Dictionary.CACHE, 4);
+    Dictionary.idxLen = ClientHelper.toInt(Dictionary.CACHE, 8);
+    Dictionary.dataLen = ClientHelper.toInt(Dictionary.CACHE, 12);
 
-    cachedOffset = Dictionary.HEADER_OFFSET + headerLen;
-    idxOffset = cachedOffset + cachedLen;
-    dataOffset = idxOffset + idxLen;
+    Dictionary.cachedOffset = Dictionary.HEADER_OFFSET + Dictionary.headerLen;
+    Dictionary.idxOffset = Dictionary.cachedOffset + Dictionary.cachedLen;
+    Dictionary.dataOffset = Dictionary.idxOffset + Dictionary.idxLen;
 
-    inIndex = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, idxOffset, idxLen);
-    inData = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, dataOffset, dataLen);
+    Dictionary.inIndex = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, Dictionary.idxOffset, Dictionary.idxLen);
+    Dictionary.inData = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, Dictionary.dataOffset, Dictionary.dataLen);
   }
 
-
-  public static void loadCachedIndexes() throws IOException
-  {
+  public static void loadCachedIndexes() throws IOException {
     int realIndexCacheSize = 0;
-    try (InputStream inCached = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, cachedOffset, cachedLen);)
-    {
-      final int size = inCached.read(INDEX_CACHE_DATA);
+    try (InputStream inCached = CompressHelper.getDecompressedInputStream(Dictionary.DXZ, Dictionary.cachedOffset, Dictionary.cachedLen);) {
+      final int size = inCached.read(Dictionary.INDEX_CACHE_DATA);
       System.out.println("idx cache size: " + size);
-      for (int i = 0; i < MAX_CACHE_SIZE / CacheKey.CACHE_SIZE; i++)
-      {
+      for (int i = 0; i < (Dictionary.MAX_CACHE_SIZE / CacheKey.CACHE_SIZE); i++) {
         realIndexCacheSize += Dictionary.INDEX_CACHE[i].read(i);
       }
     }
     final byte[] realIndexCache = new byte[realIndexCacheSize];
     int realOffset = 0;
-    for (int i = 0; i < MAX_CACHE_SIZE / CacheKey.CACHE_SIZE; i++)
-    {
+    for (int i = 0; i < (Dictionary.MAX_CACHE_SIZE / CacheKey.CACHE_SIZE); i++) {
       realOffset += Dictionary.INDEX_CACHE[i].write(realIndexCache, realOffset);
     }
-    INDEX_CACHE_DATA = null;
-    INDEX_CACHE_DATA = realIndexCache;
+    Dictionary.INDEX_CACHE_DATA = null;
+    Dictionary.INDEX_CACHE_DATA = realIndexCache;
   }
 
-
-  public static void close()
-  {
-    Helper.close(inMeta, inIndex, inData);
+  public static void close() {
+    Helper.close(Dictionary.inMeta, Dictionary.inIndex, Dictionary.inData);
   }
 
-
-  public static int findCachedStartIdx(IndexKey inputKey)
-  {
+  public static int findCachedStartIdx(IndexKey inputKey) {
     int i = CacheKey.binarySearch(inputKey);
-    if (i < 0)
-    {
+    if (i < 0) {
       i = -(i + 1);
     }
-    return INDEX_CACHE[i].readIndexKeyOffset();
+    return Dictionary.INDEX_CACHE[i].readIndexKeyOffset();
   }
 
   // test only
-  static final byte[] CACHE = new byte[MAX_DATA_SIZE];
+  static final byte[] CACHE          = new byte[Dictionary.MAX_DATA_SIZE];
 
-  static final byte[] CACHE_INDEX = new byte[IndexKey.INDEX_SIZE * MAX_INDEXES_CACHED];
+  static final byte[] CACHE_INDEX    = new byte[IndexKey.INDEX_SIZE * Dictionary.MAX_INDEXES_CACHED];
 
-  static int cachedIdxStart = -1;
+  static int          cachedIdxStart = -1;
 
-
-  public static void findIndexesByStartIdx(IndexKey inputKey, int idx)
-  {
-    try
-    {
+  public static void findIndexesByStartIdx(IndexKey inputKey, final int idx) {
+    try {
       int cmp;
-      while (idx < totalDefs)
-      {
-        cmp = compare(inputKey, idx);
-        if (cmp == 0)
-        {
-          Context.searchResult.idxExacts.add(idx);
-        } else if (cmp == Integer.MAX_VALUE)
-        {
-          Context.searchResult.idxContains.add(idx);
-        } else if (cmp > 0)
-        {
+      int i = idx;
+      while (i < Dictionary.totalDefs) {
+        cmp = Dictionary.compare(inputKey, i);
+        if (cmp == 0) {
+          Context.searchResult.idxExacts.add(i);
+        } else if (cmp == Integer.MAX_VALUE) {
+          Context.searchResult.idxContains.add(i);
+        } else if (cmp > 0) {
           break;
         }
-        idx++;
+        i++;
       }
-    } catch (IOException e)
-    {
+    } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
 
   }
 
-
   /**
    * 
    * @param inputKey
    * @param idx
-   * @return 0: key bytes are the same, MAX_VALUE: src key contains input key,
-   *         <0: before, >0: after
+   * @return 0: key bytes are the same, MAX_VALUE: src key contains input key, <0: before, >0: after
    * @throws IOException
    */
-  private static int compare(IndexKey inputKey, int idx) throws IOException
-  {
-    readIndex(idx);
-    System.out.println("cache: "
-        + ArrayHelper.toHexString(CACHE_INDEX, getCachedIndexOffset(idx) + IndexKey.KEY_OFFSET, CacheKey.KEY_LENGTH));
-    System.out.println("input: " + ArrayHelper.toHexString(inputKey.key, 0, inputKey.keyLength));
-    return ClientHelper.compareTo(CACHE_INDEX, getCachedIndexOffset(idx) + IndexKey.KEY_OFFSET, CacheKey.KEY_LENGTH,
-        inputKey.key, 0, inputKey.keyLength);
+  private static int compare(IndexKey inputKey, int idx) throws IOException {
+    Dictionary.readIndex(idx);
+    // System.out.println("cache: "
+    // + ArrayHelper.toHexString(Dictionary.CACHE_INDEX, Dictionary.getCachedIndexOffset(idx) + IndexKey.KEY_OFFSET, CacheKey.KEY_LENGTH));
+    // System.out.println("input: " + ArrayHelper.toHexString(inputKey.key, 0, inputKey.keyLength));
+    return ClientHelper.compareTo(Dictionary.CACHE_INDEX, Dictionary.getCachedIndexOffset(idx) + IndexKey.KEY_OFFSET, CacheKey.KEY_LENGTH, inputKey.key, 0,
+        inputKey.keyLength);
   }
 
-
-  private static int getCachedIndexOffset(int idx)
-  {
-    return (idx - cachedIdxStart) * IndexKey.INDEX_SIZE;
+  private static int getCachedIndexOffset(int idx) {
+    return (idx - Dictionary.cachedIdxStart) * IndexKey.INDEX_SIZE;
   }
 
-
-  private static final void readIndex(int idx) throws IOException
-  {
-    if (!isIdxIndexCached(idx))
-    {
-      inIndex.seek(idx * IndexKey.INDEX_SIZE);
-      inIndex.read(CACHE_INDEX);
-      cachedIdxStart = idx;
+  private static final void readIndex(int idx) throws IOException {
+    if (!Dictionary.isIdxIndexCached(idx)) {
+      Dictionary.inIndex.seek(idx * IndexKey.INDEX_SIZE);
+      Dictionary.inIndex.read(Dictionary.CACHE_INDEX);
+      Dictionary.cachedIdxStart = idx;
     }
   }
 
-
-  private static final boolean isIdxIndexCached(int idx)
-  {
-    return idx >= cachedIdxStart && idx < cachedIdxStart + MAX_INDEXES_CACHED;
+  private static final boolean isIdxIndexCached(int idx) {
+    return (idx >= Dictionary.cachedIdxStart) && (idx < (Dictionary.cachedIdxStart + Dictionary.MAX_INDEXES_CACHED));
   }
 
-
   // test only
-  static String readIndexKey(int idx)
-  {
-    try
-    {
-      inIndex.seek(idx * IndexKey.INDEX_SIZE + IndexKey.KEY_OFFSET);
-      inIndex.read(CACHE, 0, CacheKey.KEY_LENGTH);
-      return ArrayHelper.toHexString(CACHE, 0, CacheKey.KEY_LENGTH);
-    } catch (IOException e)
-    {
+  static String readIndexKey(int idx) {
+    try {
+      Dictionary.inIndex.seek((idx * IndexKey.INDEX_SIZE) + IndexKey.KEY_OFFSET);
+      Dictionary.inIndex.read(Dictionary.CACHE, 0, CacheKey.KEY_LENGTH);
+      return ArrayHelper.toHexString(Dictionary.CACHE, 0, CacheKey.KEY_LENGTH);
+    } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
       return null;
@@ -250,37 +211,30 @@ public final class Dictionary
    */
   static final int[] DATA_OFFSETS = new int[4];
 
-
   // test only
-  public static String readDataKey(int idxIndex) throws IOException
-  {
-    readDataOffsets(idxIndex);
+  public static String readDataKey(int idxIndex) throws IOException {
+    Dictionary.readDataOffsets(idxIndex);
 
-    inData.seek(DATA_OFFSETS[0]);
-    inData.read(CACHE, 0, DATA_OFFSETS[1]);
-    return "src: " + ArrayHelper.toString(CACHE, 0, DATA_OFFSETS[2]) + " -> tgt: "
-        + ArrayHelper.toString(CACHE, DATA_OFFSETS[2], Math.max(0, DATA_OFFSETS[3]));
+    Dictionary.inData.seek(Dictionary.DATA_OFFSETS[0]);
+    Dictionary.inData.read(Dictionary.CACHE, 0, Dictionary.DATA_OFFSETS[1]);
+    return "src: " + ArrayHelper.toString(Dictionary.CACHE, 0, Dictionary.DATA_OFFSETS[2]) + " -> tgt: "
+        + ArrayHelper.toString(Dictionary.CACHE, Dictionary.DATA_OFFSETS[2], Math.max(0, Dictionary.DATA_OFFSETS[3]));
   }
 
-
-  private static void readDataOffsets(int idxIndex) throws IOException
-  {
-    if (idxIndex != 0)
-    {
-      readIndex(idxIndex - 1);
-      DATA_OFFSETS[0] =
-          ClientHelper.toInt(CACHE_INDEX, getCachedIndexOffset(idxIndex - 1) + IndexKey.KEY_OFFSET
-              + CacheKey.KEY_LENGTH + 2);
-    } else
-    {
-      DATA_OFFSETS[0] = 0;
+  private static void readDataOffsets(int idxIndex) throws IOException {
+    if (idxIndex != 0) {
+      Dictionary.readIndex(idxIndex - 1);
+      Dictionary.DATA_OFFSETS[0] = ClientHelper.toInt(Dictionary.CACHE_INDEX, Dictionary.getCachedIndexOffset(idxIndex - 1) + IndexKey.KEY_OFFSET
+          + CacheKey.KEY_LENGTH + 2);
+    } else {
+      Dictionary.DATA_OFFSETS[0] = 0;
     }
-    readIndex(idxIndex);
-    final int dataOffNext =
-        ClientHelper.toInt(CACHE_INDEX, getCachedIndexOffset(idxIndex) + IndexKey.KEY_OFFSET + CacheKey.KEY_LENGTH + 2);
-    DATA_OFFSETS[2] =
-        ClientHelper.toShort(CACHE_INDEX, getCachedIndexOffset(idxIndex) + IndexKey.KEY_OFFSET + CacheKey.KEY_LENGTH);
-    DATA_OFFSETS[1] = dataOffNext - DATA_OFFSETS[0];
-    DATA_OFFSETS[3] = DATA_OFFSETS[1] - DATA_OFFSETS[2];
+    Dictionary.readIndex(idxIndex);
+    final int dataOffNext = ClientHelper.toInt(Dictionary.CACHE_INDEX, Dictionary.getCachedIndexOffset(idxIndex) + IndexKey.KEY_OFFSET + CacheKey.KEY_LENGTH
+        + 2);
+    Dictionary.DATA_OFFSETS[2] = ClientHelper.toShort(Dictionary.CACHE_INDEX, Dictionary.getCachedIndexOffset(idxIndex) + IndexKey.KEY_OFFSET
+        + CacheKey.KEY_LENGTH);
+    Dictionary.DATA_OFFSETS[1] = dataOffNext - Dictionary.DATA_OFFSETS[0];
+    Dictionary.DATA_OFFSETS[3] = Dictionary.DATA_OFFSETS[1] - Dictionary.DATA_OFFSETS[2];
   }
 }

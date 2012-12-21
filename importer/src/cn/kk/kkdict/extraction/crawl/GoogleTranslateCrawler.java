@@ -114,8 +114,9 @@ public class GoogleTranslateCrawler {
               this.updateStatus(lineCounter, f);
             }
           }
-        } else if ((lineCounter % 10) == 0) {
-          this.updateStatus(lineCounter, f);
+          if ((lineCounter % 10) == 0) {
+            this.updateStatus(lineCounter, f);
+          }
         }
       }
     }
