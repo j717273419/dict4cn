@@ -12,12 +12,12 @@ public class ContextTest
   {
     assertTrue(Context.isUserLanguage(1));
     assertFalse(Context.isUserLanguage(2));
-    Context.lngsSorted[0] = 1;
-    Context.lngsSorted[1] = 2;
-    Context.lngsSorted[2] = 3;
+    Context.lngs[0] = 1;
+    Context.lngs[1] = 2;
+    Context.lngs[2] = 3;
     Context.updateUserLanguages();
     assertTrue(Context.isUserLanguage(2));
-    Context.lngsSorted[1] = 4;
+    Context.lngs[1] = 4;
     Context.updateUserLanguages();
     assertFalse(Context.isUserLanguage(2));
   }

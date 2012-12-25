@@ -115,7 +115,7 @@ public final class Helper {
 
   private static final int[]       HTML_VALS;
 
-  public final static int          MAX_CONNECTIONS       = 2;
+  public final static int          MAX_CONNECTIONS       = 1;
 
   public final static String       SEP_ATTRIBUTE         = "‹";
 
@@ -291,8 +291,7 @@ public final class Helper {
       while ((retries++ < 10) && !(test = new DownloadThread(to, url)).success) {
         try {
           test.start();
-          test.join(60000);
-          test.interrupt();
+          test.join();
         } catch (final Throwable e) {
           e.printStackTrace();
         }
@@ -359,7 +358,8 @@ public final class Helper {
   }
 
   public static final InputStream openUrlInputStream(final String url, final boolean post, final String output) throws IOException {
-    return Helper.getUrlConnection(url, post, output).getInputStream();
+    HttpURLConnection urlConnection = Helper.getUrlConnection(url, post, output);
+    return urlConnection.getInputStream();
   }
 
   public final static HttpURLConnection getUrlConnection(final String url) throws IOException {

@@ -28,13 +28,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import cn.kk.kkdict.Configuration;
+import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.beans.FormattedArrayList;
-import cn.kk.kkdict.extraction.dict.WiktionaryPagesMetaCurrentChineseExtractor;
 import cn.kk.kkdict.types.TranslationSource;
 import cn.kk.kkdict.utils.Helper;
 
 public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
-  public final static String OUTPUT_DIR = WiktionaryPagesMetaCurrentChineseExtractor.IN_DIR;
+  public final static String OUTPUT_DIR = Configuration.IMPORTER_FOLDER_RAW_DICTS.getPath(Source.DICT_WIKTIONARY);
 
   public static void main(final String[] args) throws InterruptedException {
     final long start = System.currentTimeMillis();
@@ -65,15 +66,19 @@ public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
         @Override
         public void run() {
           try {
+            // Thread.sleep(1000);
             boolean finished = false;
             int retries = 0;
             Throwable ex = null;
-            while(!finished && retries++ < 10) {
+            while (!finished && (retries++ < 10)) {
               try {
-                Thread.sleep(3000);
+                // Thread.sleep(3000);
                 if (Helper.isEmptyOrNotExists(file)) {
-                  if (null != Helper.download(url, file, false)) {
-                    System.out.println("下载" + file + " （" + url + "）成功。");
+                  // String download = Helper.download(url, file, false);
+                  String download = url;
+                  System.out.println("<a href=\"" + url + "\">" + url + "</a>");
+                  if (null != download) {
+                    // System.out.println("下载" + file + " （" + url + "）成功。");
                     successCounter.incrementAndGet();
                   }
                 } else {
@@ -84,7 +89,7 @@ public class WiktionaryDumpPagesMetaCurrentXmlDownloader {
                 ex = e;
               }
             }
-            if (!finished && ex != null) {
+            if (!finished && (ex != null)) {
               throw ex;
             }
           } catch (final Throwable e) {
