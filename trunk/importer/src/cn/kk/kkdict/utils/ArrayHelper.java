@@ -1471,4 +1471,5 @@ public final class ArrayHelper {
   public static final byte[] toBytes(short value) {
     return new byte[] { (byte) (value >>> 8), (byte) value };
   }
+
 }

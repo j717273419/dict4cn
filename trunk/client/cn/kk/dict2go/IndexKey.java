@@ -23,36 +23,12 @@ public class IndexKey implements Comparable<IndexKey> {
 
   int              keyLength  = CacheKey.KEY_LENGTH;
 
-  int              idx;
-
-  private boolean  valid;
-
-  private int      srcLngId;
-
-  private int      tgtLngId;
-
-  private int      srcValLen;
-
-  private int      dataOffset;
-
   public IndexKey() {
-    this.clear();
-  }
-
-  public void clear() {
-    this.idx = -1;
-    this.valid = false;
-    this.srcLngId = -1;
-    this.tgtLngId = -1;
-    this.srcValLen = -1;
-    this.dataOffset = -1;
   }
 
   public void read(byte[] ba, int i) {
     final int startOffset = i * CacheKey.CACHE_SIZE;
-    final int idxOffset = startOffset + CacheKey.KEY_LENGTH;
     System.arraycopy(ba, startOffset, this.key, 0, CacheKey.KEY_LENGTH);
-    this.idx = ClientHelper.toInt(ba, idxOffset);
     this.keyLength = CacheKey.KEY_LENGTH;
     while (this.key[this.keyLength - 1] == 0) {
       this.keyLength--;

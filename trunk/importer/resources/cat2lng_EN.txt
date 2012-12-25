@@ -1,3 +1,4 @@
+Mandarin=zh
 Upper_Sorbian_language=hsb
 Upper_Sorbian_pronouns=hsb
 Upper_Sorbian_nouns=hsb
