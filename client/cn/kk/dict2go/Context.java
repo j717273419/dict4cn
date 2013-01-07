@@ -11,6 +11,7 @@ public final class Context {
 
   public static final int[]        lngs         = new int[256];
 
+  // should be in lower case
   public static String             input;
 
   public static LinkedList<String> lastInputs;
@@ -40,8 +41,8 @@ public final class Context {
     }
   }
 
-  public static void change(Step step) {
-    Context.step = step;
+  public static void change(Step s) {
+    Context.step = s;
   }
 
 }

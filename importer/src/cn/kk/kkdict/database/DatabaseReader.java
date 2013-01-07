@@ -174,9 +174,12 @@ public class DatabaseReader {
             byte srcCategory = rs.getByte(i++);
             byte srcType = rs.getByte(i++);
             byte srcUsage = rs.getByte(i++);
+            if ((srcLng > 0xff) || (tgtLng > 0xff)) {
+              System.err.println("not found: " + srcLng + " / " + tgtLng);
+              break;
+            }
             this.writeTranslation(outData, outIndex, new Translation(trlId, srcKeyHex, srcLng, tgtLng, srcVal, tgtVal, srcGender, srcCategory, srcType,
                 srcUsage));
-
           }
         } catch (SQLException e) {
           e.printStackTrace();
@@ -256,7 +259,7 @@ public class DatabaseReader {
     outCachedIndex.write(idxBytes);
   }
 
-  private static final String query                   = "SELECT trl_id, HEX(src_key), src_lng, tgt_lng, src_val, tgt_val, src_gen, src_cat, src_typ, src_use FROM translation ORDER BY src_key, src_lng, src_val";
+  private static final String query                   = "SELECT trl_id, HEX(src_key), src_lng, tgt_lng, src_val, tgt_val, src_gen, src_cat, src_typ, src_use FROM translation WHERE src_lng != tgt_lng AND src_lng < 256 AND tgt_lng < 256 ORDER BY src_key, src_lng, src_val";
 
   private static final String queryCount              = "SELECT count(*) FROM translation";
 

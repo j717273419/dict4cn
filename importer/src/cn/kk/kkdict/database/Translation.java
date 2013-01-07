@@ -1,7 +1,5 @@
 package cn.kk.kkdict.database;
 
-import java.io.IOException;
-
 import cn.kk.kkdict.utils.ArrayHelper;
 
 public class Translation {
@@ -52,11 +50,15 @@ public class Translation {
 
   private final byte[] srcKey;
 
-  public static Translation from(short srcLngId, String srcVal, short tgtLngId, String tgtVal) throws IOException {
+  public static Translation from(short srcLngId, String srcVal, short tgtLngId, String tgtVal) {
     String srcValCleaned = DatabaseWriter.clean(srcVal);
     String tgtValCleaned = DatabaseWriter.clean(tgtVal);
-    Translation trl = new Translation(SuperIndexGenerator.createPhonetecIdx(srcValCleaned), srcLngId, tgtLngId, srcValCleaned, tgtValCleaned);
-    return trl;
+    if (srcValCleaned.isEmpty() || tgtValCleaned.isEmpty()) {
+      return null;
+    } else {
+      Translation trl = new Translation(SuperIndexGenerator.createPhonetecIdx(srcValCleaned), srcLngId, tgtLngId, srcValCleaned, tgtValCleaned);
+      return trl;
+    }
   }
 
   @Override

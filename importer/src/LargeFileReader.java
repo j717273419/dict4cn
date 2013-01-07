@@ -24,7 +24,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class LargeFileReader {
-  private static final String FILE        = "C:\\Program Files (x86)\\Dehelper\\dic\\combined.bin.raw";
+  private static final String FILE        = "D:\\kkdict\\selected\\dicts\\wiktionary\\test\\ruwiktionary-latest-pages-meta-current.xml";
   private static final int    LIMIT       = 10000;
   private static final String FROM_STRING = null;
 
