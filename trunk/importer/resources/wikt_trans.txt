@@ -83,3 +83,4 @@ ur=ترجمہ
 vi=bản dịch
 yi=איבערזעצונגען
 zh=翻译
+pt=tradini

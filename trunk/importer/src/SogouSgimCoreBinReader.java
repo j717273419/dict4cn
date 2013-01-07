@@ -42,6 +42,7 @@ import java.nio.channels.FileChannel;
 public class SogouSgimCoreBinReader {
   public static void main(final String[] args) throws IOException {
     final String binFile = "D:\\sgim_core.bin";
+    final int[] searchKey = { 0x02, 0x00, 0x4A, 0x55 }; // 6.2.0.7817
     // String binFile = "D:\\sgim_eng.bin";
 
     // read scel into byte array
@@ -58,18 +59,23 @@ public class SogouSgimCoreBinReader {
     int words = bb.getInt(0xC);
     System.out.println("读入文件: " + binFile + "，单词：" + words);
 
+    int idx = 0;
     int i;
     int startPos = -1;
     while (bb.hasRemaining()) {
-      i = bb.getInt();
-      if (i == 0x554a0002) { // core, 6.1.0.6700
-        // if (i == 0x00610002) { // eng, 6.1.0.6700
-        startPos = bb.position() - 4;
-        break;
+      i = 0xff & bb.get();
+      if (i == searchKey[idx]) {
+        idx++;
+        if (idx == searchKey.length) {
+          startPos = bb.position() - searchKey.length;
+          break;
+        }
+      } else {
+        idx = 0;
       }
     }
 
-    if (startPos > -1) {
+    if (startPos != -1) {
       short s;
       int counter = 0;
       final ByteBuffer buffer = ByteBuffer.allocate(Short.MAX_VALUE);
@@ -79,13 +85,15 @@ public class SogouSgimCoreBinReader {
         s = bb.getShort();
         bb.get(buffer.array(), 0, s);
         counter++;
-        // System.out.println(new String(buffer.array(), 0, s, "UTF-16LE"));
+        System.out.println(new String(buffer.array(), 0, s, "UTF-16LE"));
       }
       final int endPos = bb.position();
       final int diff = endPos - startPos;
       System.out.println("读出单词'" + binFile + "'：" + counter);
       System.out.println("单词结尾位置：0x" + Integer.toHexString(endPos));
       System.out.println("单词词典长度：0x" + Integer.toHexString(diff));
+    } else {
+      System.err.println("文件版本已更新！");
     }
 
   }

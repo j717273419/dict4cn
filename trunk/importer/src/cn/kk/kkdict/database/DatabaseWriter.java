@@ -21,6 +21,9 @@ import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class DatabaseWriter {
+  // private static final String SOURCE = "D:\\kkdict\\out";
+  private static final String SOURCE = "D:\\kkdict\\out\\test";
+
   private static final String url    = "jdbc:mysql://localhost:3306/dict2go?autoReconnect=true";
 
   private static final String driver = "com.mysql.jdbc.Driver";
@@ -35,22 +38,21 @@ public class DatabaseWriter {
     DatabaseWriter.start();
   }
 
-  private static void start() throws ClassNotFoundException, SQLException {
+  private static void start() throws SQLException {
     try (Connection conn = DriverManager.getConnection(DatabaseWriter.url, "moderator", "rotaredom");) {
-      File directory = new File("D:\\kkdict\\out\\test");
-      LinkedList<File> selected = new LinkedList<File>();
-      DatabaseWriter.findDictionaries(directory, selected);
+      LinkedList<File> selected = new LinkedList<>();
+      DatabaseWriter.findDictionaries(new File(DatabaseWriter.SOURCE), selected);
       for (int i = 1; i < 100; i++) {
-        directory = new File(directory, String.valueOf(i));
-        DatabaseWriter.findDictionaries(directory, selected);
+        DatabaseWriter.findDictionaries(new File(DatabaseWriter.SOURCE + "\\" + i), selected);
       }
-
+      System.out.println("导入" + selected.size() + "词库源");
       if (!selected.isEmpty()) {
         final long start = System.currentTimeMillis();
         ArrayHelper.WARN = false;
         long total = 0;
         for (final File f : selected) {
-          DatabaseWriter.write(conn, f);
+          System.out.println("导入词库源：" + f.getAbsolutePath());
+          total += DatabaseWriter.write(conn, f);
         }
 
         System.out.println("=====================================");
@@ -77,61 +79,85 @@ public class DatabaseWriter {
 
   private final static int BATCH_SIZE = 5000;
 
-  private static void write(Connection conn, File f) {
+  private static int write(Connection conn, File f) {
     System.out.println("\n输入文件：" + f.getAbsolutePath() + " (" + Helper.formatSpace(f.length()) + ")");
     final boolean bi = f.getAbsolutePath().endsWith("_bi");
     final List<Translation> trls = new ArrayList<>();
+    final ByteBuffer lineBB = ArrayHelper.borrowByteBufferLarge();
+    int count = 0;
     try (final BufferedInputStream in = new BufferedInputStream(new FileInputStream(f), Helper.BUFFER_SIZE);) {
       conn.setAutoCommit(false);
 
-      final ByteBuffer lineBB = ArrayHelper.borrowByteBufferLarge();
       final DictByteBufferRow row = new DictByteBufferRow();
-
+      List<Integer> idxZhs = new ArrayList<>();
       while (-1 != ArrayHelper.readLineTrimmed(in, lineBB)) {
         try {
+          // System.out.println(ArrayHelper.toStringP(lineBB));
           row.parseFrom(lineBB);
-          int idxZh = -1;
+          idxZhs.clear();
           final int[] idxLngs = new int[row.size()];
           for (int i = 0; i < row.size(); i++) {
-            idxLngs[i] = Language.fromKey(ArrayHelper.toStringP(row.getLanguage(i))).getId();
-            if (idxLngs[i] == Language.ZH.getId()) {
-              idxZh = i;
+            Language iLng = Language.fromKey(ArrayHelper.toStringP(row.getLanguage(i)));
+            if (iLng != null) {
+              idxLngs[i] = iLng.getId();
+              if (idxLngs[i] == Language.ZH.getId()) {
+                idxZhs.add(Integer.valueOf(i));
+              }
             }
           }
-          if (idxZh != -1) {
+          if (!idxZhs.isEmpty()) {
             final int zhLngId = Language.ZH.getId();
-            final String zhVal = ChineseHelper.toSimplifiedChinese(row.getValuesAsString(idxZh));
-            for (int i = 0; i < idxLngs.length; i++) {
-              if (i != idxZh) {
-                final int otherLngId = idxLngs[i];
-                final String otherVal = row.getValuesAsString(i);
-                boolean zhSingle;
-                boolean otherSingle;
-                if (bi) {
-                  zhSingle = true;
-                  otherSingle = true;
-                } else {
-                  zhSingle = !Helper.containsAny(zhVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (zhVal.length() < 20);
-                  otherSingle = !Helper.containsAny(otherVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (otherVal.length() < 40);
-                  if (idxZh < i) {
-                    zhSingle = true;
-                  } else {
-                    otherSingle = true;
+            for (Integer idxZh : idxZhs) {
+              final int valueSizeZh = row.getValueSize(idxZh.intValue());
+              for (int iZh = 0; iZh < valueSizeZh; iZh++) {
+                final String zhVal = ChineseHelper.toSimplifiedChinese(ArrayHelper.toStringP(row.getValue(idxZh.intValue(), iZh)));
+                for (int iLng = 0; iLng < idxLngs.length; iLng++) {
+
+                  final int otherLngId = idxLngs[iLng];
+                  if (iZh != otherLngId) {
+                    final int valueSizeOther = row.getValueSize(iLng);
+                    for (int iOther = 0; iOther < valueSizeOther; iOther++) {
+                      final String otherVal = ArrayHelper.toStringP(row.getValue(iLng, iOther));
+                      boolean zhSingle;
+                      boolean otherSingle;
+                      if (bi) {
+                        zhSingle = true;
+                        otherSingle = true;
+                      } else {
+                        zhSingle = !Helper.containsAny(zhVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (zhVal.length() < 20);
+                        otherSingle = !Helper.containsAny(otherVal, ',', '"', '|', '.', '(', ')', '[', ']', '：', ':') && (otherVal.length() < 40);
+                        if (0 < iLng) {
+                          zhSingle = true;
+                        } else {
+                          otherSingle = true;
+                        }
+                      }
+                      if (zhSingle) {
+                        String[] vals = otherVal.split(", ");
+                        for (String val : vals) {
+                          if ((zhVal.length() < 2000) && (val.length() < 2000) && !zhVal.endsWith(" (消歧义)") && !val.endsWith(" (disambiguation)")) {
+                            Translation trl = Translation.from((short) zhLngId, zhVal, (short) otherLngId, val);
+                            DatabaseWriter.addTranslation(trls, trl);
+                          }
+                        }
+                      }
+                      if (otherSingle) {
+                        String[] vals = zhVal.split(", ");
+                        for (String val : vals) {
+                          if ((otherVal.length() < 2000) && (val.length() < 2000) && !zhVal.endsWith(" (消歧义)") && !val.endsWith(" (disambiguation)")) {
+                            Translation trl = Translation.from((short) otherLngId, otherVal, (short) zhLngId, val);
+                            DatabaseWriter.addTranslation(trls, trl);
+                          }
+                        }
+                      }
+                    }
                   }
-                }
-                if (zhSingle) {
-                  Translation trl = Translation.from((short) zhLngId, zhVal, (short) otherLngId, otherVal);
-                  trls.add(trl);
-                }
-                if (otherSingle) {
-                  Translation trl = Translation.from((short) otherLngId, otherVal, (short) zhLngId, zhVal);
-                  trls.add(trl);
                 }
               }
             }
           }
           if (trls.size() > DatabaseWriter.BATCH_SIZE) {
-            DatabaseWriter.write(conn, trls);
+            count += DatabaseWriter.write(conn, trls);
             trls.clear();
           }
         } catch (Exception e) {
@@ -142,6 +168,16 @@ public class DatabaseWriter {
     } catch (Exception e) {
       System.err.println("错误：" + e.toString());
       e.printStackTrace();
+    } finally {
+      ArrayHelper.giveBack(lineBB);
+    }
+    return count;
+  }
+
+  private static void addTranslation(final List<Translation> trls, Translation trl) {
+    if ((trl != null) && (trl.getSrcLng() != trl.getTgtLng()) && Helper.isNotEmptyOrNull(trl.getSrcVal()) && Helper.isNotEmptyOrNull(trl.getTgtVal())) {
+      // System.out.println(trl);
+      trls.add(trl);
     }
   }
 
@@ -149,24 +185,30 @@ public class DatabaseWriter {
     return val.replaceAll("( [ ]+)", " ").replaceAll("[ ]*,([ ]*,)*[ ]*", ", ").replaceAll("(^[\\.!,: ]+)|([\\.,: ]+$)", "").trim();
   }
 
-  private static void writeAgain(Connection conn, List<Translation> trls) throws SQLException {
+  private static int writeAgain(Connection conn, List<Translation> trls) throws SQLException {
+    int count = 0;
     try (Statement stmt = conn.createStatement();) {
       for (Translation trl : trls) {
-        String sql = "";
-        try {
-          // System.out.println(DatabaseWriter.toSQL(trl));
-          sql = DatabaseWriter.toSQL(trl.getSrcKey(), trl.getSrcLng(), trl.getTgtLng(), trl.getSrcVal(), trl.getTgtVal(), trl.getSrcGender(),
-              trl.getSrcCategory(), trl.getSrcType(), trl.getSrcUsage());
-          stmt.execute(sql);
-        } catch (SQLException e) {
-          System.err.println("\n" + sql + ", " + trl + ", write again: " + e);
+        if (trl.getSrcLng() != trl.getTgtLng()) {
+          String sql = "";
+          try {
+            // System.out.println(DatabaseWriter.toSQL(trl));
+            sql = DatabaseWriter.toSQL(trl.getSrcKey(), trl.getSrcLng(), trl.getTgtLng(), trl.getSrcVal(), trl.getTgtVal(), trl.getSrcGender(),
+                trl.getSrcCategory(), trl.getSrcType(), trl.getSrcUsage());
+            stmt.execute(sql);
+            count++;
+          } catch (SQLException e) {
+            System.err.println("\n" + sql + ", " + trl + ", write again: " + e);
+          }
         }
       }
       conn.commit();
+      System.out.print("x");
     }
+    return count;
   }
 
-  private static void write(Connection conn, List<Translation> trls) throws SQLException {
+  private static int write(Connection conn, List<Translation> trls) throws SQLException {
     String sql = null;
     try (Statement stmt = conn.createStatement();) {
       // System.out.println("---");
@@ -180,10 +222,10 @@ public class DatabaseWriter {
       DatabaseWriter.checkUpdateCounts(updateCounts);
       conn.commit();
       System.out.print(".");
+      return trls.size();
     } catch (SQLException e) {
       System.err.println("\nwrite: " + sql + ", " + e);
-      DatabaseWriter.writeAgain(conn, trls);
-      System.out.print("x");
+      return DatabaseWriter.writeAgain(conn, trls);
     }
   }
 
@@ -195,13 +237,22 @@ public class DatabaseWriter {
   }
 
   private static String toSQL(byte[] srcKey, int srcLng, int tgtLng, String srcVal, String tgtVal, int srcGender, int srcCategory, int srcType, int srcUsage) {
-    String sql = "call addTranslation(UNHEX('" + ArrayHelper.toHexString(srcKey, false) + "')," + srcLng + "," + tgtLng + ",'" + DatabaseWriter.escape(srcVal)
-        + "','" + DatabaseWriter.escape(tgtVal) + "'," + srcGender + "," + srcCategory + "," + srcType + "," + srcUsage + ");";
-    return sql;
+    if ((srcLng < 256) && (tgtLng < 256)) {
+      String sql = "call addTranslation(UNHEX('" + ArrayHelper.toHexString(srcKey, false) + "')," + srcLng + "," + tgtLng + ",'"
+          + DatabaseWriter.escape(srcVal) + "','" + DatabaseWriter.escape(tgtVal) + "'," + srcGender + "," + srcCategory + "," + srcType + "," + srcUsage
+          + ");";
+      return sql;
+    } else {
+      String sql = "call addTranslationInvalid(UNHEX('" + ArrayHelper.toHexString(srcKey, false) + "')," + srcLng + "," + tgtLng + ",'"
+          + DatabaseWriter.escape(srcVal) + "','" + DatabaseWriter.escape(tgtVal) + "'," + srcGender + "," + srcCategory + "," + srcType + "," + srcUsage
+          + ");";
+      return sql;
+
+    }
   }
 
   private static String escape(String srcVal) {
-    return srcVal.replace("'", "\\'");
+    return srcVal.replace("\\", "\\\\").replace("'", "\\'");
   }
 
   private static void checkUpdateCounts(int[] updateCounts) {

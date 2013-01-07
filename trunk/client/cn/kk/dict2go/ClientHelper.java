@@ -4,7 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public final class ClientHelper {
-  private static final List<Translation> trlsPool = new LinkedList<>();
+  private static final List<Translation> trlsPool      = new LinkedList<>();
+  private static final int               MAX_POOL_SIZE = 200;
 
   public final static Translation borrowTranslation() {
     if (ClientHelper.trlsPool.isEmpty()) {
@@ -16,7 +17,9 @@ public final class ClientHelper {
 
   public final static void giveBack(final Translation trl) {
     if (trl != null) {
-      ClientHelper.trlsPool.add(trl);
+      if (ClientHelper.trlsPool.size() < ClientHelper.MAX_POOL_SIZE) {
+        ClientHelper.trlsPool.add(trl);
+      }
     }
   }
 

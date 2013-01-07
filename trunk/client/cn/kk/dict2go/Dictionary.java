@@ -14,13 +14,11 @@ import cn.kk.kkdict.utils.Helper;
 public final class Dictionary {
   private static final int             MAX_INDEXES_CACHED               = 200;
 
-  private static final int             MAX_DATA_SIZE                    = 8000 + 2000;
-
   private static final int             MIN_INDEXES_STARTSWITH_KEYLENGTH = 1;
 
   private static final int             MIN_INDEXES_CONTAINS_KEYLENGTH   = 1;
 
-  private static final String          DXZ                              = "D:\\dict2go.dxz";
+  private static final String          DXZ                              = "D:\\dict2cn.dxz";
 
   public static final int              HEADER_OFFSET                    = 2;
 
@@ -124,18 +122,15 @@ public final class Dictionary {
 
   public static int findCachedStartIdx(IndexKey inputKey) {
     int i = CacheKey.binarySearch(inputKey);
-    if (i < 0) {
-      i = -(i + 1);
-    }
+    System.out.println(i);
     return Dictionary.INDEX_CACHE[i].readIndexKeyOffset();
   }
 
-  // test only
-  static final byte[] CACHE          = new byte[Dictionary.MAX_DATA_SIZE];
+  private static final byte[] CACHE          = new byte[Translation.MAX_DATA_SIZE];
 
-  static final byte[] CACHE_INDEX    = new byte[IndexKey.INDEX_SIZE * Dictionary.MAX_INDEXES_CACHED];
+  private static final byte[] CACHE_INDEX    = new byte[IndexKey.INDEX_SIZE * Dictionary.MAX_INDEXES_CACHED];
 
-  static int          cachedIdxStart = -1;
+  private static int          cachedIdxStart = -1;
 
   public static void findExactAndStartsWithIndexes(IndexKey inputKey, final int idx) {
     try {
@@ -147,11 +142,11 @@ public final class Dictionary {
           cmp = Dictionary.compare(inputKey, i);
           if (cmp == 0) {
             // exact match
-            Context.searchResult.idxResult.add(i);
+            Context.searchResult.addIdxResult(i);
           } else if (cmp == Integer.MAX_VALUE) {
             // starts with
             if (inputKey.keyLength > Dictionary.MIN_INDEXES_STARTSWITH_KEYLENGTH) {
-              Context.searchResult.idxResult.add(i);
+              Context.searchResult.addIdxResult(i);
             } else {
               break;
             }
@@ -279,10 +274,10 @@ public final class Dictionary {
 
             if (cmp == Integer.MAX_VALUE) {
               // ends with
-              Context.searchResult.idxResult.add(i);
+              Context.searchResult.addIdxResult(i);
             } else if (cmp >= 0) {
               // contains
-              Context.searchResult.idxResult.add(i);
+              Context.searchResult.addIdxResult(i);
             }
           }
           i++;
@@ -321,13 +316,13 @@ public final class Dictionary {
   }
 
   public static Translation[] readTranslations() {
-    final int size = Context.searchResult.idxResult.size();
+    final int size = Context.searchResult.getIdxResult().size();
     Translation[] trls = new Translation[size];
     try {
       Translation trl;
       for (int i = 0; i < size; i++) {
         trl = ClientHelper.borrowTranslation();
-        int idxData = Context.searchResult.idxResult.get(i);
+        int idxData = Context.searchResult.getIdxResult(i);
         Dictionary.readDataKey(idxData, trl);
         trls[i] = trl;
       }

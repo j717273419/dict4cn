@@ -42,6 +42,7 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
+import cn.kk.kkdict.beans.ParseInfo;
 import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
 import cn.kk.kkdict.utils.ChineseHelper;
@@ -49,19 +50,21 @@ import cn.kk.kkdict.utils.DictHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class WiktionaryPagesMetaCurrentExtractor {
-  private static final boolean             DEBUG            = false;
+  public static final boolean              DEBUG            = false;
 
-  public static final String               IN_DIR           = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY);
+  public static String                     IN_DIR           = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY);
 
-  public static final String               OUT_DIR          = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY);
+  public static String                     OUT_DIR          = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY);
 
-  // public static final String IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
-  //
-  // public static final String OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
+  static {
+    WiktionaryPagesMetaCurrentExtractor.IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
+
+    WiktionaryPagesMetaCurrentExtractor.OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
+  }
 
   public static final String               OUT_DIR_FINISHED = WiktionaryPagesMetaCurrentExtractor.OUT_DIR + "/finished";
 
-  private static Map<String, List<String>> transMap         = new HashMap<String, List<String>>();
+  private static Map<String, List<String>> transMap         = new HashMap<>();
   static {
     try (BufferedReader in = new BufferedReader(new InputStreamReader(Helper.findResourceAsStream("wikt_trans.txt"), Helper.CHARSET_UTF8))) {
       String line = null;
@@ -71,7 +74,7 @@ public class WiktionaryPagesMetaCurrentExtractor {
           final String key = strs[0].trim();
           List<String> trls = WiktionaryPagesMetaCurrentExtractor.transMap.get(key);
           if (trls == null) {
-            trls = new ArrayList<String>();
+            trls = new ArrayList<>();
             WiktionaryPagesMetaCurrentExtractor.transMap.put(key, trls);
           }
           trls.add(strs[1].trim());
@@ -168,10 +171,10 @@ public class WiktionaryPagesMetaCurrentExtractor {
             break;
           case ParseTitle:
             info.clear();
-            info.defLng = fLng;
+            info.setDefLng(fLng);
             String title = Helper.substringBetween(line, "    <title>", "</title>");
             if (title != null) {
-              info.setDefVal(ChineseHelper.toSimplifiedChinese(title));
+              info.setDefVal(title);
               step = Step.CheckNS;
             }
             break;
@@ -184,7 +187,21 @@ public class WiktionaryPagesMetaCurrentExtractor {
             }
             break;
           case ParseTextDef:
-            if ((line.trim().length() == 0) || (info.getDefLng() == info.fLng)) {
+            if (line.contains("【")) {
+              // ==日语==
+              // 羽化【うか】
+              //
+              // 名?自 サ
+              //
+              // 昆虫 羽化。
+              line = in.readLine();
+              if (line.trim().length() == 0) {
+                line = in.readLine();
+              }
+              if (line.contains("?")) {
+                step = Step.ParseText;
+              }
+            } else if ((line.trim().length() == 0) || (info.getDefLng() == info.getfLng())) {
               step = Step.ParseText;
             } else if (line.startsWith("#") || !line.contains("#")) {
               if (!line.startsWith("{") && !line.contains(":") && !line.contains("：") && !line.contains("|") && !line.contains("--") && !line.startsWith("}")
@@ -195,7 +212,17 @@ public class WiktionaryPagesMetaCurrentExtractor {
                         "([\\*#\\{\\}\\|:\\[\\]])|(<[/a-zA-Z0-9=\"\' ]+>)|(﹝.+?﹞)|(\\(.+?\\))|(\\[.+?\\])|(\\（.+?\\）)|(［.+?］)|(/.+?/)|(adj\\. )|(vt\\. )|(inv\\. )|(n\\.m\\. )|(n\\. )|(\\-[a-zA-Z0-9]+\\-)",
                         "").replaceAll("([ ]*、[ ]*)|([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*，[ ]*)|([ ]*；[ ]*)|([ ]*。[ ]*)", ", ").replaceAll("\\.[\\.]+", "").trim();
                 if (Helper.isNotEmptyOrNull(fLngVal)) {
-                  info.fVal = ChineseHelper.toSimplifiedChinese(fLngVal);
+                  info.setfVal(fLngVal);
+                  info.addTitlefLng();
+                }
+              } else if (line.startsWith("#") && !Helper.containsAny(line, '=', '*', '[')) {
+                final String fLngVal = Helper
+                    .unescapeHtml(line)
+                    .replaceAll(
+                        "([\\*#\\{\\}\\|:\\[\\]])|(<[/a-zA-Z0-9=\"\' ]+>)|(﹝.+?﹞)|(\\(.+?\\))|(\\[.+?\\])|(\\（.+?\\）)|(［.+?］)|(/.+?/)|(adj\\. )|(vt\\. )|(inv\\. )|(n\\.m\\. )|(n\\. )|(\\-[a-zA-Z0-9]+\\-)",
+                        "").replaceAll("([ ]*、[ ]*)|([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*，[ ]*)|([ ]*；[ ]*)|([ ]*。[ ]*)", ", ").replaceAll("\\.[\\.]+", "").trim();
+                if (Helper.isNotEmptyOrNull(fLngVal)) {
+                  info.setfVal(fLngVal);
                   info.addTitlefLng();
                 }
               }
@@ -203,8 +230,20 @@ public class WiktionaryPagesMetaCurrentExtractor {
               // {
               // step = Step.ParseText;
               // }
+            } else if (line.startsWith("n.") || line.startsWith("v.") || line.startsWith("prop.")) {
+              // ==法语==
+              // n.f. 女仆，女佣
+              final String fLngVal = Helper
+                  .unescapeHtml(Helper.substringAfter(line, " "))
+                  .replaceAll(
+                      "([\\*#\\{\\}\\|:\\[\\]])|(<[/a-zA-Z0-9=\"\' ]+>)|(﹝.+?﹞)|(\\(.+?\\))|(\\[.+?\\])|(\\（.+?\\）)|(［.+?］)|(/.+?/)|(adj\\. )|(vt\\. )|(inv\\. )|(n\\.m\\. )|(n\\. )|(\\-[a-zA-Z0-9]+\\-)",
+                      "").replaceAll("([ ]*、[ ]*)|([ ]*;[ ]*)|([ ]*,[ ]*)|([ ]*，[ ]*)|([ ]*；[ ]*)|([ ]*。[ ]*)", ", ").replaceAll("\\.[\\.]+", "").trim();
+              if (Helper.isNotEmptyOrNull(fLngVal)) {
+                info.setfVal(fLngVal);
+                info.addTitlefLng();
+              }
             }
-            if (line.endsWith("</text>")) {
+            if (line.contains("</text>")) {
               step = Step.ParseTitle;
             }
             break;
@@ -222,12 +261,13 @@ public class WiktionaryPagesMetaCurrentExtractor {
             } else {
               break;
             }
+            //$FALL-THROUGH$
           case ParseText:
             /**
              * Parses text tag content and searches for definition language or translations block
              */
-            line = ChineseHelper.toSimplifiedChinese(line);
-            if (this.findDefinitionLanguage(line, info)) {
+            String cline = ChineseHelper.toSimplifiedChinese(line);
+            if (this.findDefinitionLanguage(line, cline, info)) {
               step = Step.ParseTextDef;
             } else if (this.findTranslationBlock(line, info)) {
               step = Step.ParseTranslation;
@@ -241,16 +281,15 @@ public class WiktionaryPagesMetaCurrentExtractor {
             /**
              * Parses translations block
              */
-            line = ChineseHelper.toSimplifiedChinese(line);
             Language tgtLng = this.findTranslationBlockTgtLng(line, info);
             if (tgtLng != null) {
-              info.tgtLng = tgtLng;
+              info.setTgtLng(tgtLng);
 
               line = line.replaceAll("\\|tr=[^\\}]+\\}\\}", "}}");
 
-              this.findTranslationBlockTgtVal1(line, info);
+              WiktionaryPagesMetaCurrentExtractor.findTranslationBlockTgtVal1(line, info);
 
-              this.findTranslationBlockTgtVal2(line, info);
+              WiktionaryPagesMetaCurrentExtractor.findTranslationBlockTgtVal2(line, info);
             }
             if (line.startsWith("----") || line.startsWith("=")) {
               // TODO check =
@@ -260,15 +299,18 @@ public class WiktionaryPagesMetaCurrentExtractor {
               step = Step.ParseTitle;
             }
             break;
+          default:
+            step = Step.ParseTitle;
+            break;
         }
       }
-      defCounter += info.defsCount;
+      defCounter += info.getDefsCount();
       info.clear();
     }
     return defCounter;
   }
 
-  private void findTranslationBlockTgtVal2(String line, ParseInfo info) {
+  private static void findTranslationBlockTgtVal2(String line, ParseInfo info) {
     List<String> tgtVals = Helper.substringBetweens(
         line.replace("]][[", Helper.SEP_SAME_MEANING).replace("]] [[", Helper.SEP_SAME_MEANING + Helper.SEP_SAME_MEANING)
             .replace("}}; {{", Helper.SEP_SAME_MEANING + "," + Helper.SEP_SAME_MEANING), "[[", "]]");
@@ -284,8 +326,8 @@ public class WiktionaryPagesMetaCurrentExtractor {
         } else if (",".equals(t)) {
           sb.append(", ");
         } else {
-          if (t.startsWith(":" + info.tgtLng.getKey() + ":")) {
-            t = t.substring(info.tgtLng.getKey().length() + 2);
+          if (t.startsWith(":" + info.getTgtLng().getKey() + ":")) {
+            t = t.substring(info.getTgtLng().getKey().length() + 2);
             idx = t.indexOf('/');
             if (idx != -1) {
               t = t.substring(0, idx);
@@ -306,13 +348,13 @@ public class WiktionaryPagesMetaCurrentExtractor {
         }
       }
       if (found) {
-        info.tgtVal = sb.toString();
+        info.setTgtVal(sb.toString());
         info.addTitleTgt();
       }
     }
   }
 
-  private void findTranslationBlockTgtVal1(String line, ParseInfo info) {
+  private static void findTranslationBlockTgtVal1(String line, ParseInfo info) {
     List<String> tgtVals = Helper.substringBetweens(
         line.replace("}}{{", Helper.SEP_SAME_MEANING).replace("}} {{", Helper.SEP_SAME_MEANING + Helper.SEP_SAME_MEANING)
             .replace("}}; {{", Helper.SEP_SAME_MEANING + "," + Helper.SEP_SAME_MEANING), "{{", "}}");
@@ -336,9 +378,9 @@ public class WiktionaryPagesMetaCurrentExtractor {
           if (idx0 != -1) {
             final int idx1 = t.indexOf('|', idx0 + 1);
             if (idx1 != -1) {
-              Language tgtLng = this.findTargetLanguage(t.substring(idx0 + 1, idx1));
+              Language tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(t.substring(idx0 + 1, idx1));
               if (tgtLng != null) {
-                info.tgtLng = tgtLng;
+                info.setTgtLng(tgtLng);
               }
               int idx2 = t.indexOf('|', idx1 + 1);
               if ((idx2 == -1) && (t.length() > (idx1 + 1))) {
@@ -373,7 +415,7 @@ public class WiktionaryPagesMetaCurrentExtractor {
         }
       }
       if (found) {
-        info.tgtVal = sb.toString();
+        info.setTgtVal(sb.toString());
         info.addTitleTgt();
       }
     }
@@ -389,7 +431,7 @@ public class WiktionaryPagesMetaCurrentExtractor {
         }
       }
     }
-    Map<String, String> result = new HashMap<String, String>();
+    Map<String, String> result = new HashMap<>();
     for (Object k : lngNames.keySet()) {
       String key = (String) k;
       result.put(key.toLowerCase(), lngNames.getProperty(key).toLowerCase());
@@ -398,34 +440,34 @@ public class WiktionaryPagesMetaCurrentExtractor {
     return result;
   }
 
-  private Language findTranslationBlockTgtLng(String line, ParseInfo info) throws IOException {
+  private Language findTranslationBlockTgtLng(String line, ParseInfo info) {
     Language tgtLng = null;
     String lng;
     if ((lng = Helper.substringBetween(line, "*{{", "}}")) != null) {
-      tgtLng = this.findTargetLanguage(lng);
+      tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     }
     if ((tgtLng == null) && line.startsWith("*:")
         && (((lng = Helper.substringBetween(line, "*:", "：")) != null) || ((lng = Helper.substringBetween(line, "*:", ":")) != null))) {
-      tgtLng = this.findTargetLanguage(lng);
+      tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     } else if ((tgtLng == null) && line.startsWith("*")
         && (((lng = Helper.substringBetween(line, "*", "：")) != null) || ((lng = Helper.substringBetween(line, "*", ":")) != null))) {
-      tgtLng = this.findTargetLanguage(lng);
+      tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     }
     if ((tgtLng == null) && ((lng = Helper.substringBetween(line, "{{T|", "}}")) != null)) {
-      tgtLng = this.findTargetLanguage(lng);
+      tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     }
     if ((tgtLng == null) && ((lng = Helper.substringBetween(line, "{{T|", "|")) != null)) {
-      tgtLng = this.findTargetLanguage(lng);
+      tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     }
 
     if (tgtLng == null) {
       lng = Helper.substringBetween(line, "*{{to|", "|");
       if (lng != null) {
-        tgtLng = this.findTargetLanguage(lng);
+        tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
         if (tgtLng != null) {
           String tgtVal = Helper.substringBetweenLast(line, "|", "}}");
           if (Helper.isNotEmptyOrNull(tgtVal)) {
-            info.tgtVal = tgtVal;
+            info.setTgtVal(tgtVal);
 
             info.addTitleTgt();
           }
@@ -433,10 +475,24 @@ public class WiktionaryPagesMetaCurrentExtractor {
         }
       }
     }
+
+    if ((tgtLng == null) && line.startsWith("|")) {
+      lng = Helper.substringBetween(line, "|", "=");
+      if ((lng != null) && (lng.length() < 9)) {
+        tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
+      }
+    }
+
+    if ((tgtLng == null) && line.startsWith("# ")) {
+      lng = Helper.substringBetween(line, "# ", " : ");
+      if ((lng != null) && (lng.length() < 9)) {
+        tgtLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
+      }
+    }
     return tgtLng;
   }
 
-  private Language findTargetLanguage(String lng) {
+  private static Language findTargetLanguage(String lng) {
     Language tgtLng;
     tgtLng = Language.fromKey(lng);
     if (tgtLng == null) {
@@ -452,10 +508,10 @@ public class WiktionaryPagesMetaCurrentExtractor {
 
   private boolean findTranslationBlock(String line, ParseInfo info) {
     final String lineLower = line.toLowerCase();
-    if (lineLower.startsWith("{{-trad-}}") || lineLower.startsWith("{{-trans-}}")) {
+    if (lineLower.startsWith("{{-trad-}}") || lineLower.startsWith("{{-trans-}}") || lineLower.startsWith("{{tt-top}}") || lineLower.startsWith("{{-dika-}}")) {
       return true;
     }
-    List<String> trans = WiktionaryPagesMetaCurrentExtractor.transMap.get(info.fLng.getKey());
+    List<String> trans = WiktionaryPagesMetaCurrentExtractor.transMap.get(info.getfLng().getKey());
     if (trans == null) {
       if (this.notifyNoTranslationKey) {
         System.err.println("没找到翻译代码！");
@@ -466,7 +522,8 @@ public class WiktionaryPagesMetaCurrentExtractor {
         String translationText = t.toLowerCase();
         if (lineLower.startsWith("===" + translationText + "===") || lineLower.startsWith("====" + translationText + "====")
             || lineLower.startsWith("=====" + translationText + "=====") || lineLower.startsWith("=== " + translationText + " ===")
-            || lineLower.startsWith("==== " + translationText + " ====") || lineLower.startsWith("===== " + translationText + " =====")) {
+            || lineLower.startsWith("==== " + translationText + " ====") || lineLower.startsWith("===== " + translationText + " =====")
+            || lineLower.startsWith("{{" + translationText + "}}")) {
           return true;
         }
       }
@@ -474,10 +531,10 @@ public class WiktionaryPagesMetaCurrentExtractor {
     return false;
   }
 
-  private boolean findDefinitionLanguage(String line, ParseInfo info) throws IOException {
+  private boolean findDefinitionLanguage(String line, String cline, ParseInfo info) throws IOException {
     String lng = null;
     Language defLng = null;
-    if (line.startsWith("{{汉语") || line.startsWith("{{=n=|汉|")) {
+    if (cline.startsWith("{{汉语") || cline.startsWith("{{=n=|汉|")) {
       defLng = Language.ZH;
     } else if (line.startsWith("{{-")
         && ((null != (lng = Helper.substringBetween(line, "{{-", "-}}"))) || (null != (lng = Helper.substringBetween(line, "{{-", "-|"))))) {
@@ -485,11 +542,11 @@ public class WiktionaryPagesMetaCurrentExtractor {
     } else if (line.startsWith("=[[") && (null != (lng = Helper.substringBetween(line, "=[[", "]]=")))) {
       defLng = Language.fromKey(lng);
     } else if (line.startsWith("===") && (null != (lng = Helper.substringBetweenNarrow(line, "|", "}}")))) {
-      defLng = this.findTargetLanguage(lng);
+      defLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
     } else if (line.startsWith("==") && (null != (lng = Helper.substringBetween(line, "==", "==")))) {
       defLng = Language.fromKey(lng);
       if (defLng == null) {
-        defLng = this.findTargetLanguage(lng);
+        defLng = WiktionaryPagesMetaCurrentExtractor.findTargetLanguage(lng);
       }
       if (defLng == null) {
         lng = Helper.substringBetween(lng, "|", "}}");
@@ -504,110 +561,5 @@ public class WiktionaryPagesMetaCurrentExtractor {
     } else {
       return false;
     }
-  }
-
-  public static class ParseInfo {
-    public String                fVal;
-
-    public int                   defsCount;
-
-    public List<String>          vals = new ArrayList<String>();
-
-    public List<String>          lngs = new ArrayList<String>();
-
-    public Language              tgtLng;
-
-    public String                tgtVal;
-
-    private Language             defLng;
-
-    public Language              fLng;
-
-    private String               defVal;
-
-    private final BufferedWriter out;
-
-    public ParseInfo(BufferedWriter out, Language fLng) {
-      this.out = out;
-      this.fLng = fLng;
-    }
-
-    public void write() throws IOException {
-      final int size = this.lngs.size();
-      if (size > 1) {
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            this.out.write(Helper.SEP_LIST);
-          }
-          String key = this.lngs.get(i);
-          String val = this.vals.get(i);
-          this.out.write(key);
-          this.out.write(Helper.SEP_DEFINITION);
-          this.out.write(val.replaceAll("^([,\\.，。；?!！？\\|\\-\\+\\* ]+)|([,\\.，。；?!！？\\|\\-\\+\\* ]+$)|('[']+)", ""));
-        }
-        this.out.write(Helper.SEP_NEWLINE);
-        this.defsCount++;
-      }
-      this.clearNow();
-    }
-
-    public void clear() throws IOException {
-      this.write();
-    }
-
-    private void clearNow() throws IOException {
-      this.vals.clear();
-      this.lngs.clear();
-      this.fVal = null;
-      this.tgtVal = null;
-      this.tgtLng = null;
-    }
-
-    public void addTitleTgt() {
-      if ((this.tgtVal != null) && Helper.isNotEmptyOrNull(this.tgtVal) && (this.tgtLng != null) && (this.defLng != null) && (this.defVal != null)
-          && (this.defLng != this.tgtLng)) {
-        if (!this.lngs.contains(this.getDefLng().getKey())) {
-          this.lngs.add(this.getDefLng().getKey());
-          this.vals.add(this.getDefVal());
-        }
-        this.lngs.add(this.tgtLng.getKey());
-        this.vals.add(this.tgtVal);
-      } else if (WiktionaryPagesMetaCurrentExtractor.DEBUG) {
-        System.err.println(this.getDefLng() + "=" + this.getDefVal() + ", " + this.tgtLng + "=" + this.tgtVal);
-      }
-    }
-
-    public void addTitlefLng() {
-      if ((this.fVal != null) && Helper.isNotEmptyOrNull(this.fVal) && (this.fLng != null) && (this.defLng != null) && (this.defVal != null)
-          && (this.defLng != this.tgtLng)) {
-        if (!this.lngs.contains(this.getDefLng().getKey())) {
-          this.lngs.add(this.getDefLng().getKey());
-          this.vals.add(this.getDefVal());
-        }
-        this.lngs.add(this.fLng.getKey());
-        this.vals.add(this.fVal);
-      } else if (WiktionaryPagesMetaCurrentExtractor.DEBUG) {
-        System.err.println(this.getDefLng() + "=" + this.getDefVal() + ", " + this.fLng + "=" + this.fVal);
-      }
-    }
-
-    public String getDefVal() {
-      return this.defVal;
-    }
-
-    public void setDefVal(String defVal) throws IOException {
-      this.write();
-      this.defVal = defVal;
-    }
-
-    public Language getDefLng() {
-      return this.defLng;
-    }
-
-    public void setDefLng(Language defLng) throws IOException {
-      this.write();
-      this.defLng = defLng;
-    }
-
   }
 }
