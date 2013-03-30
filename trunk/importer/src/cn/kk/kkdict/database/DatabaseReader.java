@@ -21,11 +21,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 
+import cn.kk.dict2go.lib.CompressHelper;
+import cn.kk.dict2go.lib.SuperIndexGenerator;
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
-import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.utils.ArrayHelper;
-import cn.kk.kkdict.utils.CompressHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class DatabaseReader {
@@ -58,7 +58,7 @@ public class DatabaseReader {
   private static final int   LANGUAGES_SIZE = 256;
 
   public DatabaseReader() {
-    this.defsCount = new int[Language.values().length + 1];
+    this.defsCount = new int[DatabaseReader.LANGUAGES_SIZE];
   }
 
   /**
@@ -259,7 +259,7 @@ public class DatabaseReader {
     outCachedIndex.write(idxBytes);
   }
 
-  private static final String query                   = "SELECT trl_id, HEX(src_key), src_lng, tgt_lng, src_val, tgt_val, src_gen, src_cat, src_typ, src_use FROM translation WHERE src_lng != tgt_lng AND src_lng < 256 AND tgt_lng < 256 ORDER BY src_key, src_lng, src_val";
+  private static final String query                   = "SELECT trl_id, HEX(src_key), src_lng, tgt_lng, src_val, tgt_val, src_gen, src_cat, src_typ, src_use FROM translation ORDER BY src_key, src_lng, src_val";
 
   private static final String queryCount              = "SELECT count(*) FROM translation";
 
@@ -347,7 +347,7 @@ public class DatabaseReader {
       outHeader.write(ArrayHelper.toBytes((int) cachedLen));
       outHeader.write(ArrayHelper.toBytes((int) idxLen));
       outHeader.write(ArrayHelper.toBytes((int) dataLen));
-      for (int i = 0; i < DatabaseReader.LANGUAGES_SIZE; i++) {
+      for (int i = 1; i < DatabaseReader.LANGUAGES_SIZE; i++) {
         outHeader.write(ArrayHelper.toBytes(this.defsCount[i]));
       }
     }

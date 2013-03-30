@@ -23,8 +23,9 @@ CREATE  TABLE IF NOT EXISTS `dict2go`.`translation` (
   `src_typ` INT UNSIGNED NULL ,
   `src_use` INT UNSIGNED NULL ,
   PRIMARY KEY (`trl_id`) ,
-  INDEX `idx_key` (`src_key` ASC) ,
-  INDEX `idx_lng` (`src_key` ASC, `src_lng` ASC, `tgt_lng` ASC) )
+  INDEX `idx_trl_lng` (`src_key` ASC, `src_lng` ASC, `tgt_lng` ASC) ,
+  INDEX `idx_trl_search` (`src_key` ASC, `src_lng` ASC, `src_val` ASC) ,
+  INDEX `idx_trl_query` (`src_lng` ASC, `tgt_lng` ASC) )
 ENGINE = InnoDB;
 
 
@@ -40,8 +41,9 @@ CREATE  TABLE IF NOT EXISTS `dict2go`.`translation_invalid` (
   `src_typ` INT UNSIGNED NULL ,
   `src_use` INT UNSIGNED NULL ,
   PRIMARY KEY (`trl_id`) ,
-  INDEX `idx_invalid_key` (`src_key` ASC) ,
-  INDEX `idx_invalid_lng` (`src_key` ASC, `src_lng` ASC, `tgt_lng` ASC) )
+  INDEX `idx_inv_lng` (`src_key` ASC, `src_lng` ASC, `tgt_lng` ASC) ,
+  INDEX `idx_inv_search` (`src_key` ASC, `src_lng` ASC, `src_val` ASC) ,
+  INDEX `idx_inv_query` (`src_lng` ASC, `tgt_lng` ASC) )
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------

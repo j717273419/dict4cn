@@ -21,24 +21,30 @@
 package cn.kk.kkdict.types;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 
 import cn.kk.kkdict.utils.Helper;
-
+// http://wikokit.googlecode.com/svn-history/r766/trunk/common_wiki/src/wikokit/base/wikipedia/language/LanguageType.java
 // NOTICE: final version, do not change anything.
+
 public enum Language implements KeyType<Language> {
-  AA("aa", LanguageFamily.NONE),
+  AA("aa", LanguageFamily.NONE, 236),
   AAK("aak", LanguageFamily.NONE),
   AAO("aao", LanguageFamily.ARABIC),
-  AB("ab", LanguageFamily.NONE),
+  AB("ab", LanguageFamily.NONE, 225),
   ABE("abe", LanguageFamily.NONE, 122),
   ABH("abh", LanguageFamily.ARABIC),
   ABM("abm", LanguageFamily.NONE),
@@ -106,7 +112,7 @@ public enum Language implements KeyType<Language> {
   APY("apy", LanguageFamily.NONE),
   AQC("aqc", LanguageFamily.NONE),
   AR("ar", LanguageFamily.ARABIC, 25),
-  ARB("arb", LanguageFamily.ARABIC),
+  ARB("arb", LanguageFamily.ARABIC, 246),
   ARC("arc", LanguageFamily.NONE, 187),
   ARL("arl", LanguageFamily.NONE),
   ARN("arn", LanguageFamily.NONE),
@@ -115,13 +121,13 @@ public enum Language implements KeyType<Language> {
   ARS("ars", LanguageFamily.ARABIC),
   ARW("arw", LanguageFamily.NONE),
   ARY("ary", LanguageFamily.ARABIC),
-  ARZ("arz", LanguageFamily.ARABIC),
-  AS("as", LanguageFamily.NONE),
+  ARZ("arz", LanguageFamily.ARABIC, 203),
+  AS("as", LanguageFamily.NONE, 223),
   ASE("ase", LanguageFamily.NONE),
   AST("ast", LanguageFamily.NONE, 89),
   AUS_SYD("aus_syd", LanguageFamily.NONE),
   AUZ("auz", LanguageFamily.ARABIC),
-  AV("av", LanguageFamily.NONE),
+  AV("av", LanguageFamily.NONE, 230),
   AVL("avl", LanguageFamily.ARABIC),
   AWA("awa", LanguageFamily.NONE),
   AWK("awk", LanguageFamily.NONE),
@@ -152,11 +158,11 @@ public enum Language implements KeyType<Language> {
   BG("bg", LanguageFamily.NONE, 34),
   BH("bh", LanguageFamily.NONE, 153),
   BHO("bho", LanguageFamily.NONE),
-  BI("bi", LanguageFamily.NONE),
+  BI("bi", LanguageFamily.NONE, 247),
   BIK("bik", LanguageFamily.NONE),
-  BJN("bjn", LanguageFamily.NONE),
+  BJN("bjn", LanguageFamily.NONE, 215),
   BLA("bla", LanguageFamily.NONE),
-  BM("bm", LanguageFamily.NONE),
+  BM("bm", LanguageFamily.NONE, 252),
   BN("bn", LanguageFamily.NONE, 76),
   BO("bo", LanguageFamily.NONE, 141),
   BPY("bpy", LanguageFamily.NONE, 72),
@@ -167,8 +173,8 @@ public enum Language implements KeyType<Language> {
   CA("ca", LanguageFamily.NONE, 16),
   CAD("cad", LanguageFamily.NONE),
   CBK_ZAM("cbk_zam", LanguageFamily.NONE, 192),
-  CDO("cdo", LanguageFamily.CHINESE),
-  CE("ce", LanguageFamily.NONE),
+  CDO("cdo", LanguageFamily.CHINESE, 110),
+  CE("ce", LanguageFamily.NONE, 207),
   CEB("ceb", LanguageFamily.NONE, 57),
   CH("ch", LanguageFamily.NONE),
   CHC("chc", LanguageFamily.NONE),
@@ -176,10 +182,10 @@ public enum Language implements KeyType<Language> {
   CHH("chh", LanguageFamily.NONE),
   CHN("chn", LanguageFamily.NONE),
   CHO("cho", LanguageFamily.NONE),
-  CHR("chr", LanguageFamily.NONE),
-  CHY("chy", LanguageFamily.NONE),
+  CHR("chr", LanguageFamily.NONE, 214),
+  CHY("chy", LanguageFamily.NONE, 245),
   CIC("cic", LanguageFamily.NONE),
-  CJY("cjy", LanguageFamily.CHINESE),
+  CJY("cjy", LanguageFamily.CHINESE, 1),
   CKB("ckb", LanguageFamily.NONE, 123),
   CKC("ckc", LanguageFamily.CAKCHIQUEL),
   CKD("ckd", LanguageFamily.CAKCHIQUEL),
@@ -195,7 +201,7 @@ public enum Language implements KeyType<Language> {
   COC("coc", LanguageFamily.NONE),
   COM("com", LanguageFamily.NONE),
   CPG("cpg", LanguageFamily.NONE),
-  CPX("cpx", LanguageFamily.CHINESE),
+  CPX("cpx", LanguageFamily.CHINESE, 1),
   CR("cr", LanguageFamily.CREE),
   CRH("crh", LanguageFamily.NONE, 197),
   CRJ("crj", LanguageFamily.CREE),
@@ -205,26 +211,26 @@ public enum Language implements KeyType<Language> {
   CS("cs", LanguageFamily.NONE, 19),
   CSB("csb", LanguageFamily.NONE, 151),
   CSW("csw", LanguageFamily.CREE),
-  CU("cu", LanguageFamily.NONE),
+  CU("cu", LanguageFamily.NONE, 227),
   CV("cv", LanguageFamily.NONE, 98),
   CWD("cwd", LanguageFamily.CREE),
   CY("cy", LanguageFamily.NONE, 62),
-  CZH("czh", LanguageFamily.CHINESE),
-  CZO("czo", LanguageFamily.CHINESE),
+  CZH("czh", LanguageFamily.CHINESE, 1),
+  CZO("czo", LanguageFamily.CHINESE, 1),
   DA("da", LanguageFamily.NONE, 26),
   DAK("dak", LanguageFamily.NONE),
   DAR("dar", LanguageFamily.NONE),
   DE("de", LanguageFamily.NONE, 3),
   DIN("din", LanguageFamily.NONE),
   DIQ("diq", LanguageFamily.NONE, 93),
-  DLM("dlm", LanguageFamily.NONE),
+  DLM("dlm", LanguageFamily.NONE, 242),
   DNG("dng", LanguageFamily.SINO_TIBETAN),
   DSB("dsb", LanguageFamily.NONE, 189),
   DUA("dua", LanguageFamily.NONE),
   DUL("dul", LanguageFamily.NONE),
   DV("dv", LanguageFamily.NONE, 165),
   DZ("dz", LanguageFamily.NONE),
-  EE("ee", LanguageFamily.NONE),
+  EE("ee", LanguageFamily.NONE, 235),
   EFI("efi", LanguageFamily.NONE),
   EL("el", LanguageFamily.NONE, 42),
   EML("eml", LanguageFamily.NONE, 194),
@@ -246,7 +252,7 @@ public enum Language implements KeyType<Language> {
   FIL("fil", LanguageFamily.AUSTRONESIAN),
   FIT("fit", LanguageFamily.URALIC),
   FIU_VRO("fiu_vro", LanguageFamily.NONE, 111),
-  FJ("fj", LanguageFamily.NONE),
+  FJ("fj", LanguageFamily.NONE, 217),
   FKV("fkv", LanguageFamily.URALIC),
   FO("fo", LanguageFamily.INDO_EUROPEAN, 132),
   FOS("fos", LanguageFamily.AUSTRONESIAN),
@@ -268,28 +274,28 @@ public enum Language implements KeyType<Language> {
   FY("fy", LanguageFamily.INDO_EUROPEAN, 71),
   GA("ga", LanguageFamily.NONE, 97),
   GAA("gaa", LanguageFamily.NONE),
-  GAG("gag", LanguageFamily.TURKIC),
+  GAG("gag", LanguageFamily.TURKIC, 208),
   GAN("gan", LanguageFamily.CHINESE, 120),
   GAY("gay", LanguageFamily.NONE),
   GD("gd", LanguageFamily.NONE, 107),
   GIL("gil", LanguageFamily.NONE),
   GL("gl", LanguageFamily.NONE, 83),
   GLK("glk", LanguageFamily.NONE),
-  GMH("gmh", LanguageFamily.NONE),
-  GML("gml", LanguageFamily.NONE),
+  GMH("gmh", LanguageFamily.NONE, 3),
+  GML("gml", LanguageFamily.NONE, 3),
   GN("gn", LanguageFamily.NONE, 184),
   GNI("gni", LanguageFamily.NONE),
-  GOH("goh", LanguageFamily.NONE),
-  GOT("got", LanguageFamily.NONE),
+  GOH("goh", LanguageFamily.NONE, 3),
+  GOT("got", LanguageFamily.NONE, 238),
   GRC("grc", LanguageFamily.NONE),
-  GSW("gsw", LanguageFamily.GERMAN),
+  GSW("gsw", LanguageFamily.GERMAN, 3),
   GU("gu", LanguageFamily.NONE, 79),
   GUL("gul", LanguageFamily.NONE),
   GUN("gun", LanguageFamily.NONE),
   GV("gv", LanguageFamily.NONE, 137),
   GWC("gwc", LanguageFamily.NONE),
   GWI("gwi", LanguageFamily.NONE),
-  HA("ha", LanguageFamily.NONE),
+  HA("ha", LanguageFamily.NONE, 243),
   HAI("hai", LanguageFamily.NONE),
   HAK("hak", LanguageFamily.CHINESE, 155),
   HAW("haw", LanguageFamily.NONE, 173),
@@ -327,7 +333,7 @@ public enum Language implements KeyType<Language> {
   IA("ia", LanguageFamily.NONE, 99),
   ID("id", LanguageFamily.NONE, 21),
   IE("ie", LanguageFamily.NONE, 171),
-  IG("ig", LanguageFamily.NONE),
+  IG("ig", LanguageFamily.NONE, 226),
   II("ii", LanguageFamily.NONE),
   IK("ik", LanguageFamily.NONE),
   IKE("ike", LanguageFamily.INUKTITUT),
@@ -338,7 +344,7 @@ public enum Language implements KeyType<Language> {
   IO("io", LanguageFamily.NONE, 77),
   IS("is", LanguageFamily.NONE, 65),
   IT("it", LanguageFamily.NONE, 5),
-  IU("iu", LanguageFamily.INUKTITUT),
+  IU("iu", LanguageFamily.INUKTITUT, 228),
   IW("iw", LanguageFamily.NONE),
   JA("ja", LanguageFamily.NONE, 6),
   JAM("jam", LanguageFamily.NONE),
@@ -346,13 +352,13 @@ public enum Language implements KeyType<Language> {
   JV("jv", LanguageFamily.NONE, 60),
   JYE("jye", LanguageFamily.ARABIC),
   KA("ka", LanguageFamily.NONE, 48),
-  KAA("kaa", LanguageFamily.NONE),
-  KAB("kab", LanguageFamily.NONE),
-  KBD("kbd", LanguageFamily.NONE),
+  KAA("kaa", LanguageFamily.NONE, 234),
+  KAB("kab", LanguageFamily.NONE, 237),
+  KBD("kbd", LanguageFamily.NONE, 222),
   KCN("kcn", LanguageFamily.NONE),
   KFL("kfl", LanguageFamily.NONE),
-  KG("kg", LanguageFamily.NONE),
-  KI("ki", LanguageFamily.NONE),
+  KG("kg", LanguageFamily.NONE, 233),
+  KI("ki", LanguageFamily.NONE, 253),
   KJ("kj", LanguageFamily.NONE),
   KJU("kju", LanguageFamily.NONE),
   KK("kk", LanguageFamily.NONE, 35),
@@ -378,7 +384,7 @@ public enum Language implements KeyType<Language> {
   LA("la", LanguageFamily.NONE, 41),
   LAD("lad", LanguageFamily.NONE, 167),
   LB("lb", LanguageFamily.NONE, 64),
-  LBE("lbe", LanguageFamily.NONE),
+  LBE("lbe", LanguageFamily.NONE, 218),
   LG("lg", LanguageFamily.NONE),
   LI("li", LanguageFamily.NONE, 128),
   LIJ("lij", LanguageFamily.NONE, 156),
@@ -387,16 +393,16 @@ public enum Language implements KeyType<Language> {
   LLD("lld", LanguageFamily.NONE),
   LMO("lmo", LanguageFamily.NONE, 69),
   LN("ln", LanguageFamily.NONE, 188),
-  LO("lo", LanguageFamily.NONE),
+  LO("lo", LanguageFamily.NONE, 205),
   LSY("lsy", LanguageFamily.NONE),
   LT("lt", LanguageFamily.NONE, 29),
-  LTC("ltc", LanguageFamily.CHINESE),
-  LTG("ltg", LanguageFamily.NONE),
+  LTC("ltc", LanguageFamily.CHINESE, 1),
+  LTG("ltg", LanguageFamily.NONE, 206),
   LV("lv", LanguageFamily.NONE, 58),
-  LZH("lzh", LanguageFamily.CHINESE),
+  LZH("lzh", LanguageFamily.CHINESE, 1),
   MAD("mad", LanguageFamily.NONE),
   MAP_BMS("map_bms", LanguageFamily.NONE, 102),
-  MDF("mdf", LanguageFamily.NONE),
+  MDF("mdf", LanguageFamily.NONE, 220),
   MFE("mfe", LanguageFamily.NONE),
   MG("mg", LanguageFamily.NONE, 61),
   MH("mh", LanguageFamily.NONE),
@@ -407,9 +413,9 @@ public enum Language implements KeyType<Language> {
   MK("mk", LanguageFamily.NONE, 49),
   ML("ml", LanguageFamily.NONE, 73),
   MN("mn", LanguageFamily.NONE, 117),
-  MNC("mnc", LanguageFamily.NONE),
-  MNP("mnp", LanguageFamily.CHINESE),
-  MO("mo", LanguageFamily.NONE),
+  MNC("mnc", LanguageFamily.NONE, 201),
+  MNP("mnp", LanguageFamily.CHINESE, 1),
+  MO("mo", LanguageFamily.NONE, 249),
   MOH("moh", LanguageFamily.NONE),
   MR("mr", LanguageFamily.NONE, 63),
   MRC("mrc", LanguageFamily.NONE),
@@ -426,9 +432,9 @@ public enum Language implements KeyType<Language> {
   MYP("myp", LanguageFamily.NONE),
   MYV("myv", LanguageFamily.NONE, 196),
   MZN("mzn", LanguageFamily.NONE, 136),
-  NA("na", LanguageFamily.NONE),
+  NA("na", LanguageFamily.NONE, 224),
   NAH("nah", LanguageFamily.NONE, 118),
-  NAN("nan", LanguageFamily.CHINESE),
+  NAN("nan", LanguageFamily.CHINESE, 110),
   NAP("nap", LanguageFamily.NONE, 100),
   NAQ("naq", LanguageFamily.NONE),
   NB("nb", LanguageFamily.NORSK_BOKMÅL),
@@ -446,40 +452,40 @@ public enum Language implements KeyType<Language> {
   NMN("nmn", LanguageFamily.NONE),
   NN("nn", LanguageFamily.NONE, 84),
   NO("no", LanguageFamily.NONE, 17),
-  NON("non", LanguageFamily.NONE),
+  NON("non", LanguageFamily.NONE, 250),
   NOV("nov", LanguageFamily.NONE, 162),
   NRM("nrm", LanguageFamily.NONE, 138),
   NRN("nrn", LanguageFamily.NONE),
-  NSO("nso", LanguageFamily.NONE),
+  NSO("nso", LanguageFamily.NONE, 232),
   NV("nv", LanguageFamily.NONE, 183),
   NY("ny", LanguageFamily.NONE),
   OC("oc", LanguageFamily.NONE, 47),
-  OCH("och", LanguageFamily.CHINESE),
+  OCH("och", LanguageFamily.CHINESE, 1),
   ODT("odt", LanguageFamily.NONE),
   OFS("ofs", LanguageFamily.FRIESISCH),
   OJ("oj", LanguageFamily.NONE),
   OM("om", LanguageFamily.NONE),
   OOD("ood", LanguageFamily.NONE, 116),
   OR("or", LanguageFamily.NONE, 185),
-  OS("os", LanguageFamily.NONE),
+  OS("os", LanguageFamily.NONE, 202),
   OSC("osc", LanguageFamily.NONE),
   OSX("osx", LanguageFamily.NONE),
   PA("pa", LanguageFamily.NONE, 150),
-  PAG("pag", LanguageFamily.NONE),
+  PAG("pag", LanguageFamily.NONE, 239),
   PAM("pam", LanguageFamily.NONE, 124),
   PAP("pap", LanguageFamily.NONE, 198),
   PAU("pau", LanguageFamily.NONE),
   PCD("pcd", LanguageFamily.NONE, 180),
-  PDC("pdc", LanguageFamily.NONE),
-  PFL("pfl", LanguageFamily.NONE, 181),
+  PDC("pdc", LanguageFamily.NONE, 216),
+  PFL("pfl", LanguageFamily.NONE, 204),
   PHN("phn", LanguageFamily.NONE),
   PI("pi", LanguageFamily.NONE, 157),
-  PIH("pih", LanguageFamily.NONE),
+  PIH("pih", LanguageFamily.NONE, 251),
   PJT("pjt", LanguageFamily.NONE),
   PL("pl", LanguageFamily.INDO_EUROPEAN, 10),
   PMS("pms", LanguageFamily.NONE, 52),
   PNB("pnb", LanguageFamily.NONE, 74),
-  PNT("pnt", LanguageFamily.NONE),
+  PNT("pnt", LanguageFamily.NONE, 231),
   PRG("prg", LanguageFamily.NONE),
   PRO("pro", LanguageFamily.NONE),
   PRP("prp", LanguageFamily.NONE),
@@ -539,17 +545,17 @@ public enum Language implements KeyType<Language> {
   RHG("rhg", LanguageFamily.NONE),
   RM("rm", LanguageFamily.NONE, 181),
   RME("rme", LanguageFamily.NONE),
-  RMN("rmn", LanguageFamily.NONE),
-  RMY("rmy", LanguageFamily.NONE),
+  RMN("rmn", LanguageFamily.NONE, 181),
+  RMY("rmy", LanguageFamily.NONE, 181),
   RN("rn", LanguageFamily.NONE),
   RO("ro", LanguageFamily.NONE, 23),
-  ROA_JER("roa_jer", LanguageFamily.NONE),
+  ROA_JER("roa_jer", LanguageFamily.NONE, 138),
   ROA_RUP("roa_rup", LanguageFamily.NONE, 46),
   ROA_TARA("roa_tara", LanguageFamily.NONE, 130),
   RU("ru", LanguageFamily.NONE, 8),
   RUE("rue", LanguageFamily.NONE, 149),
   RUO("ruo", LanguageFamily.NONE),
-  RUP("rup", LanguageFamily.NONE),
+  RUP("rup", LanguageFamily.NONE, 211),
   RUQ("ruq", LanguageFamily.NONE),
   RW("rw", LanguageFamily.NONE, 195),
   RYU("ryu", LanguageFamily.NONE),
@@ -559,7 +565,7 @@ public enum Language implements KeyType<Language> {
   SC("sc", LanguageFamily.NONE, 164),
   SCN("scn", LanguageFamily.NONE, 90),
   SCO("sco", LanguageFamily.NONE, 115),
-  SD("sd", LanguageFamily.NONE),
+  SD("sd", LanguageFamily.NONE, 248),
   SE("se", LanguageFamily.NONE, 126),
   SEI("sei", LanguageFamily.NONE),
   SEM_AMM("sem_amm", LanguageFamily.NONE),
@@ -579,19 +585,19 @@ public enum Language implements KeyType<Language> {
   SJU("sju", LanguageFamily.NONE),
   SK("sk", LanguageFamily.NONE, 30),
   SL("sl", LanguageFamily.NONE, 31),
-  SM("sm", LanguageFamily.NONE),
+  SM("sm", LanguageFamily.NONE, 240),
   SMA("sma", LanguageFamily.NONE),
   SMJ("smj", LanguageFamily.NONE),
   SMN("smn", LanguageFamily.NONE),
   SMS("sms", LanguageFamily.NONE),
-  SN("sn", LanguageFamily.NONE),
+  SN("sn", LanguageFamily.NONE, 212),
   SO("so", LanguageFamily.NONE, 178),
   SOG("sog", LanguageFamily.NONE),
   SQ("sq", LanguageFamily.NONE, 59),
   SR("sr", LanguageFamily.NONE, 28),
-  SRN("srn", LanguageFamily.NONE),
-  SS("ss", LanguageFamily.NONE),
-  ST("st", LanguageFamily.NONE),
+  SRN("srn", LanguageFamily.NONE, 221),
+  SS("ss", LanguageFamily.NONE, 255),
+  ST("st", LanguageFamily.NONE, 241),
   STQ("stq", LanguageFamily.NONE, 161),
   SU("su", LanguageFamily.NONE, 91),
   SUL("sul", LanguageFamily.NONE),
@@ -605,7 +611,7 @@ public enum Language implements KeyType<Language> {
   TAY("tay", LanguageFamily.NONE),
   TCS("tcs", LanguageFamily.NONE),
   TE("te", LanguageFamily.NONE, 53),
-  TET("tet", LanguageFamily.NONE),
+  TET("tet", LanguageFamily.NONE, 229),
   TFN("tfn", LanguageFamily.NONE),
   TG("tg", LanguageFamily.NONE, 109),
   TH("th", LanguageFamily.NONE, 43),
@@ -614,8 +620,8 @@ public enum Language implements KeyType<Language> {
   TKL("tkl", LanguageFamily.NONE),
   TL("tl", LanguageFamily.AUSTRONESIAN, 50),
   TLI("tli", LanguageFamily.NONE),
-  TN("tn", LanguageFamily.NONE),
-  TO("to", LanguageFamily.NONE),
+  TN("tn", LanguageFamily.NONE, 254),
+  TO("to", LanguageFamily.NONE, 244),
   TOKI("toki", LanguageFamily.NONE),
   TPI("tpi", LanguageFamily.NONE, 193),
   TPN("tpn", LanguageFamily.NONE),
@@ -627,7 +633,7 @@ public enum Language implements KeyType<Language> {
   TVL("tvl", LanguageFamily.NONE),
   TW("tw", LanguageFamily.NONE),
   TXB("txb", LanguageFamily.NONE),
-  TY("ty", LanguageFamily.NONE),
+  TY("ty", LanguageFamily.NONE, 213),
   UDM("udm", LanguageFamily.NONE, 174),
   UG("ug", LanguageFamily.NONE, 147),
   UK("uk", LanguageFamily.NONE, 14),
@@ -640,13 +646,13 @@ public enum Language implements KeyType<Language> {
   VI("vi", LanguageFamily.AUSTRO_ASIATIC, 15),
   VLS("vls", LanguageFamily.NONE, 144),
   VO("vo", LanguageFamily.NONE, 37),
-  VRO("vro", LanguageFamily.NONE),
+  VRO("vro", LanguageFamily.NONE, 111),
   WA("wa", LanguageFamily.NONE, 103),
   WAM("wam", LanguageFamily.NONE),
   WAR("war", LanguageFamily.NONE, 38),
   WBP("wbp", LanguageFamily.NONE),
   WIM("wim", LanguageFamily.NONE),
-  WO("wo", LanguageFamily.NONE),
+  WO("wo", LanguageFamily.NONE, 210),
   WUU("wuu", LanguageFamily.CHINESE, 1),
   XAA("xaa", LanguageFamily.NONE),
   XAL("xal", LanguageFamily.NONE, 172),
@@ -673,8 +679,8 @@ public enum Language implements KeyType<Language> {
   YI("yi", LanguageFamily.NONE, 119),
   YIJ("yij", LanguageFamily.NONE),
   YO("yo", LanguageFamily.NONE, 67),
-  YUE("yue", LanguageFamily.CHINESE),
-  ZA("za", LanguageFamily.NONE),
+  YUE("yue", LanguageFamily.CHINESE, 1),
+  ZA("za", LanguageFamily.NONE, 219),
   ZAA("zaa", LanguageFamily.ZAPOTEC),
   ZAB("zab", LanguageFamily.ZAPOTEC),
   ZAC("zac", LanguageFamily.ZAPOTEC),
@@ -741,7 +747,7 @@ public enum Language implements KeyType<Language> {
   ZTU("ztu", LanguageFamily.ZAPOTEC),
   ZTX("ztx", LanguageFamily.ZAPOTEC),
   ZTY("zty", LanguageFamily.ZAPOTEC),
-  ZU("zu", LanguageFamily.NONE),
+  ZU("zu", LanguageFamily.NONE, 209),
   ZUN("zun", LanguageFamily.NONE),
   ZWA("zwa", LanguageFamily.NONE),
   ZZA("zza", LanguageFamily.NONE), ;
@@ -816,17 +822,101 @@ public enum Language implements KeyType<Language> {
     this.keyBytes = key.getBytes(Helper.CHARSET_UTF8);
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
+    Language.printWithName();
+  }
+
+  private void printWithId() throws IOException {
+    Map<String, Language> lngNames = new HashMap<>();
+
+    try (InputStream in = Language.class.getResourceAsStream("/lng2name_ZH.txt");) {
+      Properties lngsAlt = new Properties();
+      try (Reader r = new InputStreamReader(in, Helper.CHARSET_UTF8)) {
+        lngsAlt.load(r);
+        Enumeration<Object> keys = lngsAlt.keys();
+        while (keys.hasMoreElements()) {
+          String key = (String) keys.nextElement();
+          String val = lngsAlt.getProperty(key);
+          lngNames.put(key, Language.KEYS_MAP.get(val));
+        }
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
     List<Language> lngs = Language.getSortedLanguages();
 
     for (Language lng : lngs) {
       if (lng.id > 0) {
-        System.out.println(lng.id + "=" + lng.key + (lng.auto ? " (*)" : ""));
+        System.out.print(lng.id + "=" + lng.key + (lng.auto ? " (*): " : ": "));
+        for (Entry<String, Language> e : lngNames.entrySet()) {
+          if (e.getValue() == lng) {
+            System.out.print(e.getKey() + ",");
+          }
+        }
+        System.out.println();
       }
     }
 
     for (Language lng : Language.VALUES) {
-      System.out.println(lng.id + "=" + lng.key + (lng.auto ? " (*)" : ""));
+      if (lng == null) {
+        break;
+      }
+      System.out.println(lng.id + "=" + lng.key + (lng.auto ? " (*): " : ": "));
+      for (Entry<String, Language> e : Language.KEYS_MAP.entrySet()) {
+        if (e.getValue() == lng) {
+          System.out.print(e.getKey() + ",");
+        }
+      }
+      System.out.println();
+    }
+  }
+
+  private static void printWithName() throws IOException {
+    Map<String, Language> lngNames = new HashMap<>();
+
+    try (InputStream in = Language.class.getResourceAsStream("/lng2name_ZH.txt");) {
+      Properties lngsAlt = new Properties();
+      try (Reader r = new InputStreamReader(in, Helper.CHARSET_UTF8)) {
+        lngsAlt.load(r);
+        Enumeration<Object> keys = lngsAlt.keys();
+        while (keys.hasMoreElements()) {
+          String key = (String) keys.nextElement();
+          String val = lngsAlt.getProperty(key);
+          lngNames.put(key, Language.KEYS_MAP.get(val));
+        }
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    List<Language> lngs = Language.getSortedLanguages();
+
+    for (Language lng : lngs) {
+      if (lng.id > 0) {
+        System.out.print(lng.key + "=");
+        for (Entry<String, Language> e : lngNames.entrySet()) {
+          if (e.getValue() == lng) {
+            System.out.print(e.getKey() + ",");
+          }
+        }
+        System.out.println();
+      }
+    }
+
+    for (Language lng : Language.VALUES) {
+      if (lng == null) {
+        break;
+      }
+      System.out.println(lng.key + "=");
+      for (Entry<String, Language> e : Language.KEYS_MAP.entrySet()) {
+        if (e.getValue() == lng) {
+          System.out.print(e.getKey() + ",");
+        }
+      }
+      System.out.println();
     }
   }
 

@@ -57,9 +57,9 @@ public class WiktionaryPagesMetaCurrentExtractor {
   public static String                     OUT_DIR          = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY);
 
   static {
-    WiktionaryPagesMetaCurrentExtractor.IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
-
-    WiktionaryPagesMetaCurrentExtractor.OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
+    // WiktionaryPagesMetaCurrentExtractor.IN_DIR = Configuration.IMPORTER_FOLDER_SELECTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
+    //
+    // WiktionaryPagesMetaCurrentExtractor.OUT_DIR = Configuration.IMPORTER_FOLDER_EXTRACTED_DICTS.getPath(Source.DICT_WIKTIONARY) + "/test";
   }
 
   public static final String               OUT_DIR_FINISHED = WiktionaryPagesMetaCurrentExtractor.OUT_DIR + "/finished";

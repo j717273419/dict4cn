@@ -1,0 +1,22 @@
+h1. search
+
+h2. start
+
+# select from history
+# select from autocomplete
+# copy to clipboard (key < 20)
+# enter
+
+h2. show
+
+# result key == input key
+
+h1. autocomplete
+
+h2. start
+
+# keyup timer
+
+h2. show
+
+# result key == input key

@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import cn.kk.dict2go.lib.PhoneticTranscriptionHelper;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class ChineseConvertionGenerator {
   public static void main(final String[] args) {

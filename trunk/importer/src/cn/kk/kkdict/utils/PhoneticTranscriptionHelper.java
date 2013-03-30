@@ -29,6 +29,7 @@ import java.util.Map;
 import cn.kk.kkdict.beans.FormattedTreeMap;
 import cn.kk.kkdict.types.GoogleLanguage;
 import cn.kk.kkdict.types.Language;
+import cn.kk.kkdict.utils.Helper;
 
 public class PhoneticTranscriptionHelper {
   private static final Map<Integer, String> CODEPOINT_2_PINYIN_MAP = new FormattedTreeMap<>();

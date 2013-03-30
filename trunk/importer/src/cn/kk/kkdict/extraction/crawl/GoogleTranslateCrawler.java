@@ -101,9 +101,9 @@ public class GoogleTranslateCrawler {
             startCounter > 0), Helper.CHARSET_UTF8), Helper.BUFFER_SIZE)) {
       String line;
       while (null != (line = in.readLine())) {
-        System.out.print(".");
         lineCounter++;
         if (lineCounter > startCounter) {
+          System.out.print(".");
           if (!Helper.containsAny(line, ',', '.', '，', '。', '？', '?', '!', '(', ')', '（', '）')) {
             String result = GoogleTranslateCrawler.translate(GoogleLanguage.ZH, line);
             if (result != null) {
