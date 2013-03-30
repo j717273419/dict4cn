@@ -1,4 +1,5 @@
 #lng2name_ZH
+
 毛里求斯克里奥耳语=mfe
 毛克语=mfe
 道本语=toki
@@ -121,6 +122,7 @@
 葡萄牙语=pt
 下索布语=dsb
 国际语A=ia
+国际语=ia
 越南语=vi
 菲律宾语=fil
 古爱尔兰语=sga
@@ -133,7 +135,7 @@
 高棉语=km
 日语=ja
 法语=fr
-#Tue Apr 10 01:09:46 CEST 2012
+
 康藏语=khg
 噶拉塘-门巴语=kkf
 古朝鲜语=oko
@@ -414,7 +416,7 @@
 粵語=zh-yue
 科萨语=xh
 宗喀语=dz
-阿罗马尼亚语=rup
+阿罗马尼亚语=roa_rup
 阿尔及利亚阿拉伯语=arq
 花剌子模语=zkh
 契维语=tw
@@ -1234,6 +1236,7 @@
 埃塞俄比亚手语=eth
 中国手语=csl
 Vlax\ 罗姆语=rmy
+罗姆语=rmy
 南库尔德语=sdh
 阿布安语=abn
 保加利亚语=bg
@@ -1702,6 +1705,7 @@ Banjar语=bjn
 尼扬科勒语=nyn
 涅涅茨语=yrk
 閩東話=cdo
+闽语=cdo
 奇佩维安语=chp
 恩加纳桑语=nio
 缅甸语=my
@@ -1766,5 +1770,27 @@ Banjar语=bjn
 阿拉瓦克语=arw
 霍语=hoc
 马来文\ (马来西亚)=ms
+马来文=ms
 桂边壮语=zgn
 马达加斯加手语=mzc
+加泰罗尼亚语=ca
+斯瓦希里语=sw
+萨莫吉提亚语=bat_smg
+班宇麻桑=map_bms
+苏格兰盖尔语=gd
+盖尔语=gd
+闽南语=zh_min_nan
+闽南话=zh_min_nan
+佛罗语=fiu_vro
+荷兰低撒克逊=nds_nl
+荷兰低撒克逊语=nds_nl
+欧欧弟哈姆语=ood
+阿本拿基语=abe
+塔伦蒂诺语=roa_tara
+查瓦卡诺语=cbk_zam
+广东话=yue
+班嘉语=bjn
+拉罗汤加语=rar
+萨米语=se
+斐济印度斯坦语=hif
+马里语=mhr

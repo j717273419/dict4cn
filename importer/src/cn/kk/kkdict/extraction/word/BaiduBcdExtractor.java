@@ -32,6 +32,7 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Set;
 
+import cn.kk.dict2go.lib.PhoneticTranscriptionHelper;
 import cn.kk.kkdict.Configuration;
 import cn.kk.kkdict.Configuration.Source;
 import cn.kk.kkdict.types.Category;
@@ -39,7 +40,6 @@ import cn.kk.kkdict.types.Language;
 import cn.kk.kkdict.types.WordSource;
 import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
-import cn.kk.kkdict.utils.PhoneticTranscriptionHelper;
 
 public class BaiduBcdExtractor {
   public static final String IN_DIR   = Configuration.IMPORTER_FOLDER_SELECTED_WORDS.getPath(Source.WORD_BAIDU);

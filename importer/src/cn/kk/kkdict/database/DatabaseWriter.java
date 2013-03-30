@@ -21,12 +21,14 @@ import cn.kk.kkdict.utils.ChineseHelper;
 import cn.kk.kkdict.utils.Helper;
 
 public class DatabaseWriter {
+  private static final int    LAST_VALID_LNG_ID = 255;
+
   // private static final String SOURCE = "D:\\kkdict\\out";
-  private static final String SOURCE = "D:\\kkdict\\out\\test";
+  private static final String SOURCE            = "D:\\kkdict\\out";
 
-  private static final String url    = "jdbc:mysql://localhost:3306/dict2go?autoReconnect=true";
+  private static final String url               = "jdbc:mysql://localhost:3306/dict2go?autoReconnect=true";
 
-  private static final String driver = "com.mysql.jdbc.Driver";
+  private static final String driver            = "com.mysql.jdbc.Driver";
 
   /**
    * @param args
@@ -214,7 +216,7 @@ public class DatabaseWriter {
       // System.out.println("---");
       for (Translation trl : trls) {
         // System.out.println(trl);
-        if (Helper.isNotEmptyOrNull(trl.getSrcVal()) && Helper.isNotEmptyOrNull(trl.getTgtVal())) {
+        if ((trl.getSrcLng() != trl.getTgtLng()) && Helper.isNotEmptyOrNull(trl.getSrcVal()) && Helper.isNotEmptyOrNull(trl.getTgtVal())) {
           sql = DatabaseWriter.addTranslationBatch(stmt, trl);
         }
       }
@@ -237,7 +239,7 @@ public class DatabaseWriter {
   }
 
   private static String toSQL(byte[] srcKey, int srcLng, int tgtLng, String srcVal, String tgtVal, int srcGender, int srcCategory, int srcType, int srcUsage) {
-    if ((srcLng < 256) && (tgtLng < 256)) {
+    if ((srcLng <= DatabaseWriter.LAST_VALID_LNG_ID) && (tgtLng <= DatabaseWriter.LAST_VALID_LNG_ID)) {
       String sql = "call addTranslation(UNHEX('" + ArrayHelper.toHexString(srcKey, false) + "')," + srcLng + "," + tgtLng + ",'"
           + DatabaseWriter.escape(srcVal) + "','" + DatabaseWriter.escape(tgtVal) + "'," + srcGender + "," + srcCategory + "," + srcType + "," + srcUsage
           + ");";

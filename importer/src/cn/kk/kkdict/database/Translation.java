@@ -1,5 +1,6 @@
 package cn.kk.kkdict.database;
 
+import cn.kk.dict2go.lib.SuperIndexGenerator;
 import cn.kk.kkdict.utils.ArrayHelper;
 
 public class Translation {
